@@ -1,0 +1,83 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* KRS College Connect - Global Styles */
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-navy-950 text-gray-100 font-sans antialiased;
+    margin: 0;
+  }
+
+  /* Display font for headers and athlete names */
+  .display-font {
+    font-family: 'Oswald', 'Bebas Neue', 'Barlow Condensed', system-ui, sans-serif;
+    @apply font-bold uppercase tracking-wider;
+  }
+}
+
+@layer components {
+  /* Primary crimson button */
+  .btn-primary {
+    @apply bg-crimson-600 hover:bg-crimson-700 text-white font-bold uppercase px-6 py-3 rounded-lg transition-colors;
+  }
+
+  /* Secondary button with crimson outline */
+  .btn-secondary {
+    @apply bg-transparent border border-crimson-600 text-crimson-600 hover:bg-crimson-600 hover:text-white font-bold uppercase px-6 py-3 rounded-lg transition-colors;
+  }
+
+  /* Ghost button */
+  .btn-ghost {
+    @apply bg-transparent border border-gray-600 text-gray-300 hover:border-crimson-600 hover:text-crimson-600 px-6 py-3 rounded-lg transition-colors;
+  }
+
+  /* Card styling */
+  .card {
+    @apply bg-card rounded-xl border border-opacity-15 border-crimson-600 p-6;
+  }
+
+  /* Stat cards with crimson top border glow */
+  .stat-card {
+    @apply card border-t-4 border-t-crimson-600 shadow-lg shadow-crimson-600/10;
+  }
+
+  /* Form input styling */
+  .form-input {
+    @apply bg-card border border-gray-600 text-white placeholder-gray-400 px-4 py-3 rounded-lg focus:outline-none focus:border-crimson-600 focus:ring-1 focus:ring-crimson-600;
+  }
+
+  /* Form label styling */
+  .form-label {
+    @apply text-gray-400 text-sm font-medium uppercase tracking-wider mb-2 block;
+  }
+
+  /* Active sidebar item */
+  .nav-active {
+    @apply bg-crimson-600 text-white border-l-4 border-l-crimson-400;
+  }
+
+  /* Crimson accent text */
+  .text-accent {
+    @apply text-crimson-600;
+  }
+
+  /* Success green for progress, etc */
+  .text-success {
+    @apply text-green-500;
+  }
+
+  /* Warning yellow for pending states */
+  .text-warning {
+    @apply text-yellow-500;
+  }
+
+  /* Muted text for labels and descriptions */
+  .text-muted {
+    @apply text-gray-400;
+  }
+}
