@@ -200,9 +200,11 @@ export default function AthleteLayout({ children }) {
                 <div className="text-white text-sm font-medium">
                   {profile?.full_name || (user?.email?.split('@')[0]) || 'Athlete'}
                 </div>
-                <div className="text-gray-400 text-xs">
-                  Class of {new Date().getFullYear() + 4}
-                </div>
+                {profile?.athlete?.class_year && (
+                  <div className="text-gray-400 text-xs">
+                    Class of {profile.athlete.class_year}
+                  </div>
+                )}
               </div>
             </div>
             <button

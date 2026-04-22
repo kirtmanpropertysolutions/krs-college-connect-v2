@@ -207,11 +207,38 @@ export const AuthProvider = ({ children }) => {
 
       console.log('✅ useAuth: Org member data loaded:', orgMemberData)
 
-      // Step 3: Merge the results
+      // Step 3: Load athlete data with timeout
+      console.log('🔍 useAuth: Executing athletes query')
+      const athleteQuery = supabase
+        .from('athletes')
+        .select('*')
+        .eq('user_id', userId)
+        .maybeSingle()
+
+      const { data: athleteData, error: athleteError } = await Promise.race([
+        athleteQuery,
+        new Promise((_, reject) =>
+          setTimeout(() => reject(new Error('Athlete query timeout')), 3000)
+        )
+      ])
+
+      if (athleteError) {
+        console.error('❌ useAuth: Athlete query error:', {
+          code: athleteError.code,
+          message: athleteError.message,
+          fullError: athleteError
+        })
+        // Continue without athlete data
+      }
+
+      console.log('✅ useAuth: Athlete data loaded:', athleteData)
+
+      // Step 4: Merge all results
       const mergedProfile = {
         ...profileData,
         org_id: orgMemberData?.org_id,
-        role: orgMemberData?.role
+        role: orgMemberData?.role,
+        athlete: athleteData
       }
 
       console.log('✅ useAuth: Merged profile data:', mergedProfile)

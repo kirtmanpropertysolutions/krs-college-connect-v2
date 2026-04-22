@@ -10,8 +10,8 @@ export default function AthleteDashboard() {
 
   // Build subtitle parts conditionally
   const subtitleParts = []
-  if (profile?.position) subtitleParts.push(profile.position)
-  subtitleParts.push(`Class of ${new Date().getFullYear() + 4}`)
+  if (profile?.athlete?.position) subtitleParts.push(profile.athlete.position)
+  if (profile?.athlete?.class_year) subtitleParts.push(`Class of ${profile.athlete.class_year}`)
   subtitleParts.push('Eastside FC Washington')
 
   return (
