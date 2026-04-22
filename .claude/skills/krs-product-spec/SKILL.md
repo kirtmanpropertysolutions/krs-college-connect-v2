@@ -96,6 +96,36 @@ The Eastside FC crimson is the Eastside club color. In a multi-tenant setup, eac
 
 **Save:** implicit — fields save on blur/change. Show a subtle "saved" indicator.
 
+### Forgot password flow (deferred to Phase 5)
+
+**Do not build in Phase 3. Use Supabase dashboard manual password reset for testing until Phase 5 polish.**
+
+**Purpose:** athlete forgets password and wants to reset without admin help.
+
+**UX — not a reset link, a code:**
+
+1. Login page has "Forgot password?" link below the password field
+2. Clicking it opens a form asking for email
+3. On submit, server generates a 6-digit numeric code (e.g., 482913), stores it in a password_reset_codes table with expiry of 15 minutes, and emails it to the athlete via Resend from noreply@krscollegeconnect.com
+4. User enters the code on the next screen plus a new password (twice)
+5. Server validates the code is unexpired and matches, then updates the Supabase auth password, marks the code as used, and redirects to login
+
+**Why a code not a link:**
+- Works across devices — athlete can request on laptop, get code on phone, enter on laptop
+- Works even if the athlete's email client strips or mangles reset URLs
+- No deep-link handling complexity
+- Teenagers find codes more intuitive than email links
+
+**Implementation requirements:**
+- New Supabase table: password_reset_codes (id, user_id, code_hash, expires_at, used_at, created_at)
+- Store code as hash, not plaintext, so a DB leak doesn't compromise active resets
+- Rate limit: max 3 active codes per email per hour
+- Server-side API routes: /api/auth/request-reset-code and /api/auth/verify-reset-code
+- Resend email template with club branding
+- UI screens: RequestResetForm, EnterCodeForm, NewPasswordForm
+
+Do NOT build this in Phase 3. Only document it in the skill for later reference.
+
 ### Athlete: School Fit Quiz (`/quiz`)
 
 **Purpose:** 6-question quiz that matches athletes to schools in the database by fit percentage.

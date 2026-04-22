@@ -51,6 +51,11 @@
     @apply bg-card border border-gray-600 text-white placeholder-gray-400 px-4 py-3 rounded-lg focus:outline-none focus:border-crimson-600 focus:ring-1 focus:ring-crimson-600;
   }
 
+  /* Profile form input styling - darker background per spec */
+  .input-field {
+    @apply bg-navy-950 border border-gray-700 text-white placeholder-gray-500 px-4 py-3 rounded-lg focus:outline-none focus:border-red-600 focus:ring-1 focus:ring-red-600;
+  }
+
   /* Form label styling */
   .form-label {
     @apply text-gray-400 text-sm font-medium uppercase tracking-wider mb-2 block;

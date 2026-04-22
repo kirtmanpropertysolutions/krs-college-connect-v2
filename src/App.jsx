@@ -1,120 +1,71 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from './assets/vite.svg'
-import heroImg from './assets/hero.png'
-import './App.css'
+import { Routes, Route, Navigate } from 'react-router-dom'
+import { useAuth } from './hooks/useAuth'
+import LoginPage from './pages/LoginPage'
+import SignupPage from './pages/SignupPage'
+import AthleteDashboard from './pages/AthleteDashboard'
+import AdminDashboard from './pages/AdminDashboard'
+import AthleteProfile from './pages/AthleteProfile'
+import SchoolFitQuiz from './pages/SchoolFitQuiz'
+import CoachFinder from './pages/CoachFinder'
+import MySchools from './pages/MySchools'
+import Outreach from './pages/Outreach'
+import RecruitingEvents from './pages/RecruitingEvents'
+import Highlights from './pages/Highlights'
+import VideoEditor from './pages/VideoEditor'
+import NILDeals from './pages/NILDeals'
+import SocialPlanner from './pages/SocialPlanner'
+import LoadingSpinner from './components/LoadingSpinner'
 
 function App() {
-  const [count, setCount] = useState(0)
+  const { user, profile, loading, isAdmin } = useAuth()
+
+  // Show loading spinner while auth state is initializing
+  if (loading) {
+    return <LoadingSpinner />
+  }
 
   return (
-    <>
-      <section id="center">
-        <div className="hero">
-          <img src={heroImg} className="base" width="170" height="179" alt="" />
-          <img src={reactLogo} className="framework" alt="React logo" />
-          <img src={viteLogo} className="vite" alt="Vite logo" />
-        </div>
-        <div>
-          <h1>Get started</h1>
-          <p>
-            Edit <code>src/App.jsx</code> and save to test <code>HMR</code>
-          </p>
-        </div>
-        <button
-          className="counter"
-          onClick={() => setCount((count) => count + 1)}
-        >
-          Count is {count}
-        </button>
-      </section>
-
-      <div className="ticks"></div>
-
-      <section id="next-steps">
-        <div id="docs">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#documentation-icon"></use>
-          </svg>
-          <h2>Documentation</h2>
-          <p>Your questions, answered</p>
-          <ul>
-            <li>
-              <a href="https://vite.dev/" target="_blank">
-                <img className="logo" src={viteLogo} alt="" />
-                Explore Vite
-              </a>
-            </li>
-            <li>
-              <a href="https://react.dev/" target="_blank">
-                <img className="button-icon" src={reactLogo} alt="" />
-                Learn more
-              </a>
-            </li>
-          </ul>
-        </div>
-        <div id="social">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#social-icon"></use>
-          </svg>
-          <h2>Connect with us</h2>
-          <p>Join the Vite community</p>
-          <ul>
-            <li>
-              <a href="https://github.com/vitejs/vite" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#github-icon"></use>
-                </svg>
-                GitHub
-              </a>
-            </li>
-            <li>
-              <a href="https://chat.vite.dev/" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#discord-icon"></use>
-                </svg>
-                Discord
-              </a>
-            </li>
-            <li>
-              <a href="https://x.com/vite_js" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#x-icon"></use>
-                </svg>
-                X.com
-              </a>
-            </li>
-            <li>
-              <a href="https://bsky.app/profile/vite.dev" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#bluesky-icon"></use>
-                </svg>
-                Bluesky
-              </a>
-            </li>
-          </ul>
-        </div>
-      </section>
-
-      <div className="ticks"></div>
-      <section id="spacer"></section>
-    </>
+    <Routes>
+      {/* Public routes - only accessible when not logged in */}
+      {!user ? (
+        <>
+          <Route path="/login" element={<LoginPage />} />
+          <Route path="/signup" element={<SignupPage />} />
+          <Route path="*" element={<Navigate to="/login" replace />} />
+        </>
+      ) : (
+        /* Protected routes - only accessible when logged in with profile */
+        profile ? (
+          <>
+            {/* Route based on user role */}
+            {isAdmin ? (
+              <>
+                <Route path="/admin" element={<AdminDashboard />} />
+                <Route path="*" element={<Navigate to="/admin" replace />} />
+              </>
+            ) : (
+              <>
+                <Route path="/" element={<AthleteDashboard />} />
+                <Route path="/profile" element={<AthleteProfile />} />
+                <Route path="/school-fit-quiz" element={<SchoolFitQuiz />} />
+                <Route path="/coach-finder" element={<CoachFinder />} />
+                <Route path="/my-schools" element={<MySchools />} />
+                <Route path="/outreach" element={<Outreach />} />
+                <Route path="/recruiting-events" element={<RecruitingEvents />} />
+                <Route path="/highlights" element={<Highlights />} />
+                <Route path="/video-editor" element={<VideoEditor />} />
+                <Route path="/nil-deals" element={<NILDeals />} />
+                <Route path="/social-planner" element={<SocialPlanner />} />
+                <Route path="*" element={<Navigate to="/" replace />} />
+              </>
+            )}
+          </>
+        ) : (
+          /* User is logged in but profile not loaded - show loading */
+          <Route path="*" element={<LoadingSpinner />} />
+        )
+      )}
+    </Routes>
   )
 }
 

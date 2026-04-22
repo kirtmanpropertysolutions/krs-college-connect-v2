@@ -20,14 +20,40 @@ export const getCurrentUser = async () => {
 
 // Helper to check if user is admin
 export const isAdmin = async () => {
-  const user = await getCurrentUser()
-  if (!user) return false
+  console.log('🔒 supabase.js: Checking if user is admin')
+  try {
+    const user = await getCurrentUser()
+    if (!user) {
+      console.log('❌ supabase.js: No user found for admin check')
+      return false
+    }
 
-  const { data } = await supabase
-    .from('org_members')
-    .select('role')
-    .eq('user_id', user.id)
-    .single()
+    console.log('🔍 supabase.js: Querying org_members for admin role, userId:', user.id)
+    const { data, error } = await supabase
+      .from('org_members')
+      .select('role')
+      .eq('user_id', user.id)
+      .single()
 
-  return data?.role === 'admin'
+    if (error) {
+      console.error('❌ supabase.js: Error checking admin role:', {
+        code: error.code,
+        message: error.message,
+        details: error.details,
+        hint: error.hint,
+        fullError: error
+      })
+      return false
+    }
+
+    console.log('✅ supabase.js: Admin check result:', { role: data?.role, isAdmin: data?.role === 'admin' })
+    return data?.role === 'admin'
+  } catch (error) {
+    console.error('💥 supabase.js: Exception in isAdmin:', {
+      message: error.message,
+      stack: error.stack,
+      fullError: error
+    })
+    return false
+  }
 }
