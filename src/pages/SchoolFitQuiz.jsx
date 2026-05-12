@@ -3,7 +3,10 @@ import { useAuth } from '../hooks/useAuth'
 import { useNavigate } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
 import AthleteLayout from '../components/AthleteLayout.jsx'
+import SchoolDetailModal from '../components/SchoolDetailModal.jsx'
+import SchoolResultCard from '../components/SchoolResultCard.jsx'
 import { calculateFitScore, getFitScoreBadge } from '../lib/fitScore.js'
+import { logActivity } from '../lib/activity.js'
 
 const QUESTIONS = [
   {
@@ -128,18 +131,20 @@ export default function SchoolFitQuiz() {
   const [isAnimating, setIsAnimating] = useState(false)
   const [schools, setSchools] = useState([])
   const [pipeline, setPipeline] = useState([])
+  const [modalSchool, setModalSchool] = useState(null)
+  const [showToast, setShowToast] = useState('')
 
   // Load existing quiz responses on mount
   useEffect(() => {
-    async function loadData() {
-      if (!user?.id) return
+    async function loadData(userId) {
+      if (!userId) return
 
       try {
         // Load quiz responses
         const { data, error } = await supabase
           .from('school_fit_quiz_responses')
           .select('*')
-          .eq('user_id', user.id)
+          .eq('user_id', userId)
           .single()
 
         if (error && error.code !== 'PGRST116') { // Not found is ok
@@ -176,7 +181,7 @@ export default function SchoolFitQuiz() {
         const { data: pipelineData, error: pipelineError } = await supabase
           .from('pipelines')
           .select('school')
-          .eq('athlete_id', user.id)
+          .eq('athlete_id', userId)
 
         if (pipelineError) {
           console.error('Error loading pipeline:', pipelineError)
@@ -190,8 +195,57 @@ export default function SchoolFitQuiz() {
       }
     }
 
-    loadData()
+    loadData(user?.id)
   }, [user?.id])
+
+  // Pipeline management
+  const handleAddToPipeline = async (school) => {
+    if (!user?.id || !profile?.org_id) return
+
+    const isInPipeline = pipeline.includes(school.name)
+
+    try {
+      if (isInPipeline) {
+        // Remove from pipeline
+        await supabase
+          .from('pipelines')
+          .delete()
+          .eq('athlete_id', user.id)
+          .eq('school', school.name)
+
+        setPipeline(prev => prev.filter(s => s !== school.name))
+
+        // Log activity
+        await logActivity(user.id, 'school_removed', { school_name: school.name })
+      } else {
+        // Add to pipeline
+        await supabase
+          .from('pipelines')
+          .insert({
+            athlete_id: user.id,
+            org_id: profile.org_id,
+            school: school.name,
+            stage: 'interested'
+          })
+
+        setPipeline(prev => [...prev, school.name])
+
+        // Log activity
+        await logActivity(user.id, 'school_added', { school_name: school.name })
+
+        // Show success toast
+        setShowToast(`Added ${school.name} to your pipeline ✓`)
+        setTimeout(() => setShowToast(''), 2000)
+      }
+    } catch (error) {
+      console.error('Error updating pipeline:', error)
+    }
+  }
+
+  // Open school modal
+  const openSchoolModal = (school) => {
+    setModalSchool(school)
+  }
 
   // Save answer and move to next question
   const handleAnswerSelect = async (questionField, answerValue) => {
@@ -216,6 +270,11 @@ export default function SchoolFitQuiz() {
       await supabase
         .from('school_fit_quiz_responses')
         .upsert(saveData, { onConflict: 'user_id' })
+
+      // Log quiz completion
+      if (isLastQuestion) {
+        await logActivity(user.id, 'quiz_completed')
+      }
 
     } catch (error) {
       console.error('Error saving quiz response:', error)
@@ -275,44 +334,16 @@ export default function SchoolFitQuiz() {
         ...school,
         fitScore: calculateFitScore(school, quizResponses, profile)
       }))
-      .filter(school => school.fitScore !== null)
-      .sort((a, b) => b.fitScore - a.fitScore)
+      .sort((a, b) => {
+        // Sort by fitScore descending, but put null scores at the end
+        if (a.fitScore === null && b.fitScore === null) return 0
+        if (a.fitScore === null) return 1
+        if (b.fitScore === null) return -1
+        return b.fitScore - a.fitScore
+      })
       .slice(0, 10)
   }
 
-  // Add to pipeline from completion screen
-  const handleAddToPipeline = async (school) => {
-    if (!user?.id) return
-
-    const isInPipeline = pipeline.includes(school.name)
-
-    try {
-      if (isInPipeline) {
-        // Remove from pipeline
-        await supabase
-          .from('pipelines')
-          .delete()
-          .eq('athlete_id', user.id)
-          .eq('school', school.name)
-
-        setPipeline(prev => prev.filter(s => s !== school.name))
-      } else {
-        // Add to pipeline
-        await supabase
-          .from('pipelines')
-          .insert({
-            athlete_id: user.id,
-            org_id: profile?.org_id,
-            school: school.name,
-            status: 'contacted'
-          })
-
-        setPipeline(prev => [...prev, school.name])
-      }
-    } catch (error) {
-      console.error('Error updating pipeline:', error)
-    }
-  }
 
   if (loading) {
     return (
@@ -331,81 +362,41 @@ export default function SchoolFitQuiz() {
     return (
       <AthleteLayout>
         <div className="p-8 max-w-6xl mx-auto">
-          <div className="text-center mb-8">
-            <h1 className="display-font text-4xl text-white mb-4">YOU'RE DONE!</h1>
-            <p className="text-gray-400 text-lg">
-              Your quiz responses will power personalized school recommendations throughout the platform.
-            </p>
+          {/* Toast notification */}
+          {showToast && (
+            <div className="fixed top-4 right-4 z-50 bg-green-600 text-white px-4 py-2 rounded-lg">
+              {showToast}
+            </div>
+          )}
+
+          <div style={{ marginBottom: '24px' }}>
+            <div className="flex items-center gap-2 mb-1">
+              <h1 style={{ color: 'white', fontSize: '22px', fontWeight: 500, letterSpacing: '-0.01em', margin: 0 }}>YOUR TOP MATCHES</h1>
+              <span className="text-xs text-eastside-gold font-medium px-2 py-1 rounded bg-eastside-gold bg-opacity-10">
+                Quiz complete
+              </span>
+            </div>
+            <p style={{ color: '#94a3b8', fontSize: '13px', margin: '4px 0 0 0' }}>Schools recommended based on your quiz responses</p>
           </div>
 
-          {/* YOUR TOP 10 MATCHES */}
+          {/* TOP 10 RESULTS */}
           {topMatches.length > 0 && (
             <div className="mb-8">
-              <h2 className="display-font text-2xl text-white mb-6 text-center">YOUR TOP 10 MATCHES</h2>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-4xl mx-auto">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                 {topMatches.map((school) => {
                   const fitScore = school.fitScore
-                  const fitBadge = getFitScoreBadge(fitScore, true) // Quiz completed = true
                   const isInPipeline = pipeline.includes(school.name)
 
                   return (
-                    <div
+                    <SchoolResultCard
                       key={school.id}
-                      className="bg-navy-900 rounded-lg p-6 text-center"
-                      style={{
-                        background: `linear-gradient(135deg, ${school.primary_color || '#dc2626'}08, #0F1E36)`
-                      }}
-                    >
-                      <div className="relative">
-                        {/* Fit Score Badge */}
-                        <span className={`absolute -top-4 -right-4 px-2 py-1 rounded text-xs font-bold ${fitBadge.className} z-10`}>
-                          {fitScore}
-                        </span>
-
-                        {/* School Info */}
-                        <div className="flex flex-col items-center">
-                          <h3 className="text-white font-bold text-lg mb-2 leading-tight text-center">
-                            {school.name}
-                          </h3>
-
-                          {school.conference && (
-                            <p className="text-gray-400 text-sm mb-2">{school.conference}</p>
-                          )}
-
-                          {(school.city || school.state) && (
-                            <p className="text-gray-400 text-sm mb-4">
-                              {[school.city, school.state].filter(Boolean).join(', ')}
-                            </p>
-                          )}
-
-                          <div className="flex items-center justify-center gap-2 mb-4">
-                            {school.division && (
-                              <span
-                                className="px-2 py-1 rounded text-sm font-bold text-white"
-                                style={{ backgroundColor: school.primary_color || '#dc2626' }}
-                              >
-                                {school.division}
-                              </span>
-                            )}
-                          </div>
-
-                          <p className="text-gray-400 text-sm mb-6">
-                            Coaches available in database
-                          </p>
-
-                          <button
-                            onClick={() => handleAddToPipeline(school)}
-                            className={`w-full text-sm py-3 px-4 rounded font-bold transition-colors ${
-                              isInPipeline
-                                ? 'bg-green-600 text-white hover:bg-green-700'
-                                : 'bg-crimson-600 hover:bg-crimson-700 text-white'
-                            }`}
-                          >
-                            {isInPipeline ? 'Added ✓' : 'Add to Pipeline'}
-                          </button>
-                        </div>
-                      </div>
-                    </div>
+                      school={school}
+                      isInPipeline={isInPipeline}
+                      fitScore={fitScore}
+                      onAddToPipeline={() => handleAddToPipeline(school)}
+                      onViewSchool={() => openSchoolModal(school)}
+                      showCoachInfo={true}
+                    />
                   )
                 })}
               </div>
@@ -429,6 +420,18 @@ export default function SchoolFitQuiz() {
             </button>
           </div>
         </div>
+
+        {/* School Detail Modal */}
+        <SchoolDetailModal
+          school={modalSchool}
+          isOpen={modalSchool !== null}
+          onClose={() => setModalSchool(null)}
+          athleteProfile={profile}
+          onAddToPipeline={handleAddToPipeline}
+          onRemoveFromPipeline={handleAddToPipeline}
+          isInPipeline={modalSchool ? pipeline.includes(modalSchool.name) : false}
+          fitScore={modalSchool ? calculateFitScore(modalSchool, answers, profile) : null}
+        />
       </AthleteLayout>
     )
   }
@@ -438,7 +441,7 @@ export default function SchoolFitQuiz() {
 
   return (
     <AthleteLayout>
-      <div className="p-8 max-w-4xl mx-auto">
+      <div className="p-8 max-w-md mx-auto">
         {/* Header */}
         <div className="text-center mb-8">
           <h1 className="display-font text-3xl text-white mb-2">SCHOOL FIT QUIZ</h1>
@@ -451,11 +454,11 @@ export default function SchoolFitQuiz() {
         <div className="mb-8">
           <div className="flex justify-between items-center mb-3">
             <span className="text-white text-sm">{currentQuestion} of {QUESTIONS.length}</span>
-            <span className="text-yellow-500 font-bold">{Math.round(progress)}%</span>
+            <span className="text-club-secondary font-bold">{Math.round(progress)}%</span>
           </div>
           <div className="w-full bg-gray-700 rounded-full h-3">
             <div
-              className="bg-yellow-500 h-3 rounded-full transition-all duration-500"
+              className="bg-club-secondary h-3 rounded-full transition-all duration-500"
               style={{width: `${progress}%`}}
             ></div>
           </div>
@@ -477,10 +480,10 @@ export default function SchoolFitQuiz() {
                   key={answer.value}
                   onClick={() => handleAnswerSelect(currentQ.field, answer.value)}
                   disabled={isAnimating}
-                  className={`p-6 rounded-lg border-2 transition-all duration-200 text-left ${
+                  className={`p-6 rounded-lg border-2 transition-all duration-200 text-left min-h-[56px] ${
                     isSelected
-                      ? 'bg-crimson-600 border-crimson-600 text-white'
-                      : 'bg-navy-900 border-gray-600 text-gray-300 hover:border-crimson-600 hover:text-white'
+                      ? 'bg-club-primary border-club-primary text-white'
+                      : 'bg-navy-900 border-gray-600 text-gray-300 hover:border-club-primary hover:text-white'
                   }`}
                 >
                   <div className="font-bold text-lg mb-1">{answer.label}</div>
@@ -514,6 +517,18 @@ export default function SchoolFitQuiz() {
           </button>
         </div>
       </div>
+
+      {/* School Detail Modal */}
+      <SchoolDetailModal
+        school={modalSchool}
+        isOpen={modalSchool !== null}
+        onClose={() => setModalSchool(null)}
+        athleteProfile={profile}
+        onAddToPipeline={handleAddToPipeline}
+        onRemoveFromPipeline={handleAddToPipeline}
+        isInPipeline={modalSchool ? pipeline.includes(modalSchool.name) : false}
+        fitScore={modalSchool ? calculateFitScore(modalSchool, answers, profile) : null}
+      />
     </AthleteLayout>
   )
 }

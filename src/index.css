@@ -9,8 +9,15 @@
   }
 
   body {
-    @apply bg-navy-950 text-gray-100 font-sans antialiased;
+    @apply font-sans antialiased;
+    background-color: #0a0e1a;
+    color: #ffffff;
     margin: 0;
+  }
+
+  /* Light mode styles */
+  body.light {
+    @apply bg-gray-50 text-gray-900;
   }
 
   /* Display font for headers and athlete names */
@@ -21,39 +28,118 @@
 }
 
 @layer components {
-  /* Primary crimson button */
-  .btn-primary {
-    @apply bg-crimson-600 hover:bg-crimson-700 text-white font-bold uppercase px-6 py-3 rounded-lg transition-colors;
+  /* Locked Design Language Components */
+  .hero-card {
+    background: linear-gradient(135deg, #131a2c 0%, #0f1729 50%, #0a0e1a 100%);
+    border: 0.5px solid #1e293b;
+    border-radius: 14px;
   }
 
-  /* Secondary button with crimson outline */
+  .design-card {
+    background-color: #111827;
+    border: 0.5px solid #1e293b;
+    border-radius: 12px;
+  }
+
+  .nav-item-active {
+    background: linear-gradient(90deg, rgba(200, 16, 46, 0.18) 0%, rgba(200, 16, 46, 0.04) 100%);
+    border-left: 2px solid #C8102E;
+    color: white;
+    font-weight: 500;
+  }
+
+  .crimson-glow {
+    background: radial-gradient(circle, rgba(200, 16, 46, 0.12) 0%, transparent 60%);
+  }
+
+  .eastside-btn {
+    background-color: #C8102E;
+    color: white;
+    font-weight: 500;
+    font-size: 13px;
+    padding: 10px 18px;
+    border-radius: 8px;
+    transition: all 0.15s ease;
+  }
+
+  .eastside-btn:hover {
+    background-color: #A00C25;
+  }
+
+  .secondary-btn {
+    background: transparent;
+    color: white;
+    border: 0.5px solid #334155;
+    font-weight: 500;
+    font-size: 13px;
+    padding: 10px 18px;
+    border-radius: 8px;
+    transition: all 0.15s ease;
+  }
+
+  .secondary-btn:hover {
+    border-color: #C8102E;
+    color: #C8102E;
+  }
+  /* Primary club button */
+  .btn-primary {
+    @apply font-bold uppercase px-6 py-3 rounded-lg transition-colors text-white;
+    background-color: var(--club-primary);
+  }
+
+  .btn-primary:hover {
+    background-color: color-mix(in srgb, var(--club-primary) 80%, black);
+  }
+
+  /* Secondary button with club outline */
   .btn-secondary {
-    @apply bg-transparent border border-crimson-600 text-crimson-600 hover:bg-crimson-600 hover:text-white font-bold uppercase px-6 py-3 rounded-lg transition-colors;
+    @apply bg-transparent font-bold uppercase px-6 py-3 rounded-lg transition-colors;
+    border: 1px solid var(--club-primary);
+    color: var(--club-primary);
+  }
+
+  .btn-secondary:hover {
+    background-color: var(--club-primary);
+    @apply text-white;
   }
 
   /* Ghost button */
   .btn-ghost {
-    @apply bg-transparent border border-gray-600 text-gray-300 hover:border-crimson-600 hover:text-crimson-600 px-6 py-3 rounded-lg transition-colors;
+    @apply bg-transparent border border-gray-600 text-gray-300 px-6 py-3 rounded-lg transition-colors;
+  }
+
+  .btn-ghost:hover {
+    border-color: var(--club-primary);
+    color: var(--club-primary);
   }
 
   /* Card styling */
   .card {
-    @apply bg-card rounded-xl border border-opacity-15 border-crimson-600 p-6;
+    @apply bg-card rounded-xl border border-opacity-15 p-6;
+    border-color: var(--club-primary);
   }
 
-  /* Stat cards with crimson top border glow */
+  /* Stat cards with club top border glow */
   .stat-card {
-    @apply card border-t-4 border-t-crimson-600 shadow-lg shadow-crimson-600/10;
+    @apply bg-card rounded-xl border border-opacity-15 p-6 border-t-4 shadow-lg;
+    border-color: var(--club-primary);
+    border-top-color: var(--club-primary);
   }
 
   /* Form input styling */
   .form-input {
-    @apply bg-card border border-gray-600 text-white placeholder-gray-400 px-4 py-3 rounded-lg focus:outline-none focus:border-crimson-600 focus:ring-1 focus:ring-crimson-600;
+    @apply bg-card border border-gray-600 text-white placeholder-gray-400 px-4 py-3 rounded-lg focus:outline-none;
+  }
+
+  .form-input:focus {
+    border-color: var(--club-primary);
+    @apply ring-1;
+    ring-color: var(--club-primary);
   }
 
   /* Profile form input styling - darker background per spec */
   .input-field {
-    @apply bg-navy-950 border border-gray-700 text-white placeholder-gray-500 px-4 py-3 rounded-lg focus:outline-none focus:border-red-600 focus:ring-1 focus:ring-red-600;
+    @apply bg-navy-950 border border-gray-700 text-white placeholder-gray-500 px-4 py-3 rounded-lg focus:outline-none focus:border-red-600 focus:ring-1 focus:ring-red-600 min-h-[48px];
   }
 
   /* Form label styling */
@@ -63,12 +149,14 @@
 
   /* Active sidebar item */
   .nav-active {
-    @apply bg-crimson-600 text-white border-l-4 border-l-crimson-400;
+    @apply text-white border-l-4;
+    background-color: var(--club-primary);
+    border-left-color: color-mix(in srgb, var(--club-primary) 80%, white);
   }
 
-  /* Crimson accent text */
+  /* Club accent text */
   .text-accent {
-    @apply text-crimson-600;
+    color: var(--club-primary);
   }
 
   /* Success green for progress, etc */
@@ -78,11 +166,43 @@
 
   /* Warning yellow for pending states */
   .text-warning {
-    @apply text-yellow-500;
+    color: var(--club-secondary);
   }
 
   /* Muted text for labels and descriptions */
   .text-muted {
     @apply text-gray-400;
+  }
+
+  /* Fade in animation for modals */
+  .animate-fadeIn {
+    animation: fadeIn 150ms ease-out;
+  }
+
+  /* Slide up animation for mobile modals */
+  .animate-slide-up {
+    animation: slideUp 300ms ease-out;
+  }
+
+  @keyframes fadeIn {
+    from {
+      opacity: 0;
+      transform: scale(0.95);
+    }
+    to {
+      opacity: 1;
+      transform: scale(1);
+    }
+  }
+
+  @keyframes slideUp {
+    from {
+      opacity: 0;
+      transform: translateY(100%);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
   }
 }

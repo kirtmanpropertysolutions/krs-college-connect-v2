@@ -109,7 +109,7 @@ export default function LoginPage() {
               Don't have an account?{' '}
               <Link
                 to="/signup"
-                className="text-crimson-600 hover:text-crimson-500 font-medium"
+                className="text-club-primary hover:text-club-primary font-medium"
               >
                 Sign up with invite code
               </Link>

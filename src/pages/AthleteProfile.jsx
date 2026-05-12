@@ -127,11 +127,11 @@ export default function AthleteProfile() {
         <div className="mb-8">
           <div className="flex justify-between items-center mb-3">
             <h2 className="display-font text-white text-xl">PROFILE COMPLETION</h2>
-            <span className="text-yellow-500 font-bold">{completionPercentage}%</span>
+            <span className="text-club-secondary font-bold">{completionPercentage}%</span>
           </div>
           <div className="w-full bg-gray-700 rounded-full h-3">
             <div
-              className="bg-yellow-500 h-3 rounded-full transition-all duration-500"
+              className="bg-club-secondary h-3 rounded-full transition-all duration-500"
               style={{width: `${completionPercentage}%`}}
             ></div>
           </div>

@@ -248,7 +248,7 @@ export const getFitScoreBadge = (score, quizCompleted) => {
     } else if (score >= 70) {
       return { text: 'STRONG FIT', className: 'bg-green-500 text-white' }
     } else if (score >= 55) {
-      return { text: 'GOOD FIT', className: 'bg-yellow-600 text-white' }
+      return { text: 'GOOD FIT', className: 'bg-club-secondary text-white' }
     } else if (score >= 40) {
       return { text: 'FAIR FIT', className: 'bg-orange-600 text-white' }
     } else {
@@ -258,9 +258,9 @@ export const getFitScoreBadge = (score, quizCompleted) => {
 
   // Basic scores (capped at 70, partial data)
   if (score >= 60) {
-    return { text: 'STRONG FIT*', className: 'bg-yellow-600 text-white' }
+    return { text: 'STRONG FIT*', className: 'bg-club-secondary text-white' }
   } else if (score >= 45) {
-    return { text: 'GOOD FIT*', className: 'bg-yellow-500 text-white' }
+    return { text: 'GOOD FIT*', className: 'bg-club-secondary text-white' }
   } else {
     return { text: 'STRETCH*', className: 'bg-gray-600 text-white' }
   }

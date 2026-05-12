@@ -12,7 +12,7 @@ export default function AdminDashboard() {
             {/* Logo and nav */}
             <div className="flex items-center gap-8">
               <div className="flex items-center gap-3">
-                <div className="w-8 h-8 bg-crimson-600 rounded-lg flex items-center justify-center">
+                <div className="w-8 h-8 bg-club-primary rounded-lg flex items-center justify-center">
                   <span className="text-white font-bold text-sm">KRS</span>
                 </div>
                 <div>
@@ -25,7 +25,7 @@ export default function AdminDashboard() {
               <nav className="flex items-center gap-1">
                 <a
                   href="#"
-                  className="px-4 py-2 bg-crimson-600 text-white rounded-lg text-sm font-medium"
+                  className="px-4 py-2 bg-club-primary text-white rounded-lg text-sm font-medium"
                 >
                   Dashboard
                 </a>
@@ -81,16 +81,16 @@ export default function AdminDashboard() {
       {/* Main Content */}
       <main className="p-8">
         {/* Club banner */}
-        <div className="bg-crimson-600 rounded-xl p-6 mb-8">
+        <div className="bg-club-primary rounded-xl p-6 mb-8">
           <div className="flex items-center gap-4">
             <div className="w-16 h-16 bg-white rounded-lg flex items-center justify-center">
-              <span className="text-crimson-600 font-bold text-xl">E</span>
+              <span className="text-club-primary font-bold text-xl">E</span>
             </div>
             <div>
               <h1 className="display-font text-white text-3xl">
                 EASTSIDE FC WASHINGTON
               </h1>
-              <p className="text-crimson-100">Club Admin Command Center</p>
+              <p className="text-club-primary-light">Club Admin Command Center</p>
             </div>
           </div>
         </div>

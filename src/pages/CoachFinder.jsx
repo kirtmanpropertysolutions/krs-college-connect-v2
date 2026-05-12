@@ -3,19 +3,26 @@ import { supabase } from '../lib/supabase'
 import { useAuth } from '../hooks/useAuth'
 import { useNavigate } from 'react-router-dom'
 import AthleteLayout from '../components/AthleteLayout.jsx'
+import SchoolDetailModal from '../components/SchoolDetailModal.jsx'
+import SchoolBadge from '../components/SchoolBadge.jsx'
+import { getSchoolColors, isLightColor } from '../lib/schoolColors'
+import SchoolResultCard from '../components/SchoolResultCard.jsx'
 import { calculateFitScore, getFitScoreBadge } from '../lib/fitScore.js'
+import { logActivity } from '../lib/activity.js'
 
 export default function CoachFinder() {
   const { user, profile } = useAuth()
   const navigate = useNavigate()
 
+  const [rawSchools, setRawSchools] = useState([])
   const [schools, setSchools] = useState([])
   const [coaches, setCoaches] = useState([])
   const [pipeline, setPipeline] = useState([])
   const [loading, setLoading] = useState(true)
-  const [expandedSchool, setExpandedSchool] = useState(null)
+  const [modalSchool, setModalSchool] = useState(null)
   const [showAddCoachModal, setShowAddCoachModal] = useState(false)
   const [quizResponses, setQuizResponses] = useState(null)
+  const [showToast, setShowToast] = useState('')
 
   // Filter states
   const [filters, setFilters] = useState({
@@ -38,18 +45,18 @@ export default function CoachFinder() {
 
   // Load schools and coaches data
   useEffect(() => {
-    async function loadData() {
+    async function loadData(userId) {
       try {
-        // Load schools
+        // Load schools with coaches
         const { data: schoolsData, error: schoolsError } = await supabase
           .from('schools')
-          .select('*')
+          .select('*, coaches(*)')
           .order('name')
 
         if (schoolsError) {
           console.error('Error loading schools:', schoolsError)
         } else {
-          setSchools(schoolsData || [])
+          setRawSchools(schoolsData || [])
         }
 
         // Load coaches
@@ -64,11 +71,11 @@ export default function CoachFinder() {
         }
 
         // Load user's pipeline
-        if (user?.id) {
+        if (userId) {
           const { data: pipelineData, error: pipelineError } = await supabase
             .from('pipelines')
             .select('school')
-            .eq('athlete_id', user.id)
+            .eq('athlete_id', userId)
 
           if (pipelineError) {
             console.error('Error loading pipeline:', pipelineError)
@@ -78,11 +85,11 @@ export default function CoachFinder() {
         }
 
         // Load user's quiz responses
-        if (user?.id) {
+        if (userId) {
           const { data: quizData, error: quizError } = await supabase
             .from('school_fit_quiz_responses')
             .select('*')
-            .eq('user_id', user.id)
+            .eq('user_id', userId)
             .single()
 
           if (quizError && quizError.code !== 'PGRST116') { // Not found is ok
@@ -98,8 +105,51 @@ export default function CoachFinder() {
       }
     }
 
-    loadData()
+    loadData(user?.id)
   }, [user?.id])
+
+  // Calculate fit scores when both schools and quiz data are loaded
+  useEffect(() => {
+    console.log('🔵 useEffect fired:', {
+      rawSchoolsCount: rawSchools.length,
+      hasQuizResponses: !!quizResponses,
+      hasProfile: !!profile,
+      profileKeys: profile ? Object.keys(profile) : 'no profile'
+    })
+
+    if (rawSchools.length > 0) {
+      const scoredSchools = rawSchools.map(school => {
+        const fitScore = profile ? calculateFitScore(school, quizResponses, profile) : null
+        console.log(`🎯 Calculated fit score for ${school.name}: ${fitScore}`)
+        return {
+          ...school,
+          fitScore
+        }
+      })
+      console.log(`✅ Setting ${scoredSchools.length} schools with fit scores`)
+      console.log('💎 About to setSchools — sample:', scoredSchools.slice(0, 3).map(s => ({name: s.name, fitScore: s.fitScore})))
+      console.log('💎 profile state:', profile)
+      console.log('💎 quizResponses state:', quizResponses)
+      setSchools(scoredSchools)
+      console.log('💎 Set schools with fitScore — first 3:', scoredSchools.slice(0,3).map(s => ({ name: s.name, fitScore: s.fitScore })))
+    } else {
+      console.log('❌ No schools to process')
+    }
+  }, [rawSchools, quizResponses, profile])
+
+  // School search aliases
+  const schoolAliases = {
+    'ucla': 'University of California, Los Angeles',
+    'usc': 'University of Southern California',
+    'unc': 'University of North Carolina',
+    'usf': 'University of San Francisco',
+    'smu': 'Southern Methodist University',
+    'tcu': 'Texas Christian University',
+    'byu': 'Brigham Young University',
+    'cal': 'University of California, Berkeley',
+    'pitt': 'University of Pittsburgh',
+    'penn': 'University of Pennsylvania'
+  }
 
   // Get unique values for filter dropdowns
   const conferences = [...new Set(schools.map(s => s.conference).filter(Boolean))]
@@ -112,7 +162,19 @@ export default function CoachFinder() {
     if (filters.conference !== 'All' && school.conference !== filters.conference) return false
     if (filters.region !== 'All' && school.region !== filters.region) return false
     if (filters.state !== 'All' && school.state !== filters.state) return false
-    if (filters.search && !school.name.toLowerCase().includes(filters.search.toLowerCase())) return false
+
+    // Enhanced search with aliases
+    if (filters.search) {
+      const searchTerm = filters.search.toLowerCase()
+      const schoolName = school.name.toLowerCase()
+      const aliasMatch = schoolAliases[searchTerm]
+
+      if (!schoolName.includes(searchTerm) &&
+          !(aliasMatch && schoolName.includes(aliasMatch.toLowerCase()))) {
+        return false
+      }
+    }
+
     return true
   })
 
@@ -128,6 +190,59 @@ export default function CoachFinder() {
     return {
       total: schoolCoaches.length,
       withEmails
+    }
+  }
+
+  // Get email status badge for school
+  const getEmailStatusBadge = (school) => {
+    const coachCounts = getCoachCounts(school.id)
+    const hasCoachEmails = coachCounts.withEmails > 0
+    const hasProgramEmail = school.program_email
+
+    if (hasCoachEmails && hasProgramEmail) {
+      return {
+        className: 'bg-green-500 bg-opacity-10 text-green-400',
+        text: 'Contactable',
+        icon: '✓'
+      }
+    } else if (hasProgramEmail && !hasCoachEmails) {
+      return {
+        className: 'bg-blue-500 bg-opacity-10 text-blue-400',
+        text: 'Program email',
+        icon: '📧'
+      }
+    } else if (hasCoachEmails && !hasProgramEmail) {
+      return {
+        className: 'bg-yellow-500 bg-opacity-10 text-yellow-400',
+        text: 'Coach emails',
+        icon: '👤'
+      }
+    } else {
+      return {
+        className: 'bg-gray-500 bg-opacity-10 text-gray-400',
+        text: 'No emails',
+        icon: '⚠'
+      }
+    }
+  }
+
+  // Get circular fit score badge styling
+  const getFitScoreCircle = (score) => {
+    if (score >= 90) {
+      return 'border-green-500 text-green-500'
+    } else if (score >= 75) {
+      return 'border-yellow-500 text-yellow-500'
+    } else {
+      return 'border-gray-500 text-gray-500'
+    }
+  }
+
+  // Enhanced school object with coach count for SchoolResultCard
+  const enhanceSchoolForCard = (school, withCoaches = false) => {
+    const coachCounts = withCoaches ? getCoachCounts(school.id) : { total: 0, withEmails: 0 }
+    return {
+      ...school,
+      coaches_count: coachCounts.total
     }
   }
 
@@ -147,6 +262,9 @@ export default function CoachFinder() {
           .eq('school', school.name)
 
         setPipeline(prev => prev.filter(s => s !== school.name))
+
+        // Log activity
+        await logActivity(user.id, 'school_removed', { school_name: school.name })
       } else {
         // Add to pipeline
         await supabase
@@ -155,10 +273,17 @@ export default function CoachFinder() {
             athlete_id: user.id,
             org_id: profile?.org_id,
             school: school.name,
-            status: 'contacted'
+            stage: 'interested'
           })
 
         setPipeline(prev => [...prev, school.name])
+
+        // Log activity
+        await logActivity(user.id, 'school_added', { school_name: school.name })
+
+        // Show success toast
+        setShowToast(`Added ${school.name} to your pipeline ✓`)
+        setTimeout(() => setShowToast(''), 2000)
       }
     } catch (error) {
       console.error('Error updating pipeline:', error)
@@ -167,8 +292,7 @@ export default function CoachFinder() {
 
   // Feature 2: Email Coach
   const handleEmailCoach = (coach, school) => {
-    console.log('Navigate to outreach with params:', { coach_id: coach.id, school_id: school.id })
-    // Stub: navigate('/outreach', { state: { coachId: coach.id, schoolId: school.id } })
+    navigate(`/outreach?coach_id=${coach.id}&school_id=${school.id}`)
   }
 
 
@@ -182,7 +306,7 @@ export default function CoachFinder() {
     if (daysSince <= 30) {
       return { dot: 'bg-green-500', tooltip: `Verified ${daysSince} days ago` }
     } else if (daysSince <= 90) {
-      return { dot: 'bg-yellow-500', tooltip: `Verified ${daysSince} days ago` }
+      return { dot: 'bg-club-secondary', tooltip: `Verified ${daysSince} days ago` }
     } else {
       return { dot: 'bg-red-500', tooltip: `Verified ${daysSince} days ago (stale)` }
     }
@@ -195,36 +319,19 @@ export default function CoachFinder() {
     }
 
     return schools
-      .map(school => ({
-        ...school,
-        fitScore: calculateFitScore(school, quizResponses, profile)
-      }))
-      .filter(school => school.fitScore !== null)
+      .filter(school => school.fitScore !== null) // Only show schools with fit scores for recommendations
       .sort((a, b) => b.fitScore - a.fitScore)
       .slice(0, 6)
   }
 
-  // Feature 3: Scroll to school and expand it
-  const scrollToSchool = (schoolId) => {
-    const schoolElement = document.getElementById(`school-${schoolId}`)
-    if (schoolElement) {
-      // Scroll to the school card
-      schoolElement.scrollIntoView({
-        behavior: 'smooth',
-        block: 'center'
-      })
-
-      // Expand the school card
-      setExpandedSchool(schoolId)
-
-      // Add a brief crimson highlight pulse
-      schoolElement.style.boxShadow = '0 0 0 3px #dc2626'
-      schoolElement.style.transition = 'box-shadow 0.2s ease'
-
-      setTimeout(() => {
-        schoolElement.style.boxShadow = ''
-      }, 200)
+  // Open school modal
+  const openSchoolModal = (school) => {
+    // Attach coaches to school object
+    const schoolWithCoaches = {
+      ...school,
+      coaches: coaches.filter(c => c.school_id === school.id)
     }
+    setModalSchool(schoolWithCoaches)
   }
 
   // Handle adding a new coach
@@ -279,6 +386,13 @@ export default function CoachFinder() {
   return (
     <AthleteLayout>
       <div className="p-8">
+        {/* Toast notification */}
+        {showToast && (
+          <div className="fixed top-4 right-4 z-50 bg-green-600 text-white px-4 py-2 rounded-lg">
+            {showToast}
+          </div>
+        )}
+
         {/* Header */}
         <div className="flex justify-between items-start mb-8">
           <div>
@@ -297,7 +411,7 @@ export default function CoachFinder() {
 
         {/* Feature 5: Recommended for You */}
         {!quizResponses?.completed_at ? (
-          <div className="border-t-2 border-crimson-600 bg-navy-900 rounded-lg p-6 mb-8 text-center">
+          <div className="design-card p-6 mb-8 text-center">
             <h2 className="display-font text-xl text-white mb-4">RECOMMENDED FOR YOU</h2>
             <p className="text-gray-400 mb-4">
               Take the School Fit Quiz for personalized recommendations based on your preferences for academics, distance, school size, and more.
@@ -310,93 +424,43 @@ export default function CoachFinder() {
             </button>
           </div>
         ) : profile?.athlete?.class_year && profile?.athlete?.gpa ? (
-          <div className="border-t-2 border-crimson-600 bg-navy-900 rounded-lg p-6 mb-8">
+          <div className="design-card p-6 mb-8">
             <div className="flex justify-between items-center mb-4">
-              <h2 className="display-font text-xl text-white">RECOMMENDED FOR YOU</h2>
-              <span className="text-xs text-green-500 font-bold">✓ QUIZ COMPLETED</span>
+              <div className="flex items-center gap-2">
+                <h2 className="display-font text-xl text-white">RECOMMENDED FOR YOU</h2>
+                <span className="text-xs text-eastside-gold font-medium px-2 py-1 rounded bg-eastside-gold bg-opacity-10">
+                  Quiz complete
+                </span>
+              </div>
             </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-4">
+            <div className="flex md:grid md:grid-cols-6 overflow-x-auto md:overflow-x-visible gap-3 snap-x md:snap-none snap-mandatory pb-2">
               {getRecommendedSchools().map((school) => {
                 const fitScore = school.fitScore
-                const fitBadge = getFitScoreBadge(fitScore, quizResponses?.completed_at)
-                const coachCounts = getCoachCounts(school.id)
                 const isInPipeline = pipeline.includes(school.name)
+                const enhancedSchool = enhanceSchoolForCard(school, true)
 
                 return (
-                  <div
-                    key={school.id}
-                    className="bg-navy-900 rounded-lg p-4 text-center h-80 cursor-pointer hover:bg-navy-800 transition-colors"
-                    onClick={() => scrollToSchool(school.id)}
-                    style={{
-                      background: `linear-gradient(135deg, ${school.primary_color || '#dc2626'}08, #0F1E36)`
-                    }}
-                  >
-                    <div className="relative h-full flex flex-col">
-                      {/* Fit Score Badge */}
-                      <span className={`absolute -top-2 -right-2 px-2 py-1 rounded text-xs font-bold ${fitBadge.className} z-10`}>
-                        {fitScore}
-                      </span>
-
-                      {/* School Info */}
-                      <div className="flex-1 flex flex-col justify-between">
-                        <div>
-                          <h3 className="text-white font-bold text-sm mb-1 leading-tight">
-                            {school.name.length > 25 ? `${school.name.substring(0, 25)}...` : school.name}
-                          </h3>
-
-                          {school.conference && (
-                            <p className="text-gray-400 text-xs mb-2">{school.conference}</p>
-                          )}
-
-                          {(school.city || school.state) && (
-                            <p className="text-gray-400 text-xs mb-3">
-                              {[school.city, school.state].filter(Boolean).join(', ')}
-                            </p>
-                          )}
-
-                          <div className="flex items-center justify-center gap-1 mb-3">
-                            {school.division && (
-                              <span
-                                className="px-1 py-0.5 rounded text-xs font-bold text-white"
-                                style={{ backgroundColor: school.primary_color || '#dc2626' }}
-                              >
-                                {school.division}
-                              </span>
-                            )}
-                          </div>
-
-                          <p className="text-gray-400 text-xs mb-4">
-                            {coachCounts.total} coach{coachCounts.total !== 1 ? 'es' : ''} · {coachCounts.withEmails} with emails
-                          </p>
-                        </div>
-
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation()
-                            handleAddToPipeline(school)
-                          }}
-                          className={`w-full text-xs py-2 px-2 rounded font-bold ${
-                            isInPipeline
-                              ? 'bg-green-600 text-white'
-                              : 'bg-crimson-600 hover:bg-crimson-700 text-white'
-                          }`}
-                        >
-                          {isInPipeline ? 'Added ✓' : 'Add to Pipeline'}
-                        </button>
-                      </div>
-                    </div>
+                  <div key={school.id} className="min-w-[280px] md:min-w-0 snap-start">
+                    <SchoolResultCard
+                      school={enhancedSchool}
+                      isInPipeline={isInPipeline}
+                      fitScore={fitScore}
+                      onAddToPipeline={() => handleAddToPipeline(school)}
+                      onViewSchool={() => openSchoolModal(school)}
+                      showCoachInfo={true}
+                    />
                   </div>
                 )
               })}
             </div>
           </div>
         ) : (
-          <div className="border-t-2 border-crimson-600 bg-navy-900 rounded-lg p-6 mb-8 text-center">
+          <div className="design-card p-6 mb-8 text-center">
             <p className="text-gray-400">
               Complete your profile to see personalized recommendations
               <button
                 onClick={() => navigate('/profile')}
-                className="text-crimson-600 ml-2 underline hover:text-crimson-500"
+                className="text-club-primary ml-2 underline hover:text-club-primary"
               >
                 → Go to Profile
               </button>
@@ -405,7 +469,7 @@ export default function CoachFinder() {
         )}
 
         {/* Filter Bar */}
-        <div className="grid grid-cols-1 md:grid-cols-6 gap-4 mb-8">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-5 gap-3 mb-8">
           <div>
             <label className="block text-gray-400 text-sm uppercase tracking-wider mb-2">
               Division
@@ -503,219 +567,22 @@ export default function CoachFinder() {
             )}
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             {filteredSchools.map((school) => {
-              const coachCounts = getCoachCounts(school.id)
-              const isExpanded = expandedSchool === school.id
-              const fitScore = calculateFitScore(school, quizResponses, profile)
-              const fitBadge = getFitScoreBadge(fitScore, quizResponses?.completed_at)
+              const fitScore = school.fitScore // Already calculated in useEffect
               const isInPipeline = pipeline.includes(school.name)
+              const enhancedSchool = enhanceSchoolForCard(school, true)
 
               return (
-                <div
+                <SchoolResultCard
                   key={school.id}
-                  id={`school-${school.id}`}
-                  className="card relative"
-                  style={{
-                    background: `linear-gradient(135deg, ${school.primary_color || '#dc2626'}05, #0F1E36)`
-                  }}
-                >
-                  {/* Feature 3: Fit Score Badge */}
-                  <div className="absolute top-4 right-4">
-                    <span className={`px-2 py-1 rounded text-xs font-bold ${fitBadge.className}`}>
-                      {fitScore !== null ? fitScore : fitBadge.text}
-                    </span>
-                  </div>
-
-                  {/* School header with color border */}
-                  <div
-                    className="border-l-8 pl-4 -ml-6 -mt-6 -mr-6 p-6 mb-4"
-                    style={{ borderLeftColor: school.primary_color || '#dc2626' }}
-                  >
-                    <div className="flex justify-between items-start">
-                      <div className="flex-1 pr-16"> {/* Add padding for fit score badge */}
-                        <h3 className="text-white font-bold text-lg mb-1">
-                          {school.name}
-                        </h3>
-
-                        <div className="flex items-center gap-2 mb-2">
-                          {school.division && (
-                            <span
-                              className="px-2 py-1 rounded text-xs font-bold text-white"
-                              style={{ backgroundColor: school.primary_color || '#dc2626' }}
-                            >
-                              {school.division}
-                            </span>
-                          )}
-                          {school.conference && (
-                            <span className="text-gray-400 text-sm">
-                              {school.conference}
-                            </span>
-                          )}
-                        </div>
-
-                        {(school.city || school.state) && (
-                          <p className="text-gray-400 text-sm mb-3">
-                            {[school.city, school.state].filter(Boolean).join(', ')}
-                          </p>
-                        )}
-
-                        <div className="text-gray-400 text-sm mb-3">
-                          {coachCounts.total === 0 ? (
-                            'No coaches yet'
-                          ) : (
-                            `${coachCounts.total} coach${coachCounts.total !== 1 ? 'es' : ''} · ${coachCounts.withEmails} with emails`
-                          )}
-                        </div>
-                      </div>
-                    </div>
-
-                    <div className="flex gap-2">
-                      <button
-                        onClick={() => setExpandedSchool(isExpanded ? null : school.id)}
-                        className="btn-secondary text-sm"
-                        disabled={coachCounts.total === 0}
-                      >
-                        {isExpanded ? 'Hide Coaches' : 'View Coaches'}
-                      </button>
-
-                      {/* Feature 1: Add to Pipeline Button */}
-                      <button
-                        onClick={() => handleAddToPipeline(school)}
-                        className={`text-sm px-4 py-2 rounded font-bold ${
-                          isInPipeline
-                            ? 'bg-green-600 text-white hover:bg-green-700'
-                            : 'btn-primary'
-                        }`}
-                      >
-                        {isInPipeline ? 'Added ✓' : 'Add to Pipeline'}
-                      </button>
-                    </div>
-                  </div>
-
-                  {/* Expanded coach list */}
-                  {isExpanded && (
-                    <div className="space-y-3">
-                      {/* Program Email Section */}
-                      {school.program_email && (
-                        <div className="bg-green-900 bg-opacity-20 border border-green-600 border-opacity-30 rounded-lg p-4">
-                          <div className="flex items-center justify-between">
-                            <div className="flex-1">
-                              <h4 className="text-white font-medium mb-1 flex items-center gap-2">
-                                <span className="bg-green-600 text-white text-xs px-2 py-1 rounded font-bold">✓ VERIFIED</span>
-                                PROGRAM EMAIL
-                              </h4>
-                              <p className="text-gray-300 text-sm mb-1">{school.program_email}</p>
-                              <p className="text-gray-400 text-xs">
-                                Email the program directly — they forward to the recruiting coordinator.
-                              </p>
-                            </div>
-                            <div className="flex gap-2">
-                              <button
-                                onClick={() => navigator.clipboard.writeText(school.program_email)}
-                                className="text-gray-500 hover:text-white text-xs"
-                                title="Copy email"
-                              >
-                                📋
-                              </button>
-                              <button
-                                onClick={() => {
-                                  console.log('Navigate to outreach with program email:', {
-                                    email: school.program_email,
-                                    school_id: school.id
-                                  })
-                                }}
-                                className="btn-secondary text-xs py-1 px-2"
-                              >
-                                Email Program
-                              </button>
-                            </div>
-                          </div>
-                        </div>
-                      )}
-                      {getSchoolCoaches(school.id).map((coach) => {
-                        const verification = getVerificationStatus(coach)
-
-                        return (
-                          <div key={coach.id} className="bg-navy-900 rounded-lg p-4">
-                            <div className="flex justify-between items-start">
-                              <div className="flex-1">
-                                <h4 className="text-white font-medium">{coach.name}</h4>
-                                {coach.title && (
-                                  <p className="text-gray-400 text-sm">{coach.title}</p>
-                                )}
-
-                                {/* Show helpful message for unverified coaches */}
-                                {coach.name.includes('Needs Verification') && (
-                                  <div className="mt-2 p-2 bg-yellow-900 bg-opacity-20 border border-yellow-600 border-opacity-30 rounded text-yellow-200 text-xs">
-                                    We couldn't verify this coach yet. Try the program email above, or help us by adding the current coach's info.
-                                  </div>
-                                )}
-
-                                {coach.email && (
-                                  <div className="flex items-center gap-2 mt-1">
-                                    {/* Feature 4: Verification Signal */}
-                                    <div
-                                      className={`w-2 h-2 rounded-full ${verification.dot}`}
-                                      title={verification.tooltip}
-                                    ></div>
-                                    <span className="text-gray-300 text-sm">{coach.email}</span>
-                                    <button
-                                      onClick={() => navigator.clipboard.writeText(coach.email)}
-                                      className="text-gray-500 hover:text-white text-xs"
-                                      title="Copy email"
-                                    >
-                                      📋
-                                    </button>
-                                  </div>
-                                )}
-                                {coach.phone && (
-                                  <p className="text-gray-300 text-sm">{coach.phone}</p>
-                                )}
-                              </div>
-                              <div className="flex gap-2">
-                                <button
-                                  onClick={() => console.log('Flag as stale:', coach)}
-                                  className="text-xs text-gray-500 hover:text-yellow-500"
-                                  title="Flag as stale"
-                                >
-                                  ⚠️
-                                </button>
-
-                                {/* Add/Update Coach button for unverified coaches */}
-                                {coach.name.includes('Needs Verification') ? (
-                                  <button
-                                    onClick={() => {
-                                      setNewCoach({
-                                        school_id: school.id,
-                                        name: '',
-                                        title: 'Head Coach',
-                                        email: '',
-                                        phone: '',
-                                        visibility: 'private'
-                                      })
-                                      setShowAddCoachModal(true)
-                                    }}
-                                    className="btn-primary text-xs py-1 px-2"
-                                  >
-                                    Add / Update Coach
-                                  </button>
-                                ) : (
-                                  <button
-                                    onClick={() => handleEmailCoach(coach, school)}
-                                    className="btn-secondary text-xs py-1 px-2"
-                                  >
-                                    Email Coach
-                                  </button>
-                                )}
-                              </div>
-                            </div>
-                          </div>
-                        )
-                      })}
-                    </div>
-                  )}
-                </div>
+                  school={enhancedSchool}
+                  isInPipeline={isInPipeline}
+                  fitScore={fitScore}
+                  onAddToPipeline={() => handleAddToPipeline(school)}
+                  onViewSchool={() => openSchoolModal(school)}
+                  showCoachInfo={true}
+                />
               )
             })}
           </div>
@@ -839,6 +706,18 @@ export default function CoachFinder() {
             </div>
           </div>
         )}
+
+        {/* School Detail Modal */}
+        <SchoolDetailModal
+          school={modalSchool}
+          isOpen={modalSchool !== null}
+          onClose={() => setModalSchool(null)}
+          athleteProfile={profile}
+          onAddToPipeline={handleAddToPipeline}
+          onRemoveFromPipeline={handleAddToPipeline}
+          isInPipeline={modalSchool ? pipeline.includes(modalSchool.name) : false}
+          fitScore={modalSchool ? calculateFitScore(modalSchool, quizResponses, profile) : null}
+        />
       </div>
     </AthleteLayout>
   )
