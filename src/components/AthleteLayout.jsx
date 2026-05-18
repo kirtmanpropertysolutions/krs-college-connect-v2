@@ -237,7 +237,7 @@ export default function AthleteLayout({ children }) {
       'mx-2 px-3 py-2 rounded-lg border-l-2',
       isActive
         ? 'nav-item-active'
-        : 'border-transparent text-text-secondary hover:text-white hover:bg-navy-800',
+        : 'border-transparent text-text-secondary hover:text-fg-primary hover:bg-surface-card-hover',
     ].join(' ')
 
   const initials =
@@ -250,7 +250,11 @@ export default function AthleteLayout({ children }) {
       {/* ===== Left Sidebar (desktop) ===== */}
       <aside
         className="hidden md:flex flex-col h-screen sticky top-0 scroll-thin overflow-y-auto"
-        style={{ width: '264px', background: '#0a0e1a', borderRight: '1px solid #1e293b' }}
+        style={{
+          width: '264px',
+          background: 'var(--bg-page)',
+          borderRight: '1px solid var(--border-default)',
+        }}
       >
         {/* Logo section — club crest is the hero. Larger size (80px) and
             a soft crimson halo behind the crest make the sidebar feel
@@ -268,7 +272,7 @@ export default function AthleteLayout({ children }) {
             />
             <EastsideFCLogo size={80} className="relative mx-auto" />
           </div>
-          <div className="display-font text-[16px] tracking-[0.08em] text-white">
+          <div className="display-font text-[16px] tracking-[0.08em] text-fg-primary">
             {profile?.organization?.name || 'Eastside FC'}
           </div>
           <div
@@ -320,7 +324,7 @@ export default function AthleteLayout({ children }) {
                 {initials}
               </div>
               <div className="flex-1 min-w-0">
-                <div className="text-white text-[13px] font-medium truncate">
+                <div className="text-fg-primary text-[13px] font-medium truncate">
                   {profile?.full_name || user?.email?.split('@')[0] || 'Athlete'}
                 </div>
                 <div className="text-text-tertiary text-[11px] truncate">
@@ -331,7 +335,7 @@ export default function AthleteLayout({ children }) {
             </div>
             <button
               onClick={signOut}
-              className="w-full text-[11px] py-1.5 text-text-secondary hover:text-white transition-colors rounded hover:bg-navy-800"
+              className="w-full text-[11px] py-1.5 text-text-secondary hover:text-fg-primary transition-colors rounded hover:bg-surface-card-hover"
             >
               Sign Out
             </button>
@@ -348,7 +352,10 @@ export default function AthleteLayout({ children }) {
         <header
           className="md:hidden sticky top-0 z-40 flex items-center justify-center px-4 py-3 border-b border-card-border"
           style={{
-            background: 'rgba(10,14,26,0.92)',
+            // Use the semantic page color with an alpha mix so the blur
+            // still works in both modes — color-mix keeps the alpha
+            // logic theme-agnostic.
+            background: 'color-mix(in srgb, var(--bg-page) 92%, transparent)',
             backdropFilter: 'blur(14px)',
             WebkitBackdropFilter: 'blur(14px)',
           }}
@@ -359,7 +366,7 @@ export default function AthleteLayout({ children }) {
               "this app is by Eastside FC". */}
           <div className="flex items-center gap-2.5">
             <EastsideFCLogo size={36} />
-            <span className="display-font text-[15px] tracking-[0.08em] text-white">
+            <span className="display-font text-[15px] tracking-[0.08em] text-fg-primary">
               {profile?.organization?.name || 'Eastside FC'}
             </span>
           </div>
@@ -368,7 +375,10 @@ export default function AthleteLayout({ children }) {
         {/* Top bar (desktop) */}
         <header
           className="hidden md:flex items-center justify-between px-8 py-4 sticky top-0 z-20 border-b border-card-border"
-          style={{ background: 'rgba(10,14,26,0.85)', backdropFilter: 'blur(12px)' }}
+          style={{
+            background: 'color-mix(in srgb, var(--bg-page) 85%, transparent)',
+            backdropFilter: 'blur(12px)',
+          }}
         >
           <div className="flex items-center gap-3">
             <span
@@ -413,7 +423,7 @@ export default function AthleteLayout({ children }) {
                     searchResults.schools.length === 0 &&
                     searchResults.coaches.length === 0 && (
                       <div className="px-4 py-6 text-center text-text-tertiary text-sm">
-                        No matches for <span className="text-white">"{searchQuery}"</span>
+                        No matches for <span className="text-fg-primary">"{searchQuery}"</span>
                       </div>
                     )}
 
@@ -426,16 +436,16 @@ export default function AthleteLayout({ children }) {
                         <button
                           key={s.id}
                           onClick={() => goToSchool(s)}
-                          className="w-full flex items-center gap-3 px-4 py-2.5 hover:bg-navy-800 text-left transition-colors"
+                          className="w-full flex items-center gap-3 px-4 py-2.5 hover:bg-surface-card-hover text-left transition-colors"
                         >
                           <div
                             className="w-8 h-8 rounded-md flex items-center justify-center text-[9px] font-bold text-white flex-shrink-0"
-                            style={{ background: s.primary_color || '#1e293b' }}
+                            style={{ background: s.primary_color || 'var(--border-default)' }}
                           >
                             {(s.short_name || s.name).split(' ').map((w) => w[0]).join('').slice(0, 3).toUpperCase()}
                           </div>
                           <div className="flex-1 min-w-0">
-                            <div className="text-sm text-white truncate">{s.name}</div>
+                            <div className="text-sm text-fg-primary truncate">{s.name}</div>
                             <div className="text-[11px] text-text-tertiary">
                               {s.division} · {s.conference || '—'} · {s.state || '—'}
                             </div>
@@ -454,13 +464,13 @@ export default function AthleteLayout({ children }) {
                         <button
                           key={c.id}
                           onClick={() => goToCoach(c)}
-                          className="w-full flex items-center gap-3 px-4 py-2.5 hover:bg-navy-800 text-left transition-colors"
+                          className="w-full flex items-center gap-3 px-4 py-2.5 hover:bg-surface-card-hover text-left transition-colors"
                         >
-                          <div className="w-8 h-8 rounded-full bg-navy-800 flex items-center justify-center text-[10px] font-bold text-white flex-shrink-0">
+                          <div className="w-8 h-8 rounded-full bg-surface-card-hover flex items-center justify-center text-[10px] font-bold text-fg-primary flex-shrink-0 border border-border-default">
                             {(c.name || 'C').split(' ').map((w) => w[0]).slice(0, 2).join('').toUpperCase()}
                           </div>
                           <div className="flex-1 min-w-0">
-                            <div className="text-sm text-white truncate">{c.name}</div>
+                            <div className="text-sm text-fg-primary truncate">{c.name}</div>
                             <div className="text-[11px] text-text-tertiary truncate">
                               {c.schools?.name || 'Unknown school'} · {c.title || 'Head Coach'}
                             </div>
@@ -477,7 +487,7 @@ export default function AthleteLayout({ children }) {
             <div className="relative" ref={bellRef}>
               <button
                 onClick={() => setBellOpen(!bellOpen)}
-                className="relative w-10 h-10 rounded-lg hover:bg-navy-800 flex items-center justify-center text-text-secondary hover:text-white transition-colors"
+                className="relative w-10 h-10 rounded-lg hover:bg-surface-card-hover flex items-center justify-center text-text-secondary hover:text-fg-primary transition-colors"
                 aria-label="Notifications"
               >
                 <Bell size={18} />
@@ -496,14 +506,14 @@ export default function AthleteLayout({ children }) {
                 >
                   <div className="px-4 py-3 border-b border-card-border flex items-center justify-between">
                     <div>
-                      <div className="display-font text-sm text-white">Activity</div>
+                      <div className="display-font text-sm text-fg-primary">Activity</div>
                       <div className="text-[10px] uppercase tracking-widest text-text-tertiary">
                         Recent events
                       </div>
                     </div>
                     <button
                       onClick={() => setBellOpen(false)}
-                      className="text-[11px] text-text-tertiary hover:text-white"
+                      className="text-[11px] text-text-tertiary hover:text-fg-primary"
                     >
                       Close
                     </button>
@@ -522,14 +532,14 @@ export default function AthleteLayout({ children }) {
                             setBellOpen(false)
                             navigate(activityHref(a))
                           }}
-                          className="w-full px-4 py-2.5 hover:bg-navy-800 text-left transition-colors flex items-start gap-3"
+                          className="w-full px-4 py-2.5 hover:bg-surface-card-hover text-left transition-colors flex items-start gap-3"
                         >
                           <div
                             className="w-2 h-2 rounded-full mt-1.5 flex-shrink-0"
                             style={{ background: 'var(--crimson-3)' }}
                           />
                           <div className="flex-1 min-w-0">
-                            <div className="text-sm text-white leading-snug">
+                            <div className="text-sm text-fg-primary leading-snug">
                               {formatActivity(a)}
                             </div>
                             <div className="text-[11px] text-text-tertiary mt-0.5">
@@ -627,17 +637,18 @@ export default function AthleteLayout({ children }) {
       {mobileDrawerOpen && (
         <div className="fixed inset-0 z-50 md:hidden">
           <div
-            className="absolute inset-0 bg-black bg-opacity-70"
+            className="absolute inset-0"
+            style={{ background: 'rgba(0,0,0,0.55)' }}
             onClick={() => setMobileDrawerOpen(false)}
           />
           <div
-            className="absolute left-0 top-0 bottom-0 w-80 max-w-[85vw] bg-navy-900 border-r border-gray-700 overflow-y-auto"
+            className="absolute left-0 top-0 bottom-0 w-80 max-w-[85vw] bg-surface-page border-r border-border-default overflow-y-auto"
             style={{ paddingTop: 'env(safe-area-inset-top, 0px)' }}
           >
             <div className="p-6">
               <button
                 onClick={() => setMobileDrawerOpen(false)}
-                className="absolute right-4 p-2 text-gray-400 hover:text-white tap-target"
+                className="absolute right-4 p-2 text-text-tertiary hover:text-fg-primary tap-target"
                 style={{ top: 'calc(env(safe-area-inset-top, 0px) + 16px)' }}
                 aria-label="Close menu"
               >
@@ -659,7 +670,7 @@ export default function AthleteLayout({ children }) {
                   <EastsideFCLogo size={64} className="relative" />
                 </div>
                 <div>
-                  <div className="display-font text-white tracking-[0.08em] text-base">
+                  <div className="display-font text-fg-primary tracking-[0.08em] text-base">
                     {profile?.organization?.name || 'Eastside FC'}
                   </div>
                   <div className="text-[9px] uppercase tracking-[0.2em] text-text-secondary mt-1">
@@ -670,7 +681,7 @@ export default function AthleteLayout({ children }) {
 
               {navSections.map((section) => (
                 <div key={section.label} className="mb-5">
-                  <h3 className="text-gray-400 text-xs uppercase font-medium tracking-wider mb-2">
+                  <h3 className="text-text-tertiary text-xs uppercase font-medium tracking-wider mb-2">
                     {section.label}
                   </h3>
                   <div className="space-y-1">
@@ -683,8 +694,8 @@ export default function AthleteLayout({ children }) {
                         className={({ isActive }) =>
                           `flex items-center gap-3 px-3 py-2 rounded-lg text-sm ${
                             isActive
-                              ? 'bg-navy-800 text-white'
-                              : 'text-gray-300 hover:text-white hover:bg-navy-800'
+                              ? 'bg-surface-card-hover text-fg-primary'
+                              : 'text-text-secondary hover:text-fg-primary hover:bg-surface-card-hover'
                           }`
                         }
                       >
@@ -707,11 +718,11 @@ export default function AthleteLayout({ children }) {
                     {initials}
                   </div>
                   <div>
-                    <div className="text-white text-sm font-medium">
+                    <div className="text-fg-primary text-sm font-medium">
                       {profile?.full_name || user?.email?.split('@')[0] || 'Athlete'}
                     </div>
                     {profile?.athlete?.class_year && (
-                      <div className="text-gray-400 text-xs">
+                      <div className="text-text-tertiary text-xs">
                         Class of {profile.athlete.class_year}
                       </div>
                     )}

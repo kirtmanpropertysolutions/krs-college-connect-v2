@@ -26,7 +26,9 @@ export default function MilestoneToast({ milestone, onDismiss, duration = 3500 }
       className="fixed left-1/2 -translate-x-1/2 z-50 design-card px-4 py-3 max-w-sm w-[calc(100vw-32px)] flex items-center gap-3 animate-slide-up-soft shadow-2xl"
       style={{
         bottom: 'calc(76px + env(safe-area-inset-bottom, 0px))', // sit above mobile tab bar
-        background: 'linear-gradient(135deg, #131a2c 0%, #0f1729 100%)',
+        // Hero-card gradient adapts via the CSS variable so the toast
+        // doesn't look like a dark slab dropped on a light page.
+        background: 'var(--hero-card-bg)',
         borderColor: 'rgba(200,16,46,0.45)',
       }}
       role="status"
@@ -45,13 +47,13 @@ export default function MilestoneToast({ milestone, onDismiss, duration = 3500 }
         <div className="text-[10px] uppercase tracking-[0.16em] text-red-400 font-bold mb-0.5">
           Milestone earned
         </div>
-        <div className="text-white font-semibold text-sm leading-tight">
+        <div className="text-fg-primary font-semibold text-sm leading-tight">
           {milestone.name}
         </div>
       </div>
       <button
         onClick={() => onDismiss?.()}
-        className="text-text-tertiary hover:text-white text-xs flex-shrink-0"
+        className="text-text-tertiary hover:text-fg-primary text-xs flex-shrink-0"
         aria-label="Dismiss"
       >
         ✕

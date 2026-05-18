@@ -244,12 +244,12 @@ export default function AdminAthletes() {
         </div>
         <div className="flex items-end justify-between flex-wrap gap-3">
           <div>
-            <h1 className="display-font text-4xl text-white">Athletes</h1>
+            <h1 className="display-font text-4xl text-fg-primary">Athletes</h1>
             <p className="text-text-secondary text-sm mt-1">Every athlete in your club, searchable and exportable.</p>
           </div>
           <div className="text-right">
             <div className="text-[10px] uppercase tracking-widest text-text-tertiary font-bold">On Roster</div>
-            <div className="display-font text-3xl text-white">{loading ? '—' : athletes.length}</div>
+            <div className="display-font text-3xl text-fg-primary">{loading ? '—' : athletes.length}</div>
           </div>
         </div>
       </div>
@@ -259,13 +259,13 @@ export default function AdminAthletes() {
           <div className="flex flex-col md:flex-row gap-4 items-start md:items-center">
             {/* Search */}
             <div className="flex-1 relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={16} />
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-text-tertiary" size={16} />
               <input
                 type="text"
                 placeholder="Search by name or email..."
                 value={searchQuery}
                 onChange={(e) => { setSearchQuery(e.target.value); setCurrentPage(1) }}
-                className="w-full pl-10 pr-4 py-2 bg-navy-800 border border-gray-600 rounded text-white placeholder-gray-400 focus:outline-none focus:border-eastside-crimson"
+                className="w-full pl-10 pr-4 py-2 bg-navy-800 border border-gray-600 rounded text-fg-primary placeholder-gray-400 focus:outline-none focus:border-eastside-crimson"
               />
             </div>
 
@@ -274,7 +274,7 @@ export default function AdminAthletes() {
               <select
                 value={classFilter}
                 onChange={(e) => { setClassFilter(e.target.value); setCurrentPage(1) }}
-                className="px-3 py-2 bg-navy-800 border border-gray-600 rounded text-white focus:outline-none focus:border-eastside-crimson"
+                className="px-3 py-2 bg-navy-800 border border-gray-600 rounded text-fg-primary focus:outline-none focus:border-eastside-crimson"
               >
                 {classYears.map(year => (
                   <option key={year} value={year}>{year}</option>
@@ -284,7 +284,7 @@ export default function AdminAthletes() {
               <select
                 value={positionFilter}
                 onChange={(e) => { setPositionFilter(e.target.value); setCurrentPage(1) }}
-                className="px-3 py-2 bg-navy-800 border border-gray-600 rounded text-white focus:outline-none focus:border-eastside-crimson"
+                className="px-3 py-2 bg-navy-800 border border-gray-600 rounded text-fg-primary focus:outline-none focus:border-eastside-crimson"
               >
                 {positions.map(position => (
                   <option key={position} value={position}>{position}</option>
@@ -293,7 +293,7 @@ export default function AdminAthletes() {
 
               <button
                 onClick={exportCSV}
-                className="flex items-center gap-2 px-4 py-2 border border-gray-600 text-white rounded hover:border-eastside-crimson hover:text-eastside-crimson transition-colors"
+                className="flex items-center gap-2 px-4 py-2 border border-gray-600 text-fg-primary rounded hover:border-eastside-crimson hover:text-eastside-crimson transition-colors"
               >
                 <Download size={16} />
                 Export CSV
@@ -305,12 +305,12 @@ export default function AdminAthletes() {
         {/* Athletes Table */}
         <div className="design-card overflow-hidden">
           {loading ? (
-            <div className="p-8 text-center text-gray-400">Loading athletes...</div>
+            <div className="p-8 text-center text-text-tertiary">Loading athletes...</div>
           ) : loadError ? (
             <div className="p-8 text-center">
               <AlertCircle className="mx-auto mb-3 text-red-500" size={28} />
               <p className="text-red-400 text-sm mb-1">Couldn't load roster</p>
-              <p className="text-gray-500 text-xs mb-4">{loadError}</p>
+              <p className="text-text-muted text-xs mb-4">{loadError}</p>
               <button
                 onClick={loadAthletes}
                 className="secondary-btn"
@@ -320,7 +320,7 @@ export default function AdminAthletes() {
             </div>
           ) : filteredAthletes.length === 0 ? (
             <div className="p-8 text-center">
-              <p className="text-gray-400 text-sm mb-4">
+              <p className="text-text-tertiary text-sm mb-4">
                 {athletes.length === 0
                   ? "No athletes yet. Share your invite code to get started."
                   : "No athletes match your current filters."
@@ -338,7 +338,7 @@ export default function AdminAthletes() {
           ) : (
             <>
               {/* Table Header — 7 columns: name(2) + class + position + status + last active + actions */}
-              <div className="hidden md:grid grid-cols-7 gap-4 p-4 border-b border-gray-700 text-xs text-gray-400 uppercase font-medium tracking-wider">
+              <div className="hidden md:grid grid-cols-7 gap-4 p-4 border-b border-gray-700 text-xs text-text-tertiary uppercase font-medium tracking-wider">
                 <span className="col-span-2">Name</span>
                 <span>Class</span>
                 <span>Position</span>
@@ -362,12 +362,12 @@ export default function AdminAthletes() {
                       className="grid grid-cols-2 md:grid-cols-7 gap-4 p-4 hover:bg-gray-800 transition-colors"
                     >
                       <div className="col-span-2">
-                        <div className="text-white font-medium flex items-center gap-2">
+                        <div className="text-fg-primary font-medium flex items-center gap-2">
                           {athlete.full_name || (
-                            <span className="text-gray-500 italic">Unnamed signup</span>
+                            <span className="text-text-muted italic">Unnamed signup</span>
                           )}
                         </div>
-                        <div className="text-gray-400 text-sm">
+                        <div className="text-text-tertiary text-sm">
                           {athlete.email || (
                             <span className="text-gray-600">No email on file</span>
                           )}
@@ -388,7 +388,7 @@ export default function AdminAthletes() {
                           <span className="chip chip-green">Active</span>
                         )}
                       </div>
-                      <div className="text-gray-400 text-sm">
+                      <div className="text-text-tertiary text-sm">
                         {formatDate(athlete.updated_at)}
                       </div>
                       <div className="flex justify-end">
@@ -397,7 +397,7 @@ export default function AdminAthletes() {
                             setRemoveTarget(athlete)
                             setRemoveConfirmText('')
                           }}
-                          className="tap-target text-gray-500 hover:text-red-500 transition-colors rounded-md"
+                          className="tap-target text-text-muted hover:text-red-500 transition-colors rounded-md"
                           title="Remove from club"
                           aria-label={`Remove ${athlete.full_name || 'this athlete'}`}
                         >
@@ -415,17 +415,17 @@ export default function AdminAthletes() {
                   <button
                     onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
                     disabled={currentPage === 1}
-                    className="px-3 py-1.5 text-sm border border-gray-600 rounded text-white disabled:opacity-30 hover:border-eastside-crimson hover:text-eastside-crimson transition-colors disabled:hover:border-gray-600 disabled:hover:text-white"
+                    className="px-3 py-1.5 text-sm border border-gray-600 rounded text-fg-primary disabled:opacity-30 hover:border-eastside-crimson hover:text-eastside-crimson transition-colors disabled:hover:border-gray-600 disabled:hover:text-fg-primary"
                   >
                     ← Prev
                   </button>
-                  <span className="text-gray-400 text-sm">
+                  <span className="text-text-tertiary text-sm">
                     Page {currentPage} of {totalPages}
                   </span>
                   <button
                     onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
                     disabled={currentPage === totalPages}
-                    className="px-3 py-1.5 text-sm border border-gray-600 rounded text-white disabled:opacity-30 hover:border-eastside-crimson hover:text-eastside-crimson transition-colors disabled:hover:border-gray-600 disabled:hover:text-white"
+                    className="px-3 py-1.5 text-sm border border-gray-600 rounded text-fg-primary disabled:opacity-30 hover:border-eastside-crimson hover:text-eastside-crimson transition-colors disabled:hover:border-gray-600 disabled:hover:text-fg-primary"
                   >
                     Next →
                   </button>
@@ -456,10 +456,10 @@ export default function AdminAthletes() {
                 <UserX size={20} className="text-red-500" />
               </div>
               <div>
-                <h3 className="display-font text-xl text-white leading-tight">
+                <h3 className="display-font text-xl text-fg-primary leading-tight">
                   Remove from club?
                 </h3>
-                <p className="text-gray-400 text-sm mt-1">
+                <p className="text-text-tertiary text-sm mt-1">
                   {removeTarget.full_name || 'This signup'} will lose access to
                   the platform. Their recruiting data is preserved in case
                   they're re-invited later.
@@ -514,7 +514,7 @@ export default function AdminAthletes() {
           Brief confirmation/error message. Auto-dismisses, no close button —
           intentionally cheap; for serious errors the modal stays open. */}
       {toast && (
-        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 design-card px-4 py-3 text-sm text-white shadow-2xl animate-slide-up-soft">
+        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 design-card px-4 py-3 text-sm text-fg-primary shadow-2xl animate-slide-up-soft">
           {toast}
         </div>
       )}

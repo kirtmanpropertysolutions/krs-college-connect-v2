@@ -56,7 +56,7 @@ export default function ForgotPasswordPage() {
         {/* Crest + brand */}
         <div className="flex flex-col items-center mb-7 pb-6 border-b border-card-border">
           <EastsideFCLogo size={64} className="mb-3" />
-          <div className="display-font text-lg tracking-[0.08em] text-white">
+          <div className="display-font text-lg tracking-[0.08em] text-fg-primary">
             Eastside FC
           </div>
           <div className="text-[10px] uppercase tracking-[0.2em] text-text-secondary mt-1">
@@ -77,11 +77,11 @@ export default function ForgotPasswordPage() {
             >
               <Mail size={22} className="text-red-500" />
             </div>
-            <h2 className="display-font text-xl text-white mb-2">
+            <h2 className="display-font text-xl text-fg-primary mb-2">
               Check your email
             </h2>
             <p className="text-text-secondary text-sm leading-relaxed mb-6">
-              If an account exists for <span className="text-white">{email}</span>,
+              If an account exists for <span className="text-fg-primary">{email}</span>,
               we sent a reset link. It expires in 1 hour.
             </p>
             <Link
@@ -99,7 +99,7 @@ export default function ForgotPasswordPage() {
                 Forgot password
               </div>
             </div>
-            <h2 className="display-font text-[26px] text-white mb-2 leading-tight">
+            <h2 className="display-font text-[26px] text-fg-primary mb-2 leading-tight">
               Reset your password
             </h2>
             <p className="text-text-secondary text-sm mb-6 leading-relaxed">
@@ -147,7 +147,7 @@ export default function ForgotPasswordPage() {
             <div className="mt-6 pt-6 border-t border-card-border text-center">
               <Link
                 to="/login"
-                className="text-text-secondary text-sm hover:text-white inline-flex items-center gap-1"
+                className="text-text-secondary text-sm hover:text-fg-primary inline-flex items-center gap-1"
               >
                 <ArrowLeft size={13} /> Back to sign in
               </Link>

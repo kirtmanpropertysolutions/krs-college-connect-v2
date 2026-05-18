@@ -124,7 +124,7 @@ export default function InstallCTA() {
       style={{
         // sit ABOVE the mobile tab bar (76px tall + safe-area)
         bottom: 'calc(76px + env(safe-area-inset-bottom, 0px))',
-        background: 'linear-gradient(135deg, #131a2c 0%, #0f1729 100%)',
+        background: 'var(--hero-card-bg)',
         borderColor: 'rgba(200,16,46,0.45)',
       }}
       role="dialog"
@@ -142,7 +142,7 @@ export default function InstallCTA() {
       <div className="flex-1 min-w-0">
         {isIOS ? (
           <>
-            <div className="text-white font-semibold text-[13px] leading-tight">
+            <div className="text-fg-primary font-semibold text-[13px] leading-tight">
               Install KRS on your home screen
             </div>
             <div className="text-text-secondary text-[11px] leading-snug mt-0.5 flex items-center gap-1 flex-wrap">
@@ -153,7 +153,7 @@ export default function InstallCTA() {
           </>
         ) : (
           <>
-            <div className="text-white font-semibold text-[13px] leading-tight">
+            <div className="text-fg-primary font-semibold text-[13px] leading-tight">
               Install KRS as an app
             </div>
             <div className="text-text-secondary text-[11px] leading-snug mt-0.5">
@@ -175,7 +175,7 @@ export default function InstallCTA() {
 
       <button
         onClick={handleDismiss}
-        className="text-text-tertiary hover:text-white flex-shrink-0 tap-target"
+        className="text-text-tertiary hover:text-fg-primary flex-shrink-0 tap-target"
         aria-label="Dismiss install prompt"
       >
         <X size={16} />

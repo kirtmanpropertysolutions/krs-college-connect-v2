@@ -26,7 +26,7 @@ function StatCard({ label, value, loading, Icon, sub, to }) {
           <Icon size={15} style={{ color: 'var(--crimson-3)' }} />
         </div>
       </div>
-      <div className="display-font text-3xl text-white leading-none">
+      <div className="display-font text-3xl text-fg-primary leading-none">
         {loading ? '—' : value.toLocaleString()}
       </div>
       {sub && <div className="text-[11px] text-text-tertiary mt-2">{sub}</div>}
@@ -155,7 +155,7 @@ export default function AdminDashboard() {
             Club Admin · 2025–26
           </span>
         </div>
-        <h1 className="display-font text-4xl text-white">Dashboard</h1>
+        <h1 className="display-font text-4xl text-fg-primary">Dashboard</h1>
         <p className="text-text-secondary text-sm mt-1">
           Welcome back. Here's what's happening at your club this week.
         </p>
@@ -205,14 +205,14 @@ export default function AdminDashboard() {
           <div className="design-card p-6">
             <div className="flex items-center justify-between mb-5">
               <div>
-                <h2 className="display-font text-lg text-white">Athlete activity</h2>
+                <h2 className="display-font text-lg text-fg-primary">Athlete activity</h2>
                 <p className="text-[11px] uppercase tracking-widest text-text-tertiary mt-1">
                   Most recent
                 </p>
               </div>
               <Link
                 to="/admin/athletes"
-                className="text-xs font-semibold flex items-center gap-1 hover:text-white transition-colors"
+                className="text-xs font-semibold flex items-center gap-1 hover:text-fg-primary transition-colors"
                 style={{ color: 'var(--crimson-3)' }}
               >
                 View all <ArrowUpRight size={12} />
@@ -249,7 +249,7 @@ export default function AdminDashboard() {
                       key={index}
                       className="grid grid-cols-4 gap-4 text-sm py-3 border-b border-card-border last:border-b-0 items-center"
                     >
-                      <span className="text-white font-medium flex items-center gap-2.5">
+                      <span className="text-fg-primary font-medium flex items-center gap-2.5">
                         <span
                           className="w-7 h-7 rounded-full flex items-center justify-center text-[10px] font-bold flex-shrink-0"
                           style={{
@@ -279,14 +279,14 @@ export default function AdminDashboard() {
           <div className="design-card p-6 h-full">
             <div className="flex items-center justify-between mb-5">
               <div>
-                <h2 className="display-font text-lg text-white">Announcements</h2>
+                <h2 className="display-font text-lg text-fg-primary">Announcements</h2>
                 <p className="text-[11px] uppercase tracking-widest text-text-tertiary mt-1">
                   Recent broadcasts
                 </p>
               </div>
               <Link
                 to="/admin/announcements"
-                className="text-xs font-semibold flex items-center gap-1 hover:text-white transition-colors"
+                className="text-xs font-semibold flex items-center gap-1 hover:text-fg-primary transition-colors"
                 style={{ color: 'var(--crimson-3)' }}
               >
                 Send <ArrowUpRight size={12} />
@@ -308,7 +308,7 @@ export default function AdminDashboard() {
                     key={index}
                     className="border-b border-card-border pb-3 last:border-b-0"
                   >
-                    <div className="text-white text-sm font-medium">{announcement.title}</div>
+                    <div className="text-fg-primary text-sm font-medium">{announcement.title}</div>
                     <div className="text-text-tertiary text-xs mt-1 flex items-center gap-1.5">
                       <Calendar size={11} />
                       {formatDate(announcement.created_at)}

@@ -48,3 +48,4 @@ krs-college-connect-source.zip
 *.tar.gz
 .env.vercel*
 .staging-creds.env
+.prod-creds.env

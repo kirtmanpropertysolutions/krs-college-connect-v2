@@ -112,7 +112,7 @@ function SortableClipRow({ clip, index, onRemove }) {
       <button
         {...attributes}
         {...listeners}
-        className="p-1 rounded text-text-tertiary hover:text-white cursor-grab active:cursor-grabbing touch-none"
+        className="p-1 rounded text-text-tertiary hover:text-fg-primary cursor-grab active:cursor-grabbing touch-none"
         aria-label="Drag to reorder"
       >
         <GripVertical size={16} />
@@ -120,7 +120,7 @@ function SortableClipRow({ clip, index, onRemove }) {
 
       {/* Order number */}
       <div
-        className="w-8 h-8 rounded-md flex items-center justify-center display-font text-sm text-white flex-shrink-0"
+        className="w-8 h-8 rounded-md flex items-center justify-center display-font text-sm text-fg-primary flex-shrink-0"
         style={{ background: 'rgba(200,16,46,0.15)' }}
       >
         {String(index + 1).padStart(2, '0')}
@@ -145,7 +145,7 @@ function SortableClipRow({ clip, index, onRemove }) {
 
       {/* Title + duration */}
       <div className="flex-1 min-w-0">
-        <div className="text-sm text-white truncate">{clip.title}</div>
+        <div className="text-sm text-fg-primary truncate">{clip.title}</div>
         <div className="text-[11px] text-text-tertiary mt-0.5">
           {fmtDuration(clip.duration)}
           {clip.start_time > 0 || clip.end_time
@@ -196,11 +196,11 @@ function ClipEditModal({ clip, onSave, onClose }) {
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ background: 'rgba(0,0,0,0.75)' }}>
       <div className="design-card w-full max-w-lg p-6 relative">
-        <button onClick={onClose} className="absolute top-4 right-4 p-1.5 rounded hover:bg-navy-800 text-text-tertiary hover:text-white">
+        <button onClick={onClose} className="absolute top-4 right-4 p-1.5 rounded hover:bg-navy-800 text-text-tertiary hover:text-fg-primary">
           <X size={16} />
         </button>
 
-        <h3 className="display-font text-lg text-white mb-1">{clip.title}</h3>
+        <h3 className="display-font text-lg text-fg-primary mb-1">{clip.title}</h3>
         <p className="text-[11px] text-text-tertiary uppercase tracking-widest mb-5">Trim & overlay settings</p>
 
         {/* Mux player preview */}
@@ -210,13 +210,13 @@ function ClipEditModal({ clip, onSave, onClose }) {
             {(overlayName || overlayPosition || overlayJersey) && (
               <div className="absolute bottom-0 left-0 right-0 z-10 px-3 py-2 pointer-events-none"
                 style={{ background: 'linear-gradient(to top, rgba(0,0,0,0.8), transparent)' }}>
-                <div className="text-white font-bold text-sm leading-tight">
+                <div className="text-fg-primary font-bold text-sm leading-tight">
                   {overlayName || clip.overlay_name || ''}
                   {(overlayJersey || clip.overlay_jersey) &&
                     <span className="ml-1 opacity-70">#{overlayJersey || clip.overlay_jersey}</span>}
                 </div>
                 {(overlayPosition || clip.overlay_position) && (
-                  <div className="text-[11px] text-white/70 uppercase tracking-widest">
+                  <div className="text-[11px] text-fg-primary/70 uppercase tracking-widest">
                     {overlayPosition || clip.overlay_position}
                   </div>
                 )}
@@ -345,7 +345,7 @@ function ClipDownloadMenu({ clip }) {
     <div className="relative" ref={menuRef}>
       <button
         onClick={() => setOpen(o => !o)}
-        className="p-1 rounded hover:bg-navy-800 text-text-tertiary hover:text-white"
+        className="p-1 rounded hover:bg-navy-800 text-text-tertiary hover:text-fg-primary"
         title="Download clip"
       >
         <Download size={12} />
@@ -365,7 +365,7 @@ function ClipDownloadMenu({ clip }) {
             onClick={() => setOpen(false)}
             className="flex flex-col px-3 py-2.5 hover:bg-navy-800 transition no-underline"
           >
-            <span className="text-sm text-white font-medium">TikTok / Instagram</span>
+            <span className="text-sm text-fg-primary font-medium">TikTok / Instagram</span>
             <span className="text-[10px] text-text-tertiary mt-0.5">Crop to 9:16 in CapCut or Instagram's editor</span>
           </a>
           <a
@@ -375,7 +375,7 @@ function ClipDownloadMenu({ clip }) {
             className="flex flex-col px-3 py-2.5 hover:bg-navy-800 transition no-underline"
             style={{ borderTop: '1px solid rgba(255,255,255,0.07)' }}
           >
-            <span className="text-sm text-white font-medium">YouTube / Twitter</span>
+            <span className="text-sm text-fg-primary font-medium">YouTube / Twitter</span>
             <span className="text-[10px] text-text-tertiary mt-0.5">Standard 16:9 landscape</span>
           </a>
         </div>
@@ -444,11 +444,11 @@ function ClipCard({ clip, onEdit, onDelete, onAddToReel, inReel }) {
                 className="absolute bottom-0 left-0 right-0 px-2.5 py-2 pointer-events-none"
                 style={{ background: 'linear-gradient(to top, rgba(0,0,0,0.85), transparent)' }}
               >
-                <div className="text-white font-semibold text-xs leading-tight">
+                <div className="text-fg-primary font-semibold text-xs leading-tight">
                   {clip.overlay_name}{clip.overlay_jersey ? ` #${clip.overlay_jersey}` : ''}
                 </div>
                 {clip.overlay_position && (
-                  <div className="text-[10px] text-white/70 uppercase tracking-widest">{clip.overlay_position}</div>
+                  <div className="text-[10px] text-fg-primary/70 uppercase tracking-widest">{clip.overlay_position}</div>
                 )}
               </div>
             )}
@@ -484,7 +484,7 @@ function ClipCard({ clip, onEdit, onDelete, onAddToReel, inReel }) {
 
         {/* Duration badge */}
         {clip.duration && (
-          <div className="absolute bottom-2 right-2 text-[10px] text-white/80 bg-black/50 px-1.5 py-0.5 rounded">
+          <div className="absolute bottom-2 right-2 text-[10px] text-fg-primary/80 bg-black/50 px-1.5 py-0.5 rounded">
             {fmtDuration(clip.duration)}
           </div>
         )}
@@ -492,21 +492,21 @@ function ClipCard({ clip, onEdit, onDelete, onAddToReel, inReel }) {
 
       {/* Card footer */}
       <div className="p-3 bg-navy-900 flex-1 flex flex-col gap-2">
-        <div className="text-sm font-medium text-white truncate">{clip.title}</div>
+        <div className="text-sm font-medium text-fg-primary truncate">{clip.title}</div>
 
         <div className="flex items-center gap-2 mt-auto">
           {clip.status === 'ready' && (
             <>
               <button
                 onClick={() => onEdit(clip)}
-                className="text-[11px] text-text-tertiary hover:text-white flex items-center gap-1 flex-1"
+                className="text-[11px] text-text-tertiary hover:text-fg-primary flex items-center gap-1 flex-1"
               >
                 <Scissors size={10} /> Trim / overlay
               </button>
               <button
                 onClick={() => onAddToReel(clip.id)}
                 disabled={inReel}
-                className={`text-[11px] font-semibold flex items-center gap-1 ${inReel ? 'text-text-tertiary cursor-not-allowed' : 'hover:text-white'}`}
+                className={`text-[11px] font-semibold flex items-center gap-1 ${inReel ? 'text-text-tertiary cursor-not-allowed' : 'hover:text-fg-primary'}`}
                 style={{ color: inReel ? undefined : 'var(--crimson-3)' }}
               >
                 {inReel ? '✓ In reel' : '+ Reel'}
@@ -557,7 +557,7 @@ function VideoStudioComingSoon() {
               <div className="flex items-center gap-2 mb-1">
                 <span className="chip chip-amber">Coming Soon</span>
               </div>
-              <h1 className="display-font text-4xl md:text-5xl text-white leading-none">
+              <h1 className="display-font text-4xl md:text-5xl text-fg-primary leading-none">
                 Highlight Reels
               </h1>
             </div>
@@ -595,7 +595,7 @@ function VideoStudioComingSoon() {
 
           {/* CTA — direct people to outreach in the meantime */}
           <div className="border-t border-gray-800 pt-6">
-            <p className="text-sm text-gray-400 mb-3">
+            <p className="text-sm text-text-tertiary mb-3">
               In the meantime, you can still add YouTube or external video
               links — they'll show up on your public recruiting profile.
             </p>
@@ -629,8 +629,8 @@ function FeatureRow({ icon, title, detail }) {
         {icon}
       </div>
       <div>
-        <div className="text-white text-sm font-semibold">{title}</div>
-        <div className="text-gray-400 text-sm leading-snug">{detail}</div>
+        <div className="text-fg-primary text-sm font-semibold">{title}</div>
+        <div className="text-text-tertiary text-sm leading-snug">{detail}</div>
       </div>
     </div>
   )
@@ -1067,7 +1067,7 @@ function VideoStudioInner() {
             style={{ borderColor: 'rgba(200,16,46,0.4)', maxWidth: '340px' }}
           >
             <Sparkles size={14} style={{ color: 'var(--crimson-3)', flexShrink: 0 }} />
-            <span className="text-sm text-white">{toast}</span>
+            <span className="text-sm text-fg-primary">{toast}</span>
           </div>
         )}
 
@@ -1090,7 +1090,7 @@ function VideoStudioInner() {
           </div>
           <div className="flex flex-wrap items-end justify-between gap-4">
             <div>
-              <h1 className="display-font text-4xl text-white">Video Studio</h1>
+              <h1 className="display-font text-4xl text-fg-primary">Video Studio</h1>
               <p className="text-text-secondary text-sm mt-1 max-w-2xl">
                 Upload game clips, trim your best moments, and build a highlight reel coaches can watch on your profile.
               </p>
@@ -1112,8 +1112,8 @@ function VideoStudioInner() {
               onClick={() => setMainTab(id)}
               className={`flex items-center gap-2 px-4 py-2.5 text-sm font-medium border-b-2 -mb-px transition ${
                 mainTab === id
-                  ? 'border-crimson text-white'
-                  : 'border-transparent text-text-secondary hover:text-white'
+                  ? 'border-crimson text-fg-primary'
+                  : 'border-transparent text-text-secondary hover:text-fg-primary'
               }`}
               style={mainTab === id ? { borderColor: 'var(--crimson)' } : {}}
             >
@@ -1137,8 +1137,8 @@ function VideoStudioInner() {
                   onClick={() => setStudioTab(id)}
                   className={`px-4 py-1.5 rounded-full text-sm font-medium transition ${
                     studioTab === id
-                      ? 'text-white'
-                      : 'text-text-secondary hover:text-white bg-navy-900 border border-card-border'
+                      ? 'text-fg-primary'
+                      : 'text-text-secondary hover:text-fg-primary bg-navy-900 border border-card-border'
                   }`}
                   style={studioTab === id ? { background: 'var(--crimson)', border: '1px solid var(--crimson)' } : {}}
                 >
@@ -1150,7 +1150,7 @@ function VideoStudioInner() {
             {/* ── UPLOAD TAB ──────────────────────────────────────────── */}
             {studioTab === 'upload' && (
               <div className="design-card p-6 md:p-8">
-                <h2 className="display-font text-lg text-white mb-1">Upload a clip</h2>
+                <h2 className="display-font text-lg text-fg-primary mb-1">Upload a clip</h2>
                 <p className="text-text-secondary text-sm mb-6">
                   Upload game clips from your device. We'll process them with Mux for smooth playback on any device.
                 </p>
@@ -1180,7 +1180,7 @@ function VideoStudioInner() {
                   >
                     <input type="file" accept="video/*" className="hidden" onChange={handleFileSelect} />
                     <Upload size={32} className="mx-auto mb-3 text-text-tertiary" />
-                    <p className="text-white font-medium mb-1">Drag & drop a video here</p>
+                    <p className="text-fg-primary font-medium mb-1">Drag & drop a video here</p>
                     <p className="text-text-tertiary text-sm mb-4">or click to choose a file</p>
                     <div className="inline-block eastside-btn text-sm px-6">Browse files</div>
                     {uploadState === 'error' && (
@@ -1194,12 +1194,12 @@ function VideoStudioInner() {
                     {uploadState === 'fetching' && (
                       <>
                         <Loader2 size={32} className="mx-auto mb-3 animate-spin text-text-tertiary" />
-                        <p className="text-white font-medium">Preparing upload…</p>
+                        <p className="text-fg-primary font-medium">Preparing upload…</p>
                       </>
                     )}
                     {uploadState === 'uploading' && (
                       <>
-                        <p className="text-white font-medium mb-4">Uploading to Mux…</p>
+                        <p className="text-fg-primary font-medium mb-4">Uploading to Mux…</p>
                         <div className="w-full bg-navy-800 rounded-full h-2 mb-2 max-w-sm mx-auto overflow-hidden">
                           <div
                             className="h-full rounded-full transition-all duration-300"
@@ -1212,14 +1212,14 @@ function VideoStudioInner() {
                     {uploadState === 'polling' && (
                       <>
                         <Loader2 size={32} className="mx-auto mb-3 animate-spin" style={{ color: 'var(--crimson-3)' }} />
-                        <p className="text-white font-medium mb-1">Upload complete — Mux is processing</p>
+                        <p className="text-fg-primary font-medium mb-1">Upload complete — Mux is processing</p>
                         <p className="text-text-tertiary text-sm">This usually takes 30–90 seconds. We'll switch you to your library when it's ready.</p>
                       </>
                     )}
                     {uploadState === 'done' && (
                       <>
                         <CheckCircle2 size={32} className="mx-auto mb-3" style={{ color: 'var(--crimson-3)' }} />
-                        <p className="text-white font-medium mb-3">Clip is ready!</p>
+                        <p className="text-fg-primary font-medium mb-3">Clip is ready!</p>
                         <button onClick={() => { setUploadState('idle'); setStudioTab('library') }} className="eastside-btn text-sm px-6">
                           View in My Clips
                         </button>
@@ -1250,7 +1250,7 @@ function VideoStudioInner() {
                 ) : clips.length === 0 ? (
                   <div className="design-card p-10 text-center">
                     <Film size={32} className="mx-auto mb-3 text-text-tertiary" />
-                    <p className="text-white font-medium mb-1">No clips yet</p>
+                    <p className="text-fg-primary font-medium mb-1">No clips yet</p>
                     <p className="text-text-secondary text-sm mb-5">
                       Upload your first game clip to get started.
                     </p>
@@ -1320,7 +1320,7 @@ function VideoStudioInner() {
               <div className="design-card p-6">
                 <div className="flex items-start justify-between mb-5 flex-wrap gap-3">
                   <div>
-                    <h2 className="display-font text-lg text-white">Highlight reel</h2>
+                    <h2 className="display-font text-lg text-fg-primary">Highlight reel</h2>
                     <p className="text-[11px] uppercase tracking-widest text-text-tertiary mt-1">
                       Drag to reorder · {reelOrder.length} clip{reelOrder.length !== 1 ? 's' : ''} in reel
                     </p>
@@ -1351,7 +1351,7 @@ function VideoStudioInner() {
                   <div className="text-center py-10 border border-dashed border-card-border rounded-lg">
                     <Film size={28} className="mx-auto mb-3 text-text-tertiary" />
                     <p className="text-text-secondary text-sm">
-                      No ready clips to add. <button onClick={() => setStudioTab('upload')} className="text-white underline">Upload a clip</button> first.
+                      No ready clips to add. <button onClick={() => setStudioTab('upload')} className="text-fg-primary underline">Upload a clip</button> first.
                     </p>
                   </div>
                 ) : (
@@ -1380,7 +1380,7 @@ function VideoStudioInner() {
                                 )}
                               </div>
                               <div className="flex-1 min-w-0">
-                                <div className="text-sm text-white truncate">{clip.title}</div>
+                                <div className="text-sm text-fg-primary truncate">{clip.title}</div>
                                 <div className="text-[11px] text-text-tertiary">{fmtDuration(clip.duration)}</div>
                               </div>
                               <ClipDownloadMenu clip={clip} />
@@ -1389,7 +1389,7 @@ function VideoStudioInner() {
                                 className={`text-[11px] font-semibold px-2.5 py-1 rounded ${
                                   inReel
                                     ? 'bg-navy-800 text-text-tertiary hover:text-red-400'
-                                    : 'text-white'
+                                    : 'text-fg-primary'
                                 }`}
                                 style={inReel ? {} : { background: 'var(--crimson)' }}
                               >
@@ -1434,7 +1434,7 @@ function VideoStudioInner() {
                         <>
                           <div className="mt-4 text-[11px] text-text-tertiary flex items-center gap-1.5">
                             <ChevronRight size={11} />
-                            Clips play in this order on your public profile. Click <strong className="text-white">Save order</strong> to publish.
+                            Clips play in this order on your public profile. Click <strong className="text-fg-primary">Save order</strong> to publish.
                           </div>
                           <div className="mt-3 p-3 rounded-lg text-[11px]"
                             style={{ background: 'rgba(255,0,0,0.06)', border: '1px solid rgba(255,0,0,0.15)', color: '#fca5a5' }}>
@@ -1456,7 +1456,7 @@ function VideoStudioInner() {
           <div className="design-card p-6">
             <div className="flex items-center justify-between mb-5 flex-wrap gap-3">
               <div>
-                <h2 className="display-font text-lg text-white">Recruiting card</h2>
+                <h2 className="display-font text-lg text-fg-primary">Recruiting card</h2>
                 <p className="text-[11px] uppercase tracking-widest text-text-tertiary mt-1">
                   IG-portrait · 1080 × 1350 · download as PNG
                 </p>

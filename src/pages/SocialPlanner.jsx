@@ -73,7 +73,7 @@ export default function SocialPlanner() {
                 Content calendar
               </span>
             </div>
-            <h1 className="display-font text-4xl text-white">Social Planner</h1>
+            <h1 className="display-font text-4xl text-fg-primary">Social Planner</h1>
             <p className="text-text-secondary text-sm mt-1">{weekLabel}</p>
           </div>
           <div className="flex items-center gap-2">
@@ -106,7 +106,7 @@ export default function SocialPlanner() {
             <PlugZap size={15} style={{ color: 'var(--gold)' }} />
           </div>
           <div className="text-sm text-text-secondary leading-relaxed flex-1">
-            <span className="font-semibold text-white">Demo schedule.</span>{' '}
+            <span className="font-semibold text-fg-primary">Demo schedule.</span>{' '}
             Connect your Instagram, TikTok, and X accounts to schedule posts directly from KRS.
           </div>
           <button className="secondary-btn inline-flex items-center gap-2" style={{ fontSize: '12px' }}>
@@ -122,7 +122,7 @@ export default function SocialPlanner() {
               <div key={day}>
                 {/* Day header */}
                 <div className="text-center mb-2">
-                  <div className="display-font text-sm text-white tracking-[0.05em]">{day}</div>
+                  <div className="display-font text-sm text-fg-primary tracking-[0.05em]">{day}</div>
                   <div className="text-[10px] uppercase tracking-widest text-text-tertiary mt-0.5">
                     {dayPosts.length} post{dayPosts.length === 1 ? '' : 's'}
                   </div>
@@ -153,7 +153,7 @@ export default function SocialPlanner() {
                         >
                           <div className="flex items-center gap-1.5 mb-1">
                             <div
-                              className="w-5 h-5 rounded flex items-center justify-center flex-shrink-0 text-[9px] font-bold text-white"
+                              className="w-5 h-5 rounded flex items-center justify-center flex-shrink-0 text-[9px] font-bold text-fg-primary"
                               style={{ background: c.color, letterSpacing: '0.04em' }}
                             >
                               {c.letter}
@@ -162,7 +162,7 @@ export default function SocialPlanner() {
                               <ClockIcon size={9} /> {p.time}
                             </span>
                           </div>
-                          <div className="text-[11px] font-semibold text-white leading-tight line-clamp-2">
+                          <div className="text-[11px] font-semibold text-fg-primary leading-tight line-clamp-2">
                             {p.title}
                           </div>
                         </button>
@@ -192,7 +192,7 @@ export default function SocialPlanner() {
                   <s.Icon size={14} style={{ color: 'var(--crimson-3)' }} />
                 </div>
               </div>
-              <div className="display-font text-2xl text-white">{s.value}</div>
+              <div className="display-font text-2xl text-fg-primary">{s.value}</div>
               <div className="text-[11px] text-text-tertiary mt-1">{s.sub}</div>
             </div>
           ))}
@@ -202,7 +202,7 @@ export default function SocialPlanner() {
         <div className="design-card p-6">
           <div className="flex items-center gap-3 mb-2">
             <Lightbulb size={14} style={{ color: 'var(--crimson-3)' }} />
-            <h2 className="display-font text-lg text-white">Content ideas</h2>
+            <h2 className="display-font text-lg text-fg-primary">Content ideas</h2>
           </div>
           <p className="text-[11px] uppercase tracking-widest text-text-tertiary mb-4">
             Inspiration for the week
@@ -221,7 +221,7 @@ export default function SocialPlanner() {
                 className="text-left p-3 rounded-lg border border-card-border hover:border-slate-600 transition"
                 style={{ background: 'rgba(15,23,41,0.4)' }}
               >
-                <div className="text-sm text-white leading-snug">{idea}</div>
+                <div className="text-sm text-fg-primary leading-snug">{idea}</div>
                 <div className="text-[11px] text-text-tertiary mt-1.5 flex items-center gap-1">
                   <Plus size={11} /> Turn into a post
                 </div>

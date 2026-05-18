@@ -84,7 +84,7 @@ export default function ResetPasswordPage() {
       <div className="hero-card p-9 max-w-md w-full">
         <div className="flex flex-col items-center mb-7 pb-6 border-b border-card-border">
           <EastsideFCLogo size={64} className="mb-3" />
-          <div className="display-font text-lg tracking-[0.08em] text-white">
+          <div className="display-font text-lg tracking-[0.08em] text-fg-primary">
             Eastside FC
           </div>
           <div className="text-[10px] uppercase tracking-[0.2em] text-text-secondary mt-1">
@@ -98,7 +98,7 @@ export default function ResetPasswordPage() {
                  style={{ background: 'rgba(16,185,129,0.12)' }}>
               <CheckCircle2 size={26} className="text-green-500" />
             </div>
-            <h2 className="display-font text-xl text-white mb-2">
+            <h2 className="display-font text-xl text-fg-primary mb-2">
               Password updated
             </h2>
             <p className="text-text-secondary text-sm leading-relaxed">
@@ -113,7 +113,7 @@ export default function ResetPasswordPage() {
                 Set a new password
               </div>
             </div>
-            <h2 className="display-font text-[26px] text-white mb-2 leading-tight">
+            <h2 className="display-font text-[26px] text-fg-primary mb-2 leading-tight">
               Choose your new password
             </h2>
             <p className="text-text-secondary text-sm mb-6 leading-relaxed">

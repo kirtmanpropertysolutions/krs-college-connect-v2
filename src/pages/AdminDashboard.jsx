@@ -68,7 +68,7 @@ export default function AdminDashboard() {
                 <div className="text-white text-sm font-medium">
                   {profile?.full_name || user?.email}
                 </div>
-                <div className="text-gray-400 text-xs">Club Admin</div>
+                <div className="text-text-tertiary text-xs">Club Admin</div>
               </div>
               <button onClick={signOut} className="btn-ghost text-sm py-2 px-4">
                 Sign Out
@@ -99,19 +99,19 @@ export default function AdminDashboard() {
         <div className="grid grid-cols-4 gap-6 mb-8">
           <div className="stat-card text-center">
             <div className="display-font text-4xl text-white mb-2">0</div>
-            <div className="text-gray-400 text-sm">Total Athletes</div>
+            <div className="text-text-tertiary text-sm">Total Athletes</div>
           </div>
           <div className="stat-card text-center">
             <div className="display-font text-4xl text-success mb-2">0</div>
-            <div className="text-gray-400 text-sm">Active This Week</div>
+            <div className="text-text-tertiary text-sm">Active This Week</div>
           </div>
           <div className="stat-card text-center">
             <div className="display-font text-4xl text-blue-500 mb-2">0</div>
-            <div className="text-gray-400 text-sm">Announcements Sent</div>
+            <div className="text-text-tertiary text-sm">Announcements Sent</div>
           </div>
           <div className="stat-card text-center">
             <div className="display-font text-4xl text-purple-500 mb-2">0</div>
-            <div className="text-gray-400 text-sm">Content Items</div>
+            <div className="text-text-tertiary text-sm">Content Items</div>
           </div>
         </div>
 
@@ -131,15 +131,15 @@ export default function AdminDashboard() {
               <table className="w-full text-sm">
                 <thead>
                   <tr className="border-b border-gray-700">
-                    <th className="text-left text-gray-400 font-medium py-3">Athlete</th>
-                    <th className="text-left text-gray-400 font-medium py-3">Position</th>
-                    <th className="text-left text-gray-400 font-medium py-3">Class</th>
-                    <th className="text-left text-gray-400 font-medium py-3">Last Active</th>
+                    <th className="text-left text-text-tertiary font-medium py-3">Athlete</th>
+                    <th className="text-left text-text-tertiary font-medium py-3">Position</th>
+                    <th className="text-left text-text-tertiary font-medium py-3">Class</th>
+                    <th className="text-left text-text-tertiary font-medium py-3">Last Active</th>
                   </tr>
                 </thead>
                 <tbody>
                   <tr>
-                    <td className="py-8 text-center text-gray-400" colSpan="4">
+                    <td className="py-8 text-center text-text-tertiary" colSpan="4">
                       No athletes yet. Send invite codes to get started.
                     </td>
                   </tr>
@@ -152,7 +152,7 @@ export default function AdminDashboard() {
           <div className="card">
             <h3 className="display-font text-white text-xl mb-6">RECENT ANNOUNCEMENTS</h3>
             <div className="text-center py-8">
-              <p className="text-gray-400 mb-4">No announcements yet.</p>
+              <p className="text-text-tertiary mb-4">No announcements yet.</p>
               <button className="btn-secondary">Send One Now</button>
             </div>
           </div>
@@ -161,7 +161,7 @@ export default function AdminDashboard() {
         {/* Debug info for Phase 3 testing */}
         <div className="mt-8 p-4 bg-navy-900 rounded-lg border border-gray-700">
           <h4 className="text-white font-medium mb-2">Debug Info (Phase 3)</h4>
-          <div className="text-gray-400 text-sm space-y-1">
+          <div className="text-text-tertiary text-sm space-y-1">
             <p>User ID: {user?.id}</p>
             <p>Email: {user?.email}</p>
             <p>Profile loaded: {profile ? 'Yes' : 'No'}</p>

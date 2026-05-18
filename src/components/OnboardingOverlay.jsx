@@ -170,13 +170,16 @@ export default function OnboardingOverlay() {
         className="relative design-card max-w-sm w-full p-5 animate-slide-up-soft pointer-events-auto"
         style={{
           borderColor: 'rgba(200,16,46,0.45)',
-          background: 'linear-gradient(135deg, #131a2c 0%, #0f1729 100%)',
+          // Use the themed hero-card gradient so the coach-mark feels
+          // like part of the page in both modes instead of a hard-coded
+          // dark slab over a light backdrop.
+          background: 'var(--hero-card-bg)',
         }}
         onClick={(e) => e.stopPropagation()}
       >
         <button
           onClick={finish}
-          className="absolute top-3 right-3 text-text-tertiary hover:text-white"
+          className="absolute top-3 right-3 text-text-tertiary hover:text-fg-primary"
           aria-label="Skip tour"
         >
           <X size={16} />
@@ -192,7 +195,7 @@ export default function OnboardingOverlay() {
           </span>
         </div>
 
-        <h3 className="display-font text-xl text-white leading-tight mb-2">
+        <h3 className="display-font text-xl text-fg-primary leading-tight mb-2">
           {step.title}
         </h3>
         <p className="text-text-secondary text-[13px] leading-relaxed mb-5">

@@ -684,7 +684,7 @@ export default function Outreach() {
   // Stage pill component
   const StagePill = ({ stage }) => {
     const stageConfig = {
-      interested: { bg: 'bg-gray-700', text: 'text-gray-300', label: 'INTERESTED' },
+      interested: { bg: 'bg-gray-700', text: 'text-text-secondary', label: 'INTERESTED' },
       contacted: { bg: 'bg-blue-600/20', text: 'text-blue-400', label: 'CONTACTED' },
       visiting: { bg: 'bg-club-secondary/20', text: 'text-club-secondary', label: 'VISITING' },
       offer: { bg: 'bg-orange-500/20', text: 'text-orange-400', label: 'OFFER' },
@@ -719,12 +719,12 @@ export default function Outreach() {
         <div className="flex items-center gap-3 mb-2">
           <SchoolBadge schoolName={school.school} size="sm" />
           <div className="flex items-center justify-between flex-1">
-            <h4 className="font-medium text-white truncate flex-1">{school.school}</h4>
+            <h4 className="font-medium text-fg-primary truncate flex-1">{school.school}</h4>
             <StagePill stage={school.stage} />
           </div>
         </div>
-        <p className="text-gray-400 text-xs mb-1">{school.division}</p>
-        <p className="text-gray-300 text-xs">
+        <p className="text-text-tertiary text-xs mb-1">{school.division}</p>
+        <p className="text-text-secondary text-xs">
           <Users className="w-3 h-3 inline mr-1" />
           {school.coach_count} {school.coach_count === 1 ? 'coach' : 'coaches'}
         </p>
@@ -736,7 +736,7 @@ export default function Outreach() {
     return (
       <AthleteLayout>
         <div className="p-8">
-          <div className="text-white">Loading outreach tool...</div>
+          <div className="text-fg-primary">Loading outreach tool...</div>
         </div>
       </AthleteLayout>
     )
@@ -755,7 +755,7 @@ export default function Outreach() {
             <div className="h-px w-8" style={{ background: 'var(--crimson)' }} />
             <span className="text-[10px] uppercase tracking-[0.22em] font-bold" style={{ color: 'var(--crimson)' }}>Coach Email</span>
           </div>
-          <h1 className="display-font text-white" style={{ fontSize: '36px', margin: 0 }}>Outreach</h1>
+          <h1 className="display-font text-fg-primary" style={{ fontSize: '36px', margin: 0 }}>Outreach</h1>
           <p className="text-text-secondary text-sm mt-1">Send from your own email — coaches reply to your inbox.</p>
         </div>
 
@@ -791,8 +791,8 @@ export default function Outreach() {
                   onClick={() => setActiveTab(tab.id)}
                   className={`py-2 px-1 border-b-2 font-medium text-[13px] ${
                     activeTab === tab.id
-                      ? 'border-eastside-gold text-white'
-                      : 'border-transparent text-text-secondary hover:text-white'
+                      ? 'border-eastside-gold text-fg-primary'
+                      : 'border-transparent text-text-secondary hover:text-fg-primary'
                   }`}
                 >
                   {tab.label}
@@ -805,7 +805,7 @@ export default function Outreach() {
         {/* COMPOSE TAB */}
         {activeTab === 'compose' && (
           <div className="design-card p-5 mb-4">
-            <h2 className="text-[16px] font-medium text-white mb-6">Outreach Composer</h2>
+            <h2 className="text-[16px] font-medium text-fg-primary mb-6">Outreach Composer</h2>
 
             {/* Step 1: Select Coach */}
             <div className="design-card p-5 mb-4">
@@ -822,10 +822,10 @@ export default function Outreach() {
                 <div className="bg-navy-800 rounded-lg p-4 border border-green-600">
                   <div className="flex justify-between items-center">
                     <div>
-                      <p className="text-white font-medium">
+                      <p className="text-fg-primary font-medium">
                         {selectedCoach ? selectedCoach.name : 'Program Email'}
                       </p>
-                      <p className="text-gray-400 text-sm">
+                      <p className="text-text-tertiary text-sm">
                         {selectedSchool?.name} • {selectedCoach?.email || selectedSchool?.program_email || 'No email on file'}
                       </p>
                     </div>
@@ -835,7 +835,7 @@ export default function Outreach() {
                         setSelectedSchool(null)
                         setSearchQuery('')
                       }}
-                      className="text-gray-400 hover:text-white"
+                      className="text-text-tertiary hover:text-fg-primary"
                     >
                       ✕
                     </button>
@@ -846,13 +846,13 @@ export default function Outreach() {
                   {/* Recent coaches */}
                   {recentCoaches.length > 0 && (
                     <>
-                      <p className="text-xs uppercase tracking-wider text-gray-400 font-semibold mb-3">RECENT COACHES</p>
+                      <p className="text-xs uppercase tracking-wider text-text-tertiary font-semibold mb-3">RECENT COACHES</p>
                       <div className="flex gap-2 flex-wrap mb-4">
                         {recentCoaches.map(c => (
                           <button
                             key={c.coach_id}
                             onClick={() => selectRecentCoach(c)}
-                            className="px-3 py-2 bg-navy-800 hover:bg-navy-700 border border-gray-700 rounded-full text-sm text-white flex items-center gap-2"
+                            className="px-3 py-2 bg-navy-800 hover:bg-navy-700 border border-gray-700 rounded-full text-sm text-fg-primary flex items-center gap-2"
                           >
                             <span className="w-6 h-6 rounded-full bg-club-primary text-white text-xs flex items-center justify-center font-semibold">
                               {c.coach_name?.charAt(0) || 'C'}
@@ -863,9 +863,9 @@ export default function Outreach() {
                       </div>
 
                       <div className="flex items-center gap-3 my-4">
-                        <div className="flex-1 h-px bg-gray-700"/>
-                        <span className="text-xs text-gray-500">OR PICK FROM YOUR PIPELINE</span>
-                        <div className="flex-1 h-px bg-gray-700"/>
+                        <div className="flex-1 h-px bg-border-default"/>
+                        <span className="text-xs text-text-muted">OR PICK FROM YOUR PIPELINE</span>
+                        <div className="flex-1 h-px bg-border-default"/>
                       </div>
                     </>
                   )}
@@ -873,7 +873,7 @@ export default function Outreach() {
                   {/* Pipeline quick select */}
                   {pipelineWithStats.length > 0 && (
                     <>
-                      <p className="text-xs uppercase tracking-wider text-gray-400 font-semibold mb-3">FROM YOUR PIPELINE</p>
+                      <p className="text-xs uppercase tracking-wider text-text-tertiary font-semibold mb-3">FROM YOUR PIPELINE</p>
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-4">
                         {pipelineWithStats.map(s => (
                           <PipelineQuickCard
@@ -885,9 +885,9 @@ export default function Outreach() {
                       </div>
 
                       <div className="flex items-center gap-3 my-4">
-                        <div className="flex-1 h-px bg-gray-700"/>
-                        <span className="text-xs text-gray-500">OR SEARCH ALL SCHOOLS</span>
-                        <div className="flex-1 h-px bg-gray-700"/>
+                        <div className="flex-1 h-px bg-border-default"/>
+                        <span className="text-xs text-text-muted">OR SEARCH ALL SCHOOLS</span>
+                        <div className="flex-1 h-px bg-border-default"/>
                       </div>
                     </>
                   )}
@@ -898,7 +898,7 @@ export default function Outreach() {
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
                     placeholder={pipelineWithStats.length > 0 ? "Search any school or coach..." : "Search for coaches or schools..."}
-                    className="w-full bg-navy-800 text-white rounded-lg px-4 py-3 border border-gray-600"
+                    className="w-full bg-navy-800 text-fg-primary rounded-lg px-4 py-3 border border-gray-600"
                   />
 
                   {/* Search results */}
@@ -914,8 +914,8 @@ export default function Outreach() {
                           }}
                           className="w-full text-left px-4 py-3 hover:bg-navy-700 border-b border-gray-700 last:border-b-0"
                         >
-                          <div className="text-white font-medium">{coach.name}</div>
-                          <div className="text-gray-400 text-sm">
+                          <div className="text-fg-primary font-medium">{coach.name}</div>
+                          <div className="text-text-tertiary text-sm">
                             {coach.schools?.name} • {coach.email || 'No email'}
                           </div>
                         </button>
@@ -928,7 +928,7 @@ export default function Outreach() {
 
             {/* Step 2: Select Template */}
             <div className="mb-6">
-              <h3 className="text-white font-bold mb-3">Step 2: Select a template</h3>
+              <h3 className="text-fg-primary font-bold mb-3">Step 2: Select a template</h3>
               <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-6 gap-3">
                 {templates.map((template) => (
                   <button
@@ -937,7 +937,7 @@ export default function Outreach() {
                     className={`p-4 rounded-lg border-2 text-center transition-colors ${
                       selectedTemplate?.id === template.id
                         ? 'bg-club-primary border-club-primary text-white'
-                        : 'bg-navy-900 border-gray-600 text-gray-300 hover:border-club-primary'
+                        : 'bg-navy-900 border-gray-600 text-text-secondary hover:border-club-primary'
                     }`}
                   >
                     <div className="text-lg mb-1">
@@ -957,7 +957,7 @@ export default function Outreach() {
             {/* Step 3: Preview */}
             {selectedTemplate && (
               <div className="mb-6">
-                <h3 className="text-white font-bold mb-3">Step 3: Preview</h3>
+                <h3 className="text-fg-primary font-bold mb-3">Step 3: Preview</h3>
 
                 {/* Missing fields warning */}
                 {preview.hasMissing && (() => {
@@ -1011,14 +1011,14 @@ export default function Outreach() {
                     line breaks intact. */}
                 <div className="bg-navy-900 rounded-lg p-4 border border-gray-600">
                   <div className="mb-3">
-                    <label className="text-gray-400 text-sm uppercase tracking-wider">Subject</label>
-                    <div className="text-white bg-gray-800 rounded px-3 py-2 mt-1 font-mono text-sm">
+                    <label className="text-text-tertiary text-sm uppercase tracking-wider">Subject</label>
+                    <div className="text-fg-primary bg-surface-card-hover border border-border-default rounded px-3 py-2 mt-1 font-mono text-sm">
                       {preview.subject}
                     </div>
                   </div>
                   <div>
-                    <label className="text-gray-400 text-sm uppercase tracking-wider">Body</label>
-                    <div className="text-white bg-gray-800 rounded px-3 py-2 mt-1 font-mono text-sm whitespace-pre-line max-h-60 overflow-y-auto">
+                    <label className="text-text-tertiary text-sm uppercase tracking-wider">Body</label>
+                    <div className="text-fg-primary bg-gray-800 rounded px-3 py-2 mt-1 font-mono text-sm whitespace-pre-line max-h-60 overflow-y-auto">
                       {preview.body}
                     </div>
                   </div>
@@ -1063,7 +1063,7 @@ export default function Outreach() {
                   </button>
                 </div>
                 <p className="text-[11px] text-text-tertiary text-center leading-relaxed">
-                  Emails are sent from <span className="text-white">your own email address</span>, not from KRS.
+                  Emails are sent from <span className="text-fg-primary">your own email address</span>, not from KRS.
                   Replies land in your inbox — log them back here so your pipeline stays up to date.
                 </p>
               </div>
@@ -1074,12 +1074,12 @@ export default function Outreach() {
         {/* MY PIPELINE TAB */}
         {activeTab === 'pipeline' && (
           <div className="card mb-8">
-            <h2 className="display-font text-xl text-white mb-2">MY PIPELINE</h2>
-            <p className="text-gray-400 mb-6">Schools you're tracking — click to start an email</p>
+            <h2 className="display-font text-xl text-fg-primary mb-2">MY PIPELINE</h2>
+            <p className="text-text-tertiary mb-6">Schools you're tracking — click to start an email</p>
 
             {pipelineWithStats.length === 0 ? (
               <div className="text-center py-12">
-                <div className="text-gray-400 mb-4">No schools in your pipeline yet.</div>
+                <div className="text-text-tertiary mb-4">No schools in your pipeline yet.</div>
                 <button
                   onClick={() => navigate('/coach-finder')}
                   className="btn-primary"
@@ -1097,16 +1097,16 @@ export default function Outreach() {
                     style={{ borderLeftColor: school.primary_color }}
                   >
                     <div className="flex items-start justify-between mb-2">
-                      <h3 className="font-semibold text-white truncate flex-1">{school.school}</h3>
+                      <h3 className="font-semibold text-fg-primary truncate flex-1">{school.school}</h3>
                       <StagePill stage={school.stage} />
                     </div>
 
-                    <p className="text-xs text-gray-400 mb-3">
+                    <p className="text-xs text-text-tertiary mb-3">
                       {school.division} · {school.conference}
                     </p>
 
                     <div className="flex items-center gap-3 text-xs">
-                      <span className="text-gray-300">
+                      <span className="text-text-secondary">
                         <Users className="w-3 h-3 inline mr-1" />
                         {school.coach_count} {school.coach_count === 1 ? 'coach' : 'coaches'}
                       </span>
@@ -1115,7 +1115,7 @@ export default function Outreach() {
                           Last email: {timeAgo(school.last_email.sent_at)}
                         </span>
                       ) : (
-                        <span className="text-gray-500">Never emailed</span>
+                        <span className="text-text-muted">Never emailed</span>
                       )}
                     </div>
 
@@ -1136,7 +1136,7 @@ export default function Outreach() {
         {activeTab === 'inbox' && (
           <div className="card">
             <div className="flex items-center justify-between mb-6">
-              <h2 className="display-font text-xl text-white">CLUB MESSAGES</h2>
+              <h2 className="display-font text-xl text-fg-primary">CLUB MESSAGES</h2>
               <div className="text-xs text-text-tertiary">
                 {announcements.length} {announcements.length === 1 ? 'message' : 'messages'}
               </div>
@@ -1148,7 +1148,7 @@ export default function Outreach() {
                      style={{ background: 'linear-gradient(135deg, rgba(200,16,46,0.18) 0%, rgba(10,14,26,0.5) 100%)' }}>
                   <Mail size={22} className="text-red-500" />
                 </div>
-                <h3 className="display-font text-lg text-white mb-2">No messages yet</h3>
+                <h3 className="display-font text-lg text-fg-primary mb-2">No messages yet</h3>
                 <p className="text-text-secondary text-sm max-w-sm mx-auto leading-relaxed">
                   Your club director will post announcements here — recruiting
                   tips, important deadlines, and updates from the program.
@@ -1159,7 +1159,7 @@ export default function Outreach() {
                 {announcements.map((a) => (
                   <div key={a.id} className="design-card p-4">
                     <div className="flex items-start justify-between gap-3 mb-2">
-                      <h3 className="text-white font-semibold text-[15px] leading-snug flex-1">
+                      <h3 className="text-fg-primary font-semibold text-[15px] leading-snug flex-1">
                         {a.title}
                       </h3>
                       <span className="text-text-tertiary text-[11px] flex-shrink-0 whitespace-nowrap">
@@ -1186,7 +1186,7 @@ export default function Outreach() {
         {activeTab === 'sent' && (
           <div className="card">
             <div className="flex items-center justify-between mb-6">
-              <h2 className="display-font text-xl text-white">OUTREACH HISTORY</h2>
+              <h2 className="display-font text-xl text-fg-primary">OUTREACH HISTORY</h2>
               <div className="flex gap-2 text-xs text-text-tertiary">
                 <span>{outreachHistory.length} total</span>
                 <span>·</span>
@@ -1198,7 +1198,7 @@ export default function Outreach() {
 
             {outreachHistory.length === 0 ? (
               <div className="text-center py-12">
-                <div className="text-gray-400 mb-4">No outreach yet. Pick a coach above and get started.</div>
+                <div className="text-text-tertiary mb-4">No outreach yet. Pick a coach above and get started.</div>
               </div>
             ) : (
               <div className="space-y-3">
@@ -1216,7 +1216,7 @@ export default function Outreach() {
                     <div key={log.id} className="design-card p-4">
                       <div className="flex flex-wrap justify-between items-start gap-2 mb-2">
                         <div className="min-w-0 flex-1">
-                          <div className="text-white font-medium truncate">
+                          <div className="text-fg-primary font-medium truncate">
                             {log.coach_name || 'Program Email'} <span className="text-text-tertiary">·</span> {log.school}
                           </div>
                           <div className="text-text-tertiary text-xs">
@@ -1277,7 +1277,7 @@ export default function Outreach() {
                           </div>
                           <button
                             onClick={() => clearReplyStatus(log.id)}
-                            className="text-[11px] text-text-tertiary hover:text-white underline"
+                            className="text-[11px] text-text-tertiary hover:text-fg-primary underline"
                           >
                             undo
                           </button>

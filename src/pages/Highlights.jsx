@@ -236,7 +236,7 @@ export default function Highlights() {
     return (
       <AthleteLayout>
         <div className="p-8">
-          <div className="text-white">Loading highlights...</div>
+          <div className="text-fg-primary">Loading highlights...</div>
         </div>
       </AthleteLayout>
     )
@@ -252,7 +252,7 @@ export default function Highlights() {
               <div className="h-px w-8" style={{ background: 'var(--crimson)' }} />
               <span className="text-[10px] uppercase tracking-[0.22em] font-bold" style={{ color: 'var(--crimson)' }}>Your Reel</span>
             </div>
-            <h1 className="display-font text-4xl text-white mb-1">Highlights</h1>
+            <h1 className="display-font text-4xl text-fg-primary mb-1">Highlights</h1>
             <p className="text-text-secondary text-sm">
               Coaches see your primary reel first.
             </p>
@@ -271,8 +271,8 @@ export default function Highlights() {
           <div className="text-center py-16">
             <div className="bg-navy-900 rounded-2xl p-12 border border-gray-700">
               <div className="text-6xl mb-4">🎬</div>
-              <h2 className="text-2xl font-bold text-white mb-4">Add Your First Clip</h2>
-              <p className="text-gray-400 mb-8 max-w-md mx-auto">
+              <h2 className="text-2xl font-bold text-fg-primary mb-4">Add Your First Clip</h2>
+              <p className="text-text-tertiary mb-8 max-w-md mx-auto">
                 Upload highlights from games, training, or showcases. Coaches love to see you in action.
               </p>
               <button
@@ -359,14 +359,14 @@ export default function Highlights() {
                 {/* Content */}
                 <div className="p-4">
                   <h3
-                    className="font-semibold text-white text-sm mb-2 truncate"
+                    className="font-semibold text-fg-primary text-sm mb-2 truncate"
                     title={highlight.title}
                   >
                     {highlight.title}
                   </h3>
 
                   {highlight.recorded_date && (
-                    <p className="text-gray-400 text-xs mb-2">
+                    <p className="text-text-tertiary text-xs mb-2">
                       {formatDate(highlight.recorded_date)}
                     </p>
                   )}
@@ -375,12 +375,12 @@ export default function Highlights() {
                   {highlight.tags && highlight.tags.length > 0 && (
                     <div className="flex flex-wrap gap-1 mb-2">
                       {highlight.tags.slice(0, 3).map(tag => (
-                        <span key={tag} className="px-2 py-1 bg-navy-700 text-gray-300 text-xs rounded">
+                        <span key={tag} className="px-2 py-1 bg-navy-700 text-text-secondary text-xs rounded">
                           {tag}
                         </span>
                       ))}
                       {highlight.tags.length > 3 && (
-                        <span className="px-2 py-1 bg-navy-700 text-gray-400 text-xs rounded">
+                        <span className="px-2 py-1 bg-navy-700 text-text-tertiary text-xs rounded">
                           +{highlight.tags.length - 3} more
                         </span>
                       )}
@@ -403,10 +403,10 @@ export default function Highlights() {
           <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70" onClick={() => setShowAddModal(false)}>
             <div className="bg-navy-900 border border-gray-700 rounded-2xl max-w-lg w-full max-h-[90vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
               <div className="sticky top-0 bg-navy-900 border-b border-gray-700 p-6 flex items-center justify-between">
-                <h2 className="text-xl font-bold text-white">
+                <h2 className="text-xl font-bold text-fg-primary">
                   {editingHighlight ? 'Edit Highlight' : 'Add Highlight'}
                 </h2>
-                <button onClick={() => setShowAddModal(false)} className="text-gray-400 hover:text-white">
+                <button onClick={() => setShowAddModal(false)} className="text-text-tertiary hover:text-fg-primary">
                   <X className="w-5 h-5" />
                 </button>
               </div>
@@ -414,7 +414,7 @@ export default function Highlights() {
               <div className="p-6 space-y-4">
                 {/* URL */}
                 <div>
-                  <label className="block text-sm font-medium text-gray-300 mb-2">
+                  <label className="block text-sm font-medium text-text-secondary mb-2">
                     Video URL *
                   </label>
                   <input
@@ -422,7 +422,7 @@ export default function Highlights() {
                     value={formData.url}
                     onChange={(e) => handleUrlChange(e.target.value)}
                     placeholder="https://www.youtube.com/watch?v=..."
-                    className="w-full bg-navy-800 text-white rounded-lg px-4 py-3 border border-gray-600 focus:border-club-primary"
+                    className="w-full bg-surface-page text-fg-primary rounded-lg px-4 py-3 border border-border-default focus:border-club-primary placeholder:text-text-tertiary"
                   />
                   {urlInfo.source && (
                     <p className="text-green-400 text-xs mt-1">
@@ -438,7 +438,7 @@ export default function Highlights() {
 
                 {/* Title */}
                 <div>
-                  <label className="block text-sm font-medium text-gray-300 mb-2">
+                  <label className="block text-sm font-medium text-text-secondary mb-2">
                     Title *
                   </label>
                   <input
@@ -446,26 +446,26 @@ export default function Highlights() {
                     value={formData.title}
                     onChange={(e) => setFormData(prev => ({ ...prev, title: e.target.value }))}
                     placeholder="vs Bellevue Christian — Goal + Assist"
-                    className="w-full bg-navy-800 text-white rounded-lg px-4 py-3 border border-gray-600 focus:border-club-primary"
+                    className="w-full bg-surface-page text-fg-primary rounded-lg px-4 py-3 border border-border-default focus:border-club-primary placeholder:text-text-tertiary"
                   />
                 </div>
 
                 {/* Date */}
                 <div>
-                  <label className="block text-sm font-medium text-gray-300 mb-2">
+                  <label className="block text-sm font-medium text-text-secondary mb-2">
                     Recorded Date
                   </label>
                   <input
                     type="date"
                     value={formData.recorded_date}
                     onChange={(e) => setFormData(prev => ({ ...prev, recorded_date: e.target.value }))}
-                    className="w-full bg-navy-800 text-white rounded-lg px-4 py-3 border border-gray-600 focus:border-club-primary"
+                    className="w-full bg-surface-page text-fg-primary rounded-lg px-4 py-3 border border-border-default focus:border-club-primary placeholder:text-text-tertiary"
                   />
                 </div>
 
                 {/* Tags */}
                 <div>
-                  <label className="block text-sm font-medium text-gray-300 mb-2">
+                  <label className="block text-sm font-medium text-text-secondary mb-2">
                     Tags
                   </label>
 
@@ -495,8 +495,8 @@ export default function Highlights() {
                         disabled={formData.tags.includes(tag)}
                         className={`px-3 py-2 rounded text-xs font-medium transition-colors ${
                           formData.tags.includes(tag)
-                            ? 'bg-gray-700 text-gray-500 cursor-not-allowed'
-                            : 'bg-navy-700 text-gray-300 hover:bg-navy-600'
+                            ? 'bg-gray-700 text-text-muted cursor-not-allowed'
+                            : 'bg-navy-700 text-text-secondary hover:bg-navy-600'
                         }`}
                       >
                         {tag}
@@ -511,7 +511,7 @@ export default function Highlights() {
                       value={customTag}
                       onChange={(e) => setCustomTag(e.target.value)}
                       placeholder="Custom tag"
-                      className="flex-1 bg-navy-800 text-white rounded px-3 py-2 border border-gray-600 text-xs"
+                      className="flex-1 bg-surface-page text-fg-primary rounded px-3 py-2 border border-border-default text-xs placeholder:text-text-tertiary"
                       onKeyDown={(e) => {
                         if (e.key === 'Enter') {
                           e.preventDefault()
@@ -537,9 +537,9 @@ export default function Highlights() {
                       onChange={(e) => setFormData(prev => ({ ...prev, is_primary: e.target.checked }))}
                       className="rounded border-gray-600 bg-navy-800 text-club-primary"
                     />
-                    <span className="text-sm text-gray-300">Set as primary highlight</span>
+                    <span className="text-sm text-text-secondary">Set as primary highlight</span>
                   </label>
-                  <p className="text-xs text-gray-500 mt-1">
+                  <p className="text-xs text-text-muted mt-1">
                     Primary highlights appear first and are used in recruiting emails
                   </p>
                 </div>
@@ -555,7 +555,7 @@ export default function Highlights() {
                   </button>
                   <button
                     onClick={() => setShowAddModal(false)}
-                    className="px-6 py-3 border border-gray-600 text-white rounded-lg hover:border-gray-500"
+                    className="px-6 py-3 border border-border-default text-fg-primary rounded-lg hover:border-border-strong"
                   >
                     Cancel
                   </button>
@@ -569,8 +569,8 @@ export default function Highlights() {
         {showDeleteConfirm && (
           <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70">
             <div className="bg-navy-900 border border-gray-700 rounded-xl max-w-md w-full p-6">
-              <h3 className="text-lg font-bold text-white mb-4">Delete Highlight</h3>
-              <p className="text-gray-300 mb-6">
+              <h3 className="text-lg font-bold text-fg-primary mb-4">Delete Highlight</h3>
+              <p className="text-text-secondary mb-6">
                 Delete "{showDeleteConfirm.title}"? This cannot be undone.
               </p>
               <div className="flex gap-3">
@@ -582,7 +582,7 @@ export default function Highlights() {
                 </button>
                 <button
                   onClick={() => setShowDeleteConfirm(null)}
-                  className="flex-1 border border-gray-600 text-white rounded-lg py-2 hover:border-gray-500"
+                  className="flex-1 border border-border-default text-fg-primary rounded-lg py-2 hover:border-border-strong"
                 >
                   Cancel
                 </button>
@@ -620,7 +620,7 @@ function HighlightMenu({ highlight, onEdit, onSetPrimary, onDelete }) {
                 onSetPrimary(highlight)
                 setShowMenu(false)
               }}
-              className="w-full text-left px-4 py-2 text-white text-sm hover:bg-navy-700"
+              className="w-full text-left px-4 py-2 text-fg-primary text-sm hover:bg-surface-card-hover"
             >
               Set as Primary
             </button>
@@ -631,7 +631,7 @@ function HighlightMenu({ highlight, onEdit, onSetPrimary, onDelete }) {
               onEdit(highlight)
               setShowMenu(false)
             }}
-            className="w-full text-left px-4 py-2 text-white text-sm hover:bg-navy-700"
+            className="w-full text-left px-4 py-2 text-fg-primary text-sm hover:bg-surface-card-hover"
           >
             Edit
           </button>

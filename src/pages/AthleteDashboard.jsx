@@ -64,9 +64,9 @@ function TopSchoolRow({ school, profile, onClick }) {
     >
       <SchoolBadge schoolName={schoolName} size="sm" />
       <div className="flex-1 min-w-0">
-        <h4 className="text-white font-medium text-[13px] truncate">{schoolName}</h4>
+        <h4 className="text-fg-primary font-medium text-[13px] truncate">{schoolName}</h4>
         <div className="flex items-center gap-2 mt-1">
-          <span className="px-2 py-0.5 rounded text-[10px] font-medium text-white bg-text-muted">
+          <span className="px-2 py-0.5 rounded text-[10px] font-medium text-fg-primary bg-text-muted">
             {school.schools?.division || 'D1'}
           </span>
           {fitScore && (
@@ -105,7 +105,7 @@ function TierCard({ tierInfo, earnedTotal, catalogTotal }) {
             Athlete tier
           </div>
           <div
-            className="display-font text-xl tracking-[0.06em] text-white leading-tight"
+            className="display-font text-xl tracking-[0.06em] text-fg-primary leading-tight"
             style={{ color: tier.color }}
           >
             {tier.name}
@@ -114,7 +114,7 @@ function TierCard({ tierInfo, earnedTotal, catalogTotal }) {
         <ArrowUpRight size={16} className="text-text-tertiary flex-shrink-0" />
       </div>
       <div className="mt-3">
-        <div className="h-1 bg-navy-800 rounded-full overflow-hidden" style={{ background: '#1e293b' }}>
+        <div className="h-1 bg-navy-800 rounded-full overflow-hidden" style={{ background: 'var(--border-default)' }}>
           <div
             className="h-full rounded-full"
             style={{
@@ -127,7 +127,7 @@ function TierCard({ tierInfo, earnedTotal, catalogTotal }) {
           <span className="text-text-secondary">
             {earnedTotal} of {catalogTotal} milestones
           </span>
-          <span className="text-white font-medium">
+          <span className="text-fg-primary font-medium">
             {next ? `${remaining} to ${next.name}` : 'All tiers earned'}
           </span>
         </div>
@@ -160,7 +160,7 @@ function QuestCard({ milestone, index = 0 }) {
         <div className="text-[10px] uppercase tracking-[0.16em] text-amber-400 font-bold mb-0.5">
           {eyebrow}
         </div>
-        <div className="text-white font-semibold text-[14px] leading-tight mb-1">
+        <div className="text-fg-primary font-semibold text-[14px] leading-tight mb-1">
           {milestone.name}
         </div>
         <div className="text-text-secondary text-[12px] leading-snug mb-2">
@@ -168,7 +168,7 @@ function QuestCard({ milestone, index = 0 }) {
         </div>
         {progress && (
           <div className="mb-2">
-            <div className="h-1 rounded-full overflow-hidden" style={{ background: '#1e293b' }}>
+            <div className="h-1 rounded-full overflow-hidden" style={{ background: 'var(--border-default)' }}>
               <div
                 className="h-full bg-red-600 rounded-full"
                 style={{ width: `${Math.round((progress.current / progress.target) * 100)}%` }}
@@ -408,7 +408,7 @@ export default function AthleteDashboard() {
           <div className="text-[10px] uppercase tracking-[0.12em] text-text-muted font-bold mb-1">
             {format(new Date(), 'EEEE, MMMM d')}
           </div>
-          <h1 className="display-font text-3xl text-white">Hey, {firstName}.</h1>
+          <h1 className="display-font text-3xl text-fg-primary">Hey, {firstName}.</h1>
         </div>
 
         {/* Tier card */}
@@ -422,7 +422,7 @@ export default function AthleteDashboard() {
         {activeQuests.length > 0 && (
           <div className="mb-6" data-onboard="quests">
             <div className="flex items-baseline justify-between mb-3">
-              <h2 className="display-font text-base tracking-[0.06em] text-white uppercase">
+              <h2 className="display-font text-base tracking-[0.06em] text-fg-primary uppercase">
                 Active quests
               </h2>
               <span className="text-[11px] text-text-tertiary">{activeQuests.length} this week</span>
@@ -439,10 +439,10 @@ export default function AthleteDashboard() {
         {recentlyEarned.length > 0 && (
           <div className="mb-6">
             <div className="flex items-baseline justify-between mb-3">
-              <h2 className="display-font text-base tracking-[0.06em] text-white uppercase">
+              <h2 className="display-font text-base tracking-[0.06em] text-fg-primary uppercase">
                 Recently earned
               </h2>
-              <Link to="/milestones" className="text-[11px] text-text-secondary hover:text-white">
+              <Link to="/milestones" className="text-[11px] text-text-secondary hover:text-fg-primary">
                 See all →
               </Link>
             </div>
@@ -456,7 +456,7 @@ export default function AthleteDashboard() {
                   <div className="flex items-center gap-2 mb-2 text-amber-400 text-[10px] uppercase tracking-[0.14em] font-bold">
                     <Trophy size={11} /> Earned
                   </div>
-                  <div className="text-white font-semibold text-[12px] leading-tight mb-1">
+                  <div className="text-fg-primary font-semibold text-[12px] leading-tight mb-1">
                     {def.name}
                   </div>
                   <div className="text-text-tertiary text-[10px]">
@@ -471,10 +471,10 @@ export default function AthleteDashboard() {
         {/* Trophy case preview */}
         <div className="mb-6">
           <div className="flex items-baseline justify-between mb-3">
-            <h2 className="display-font text-base tracking-[0.06em] text-white uppercase">
+            <h2 className="display-font text-base tracking-[0.06em] text-fg-primary uppercase">
               Trophy case
             </h2>
-            <Link to="/milestones" className="text-[11px] text-text-secondary hover:text-white">
+            <Link to="/milestones" className="text-[11px] text-text-secondary hover:text-fg-primary">
               {earned.length} / {catalog.length} →
             </Link>
           </div>
@@ -509,7 +509,7 @@ export default function AthleteDashboard() {
             <div className="text-[9px] uppercase tracking-[0.10em] text-text-tertiary font-bold">
               Streak
             </div>
-            <div className="display-font text-xl text-white leading-none mt-1 flex items-center justify-center gap-1">
+            <div className="display-font text-xl text-fg-primary leading-none mt-1 flex items-center justify-center gap-1">
               <Flame
                 size={13}
                 className={`text-amber-400 ${streak > 0 ? 'flame-flicker' : ''}`}
@@ -521,7 +521,7 @@ export default function AthleteDashboard() {
             <div className="text-[9px] uppercase tracking-[0.10em] text-text-tertiary font-bold">
               Schools
             </div>
-            <div className="display-font text-xl text-white leading-none mt-1">
+            <div className="display-font text-xl text-fg-primary leading-none mt-1">
               {pipelineCount}
             </div>
           </Link>
@@ -529,7 +529,7 @@ export default function AthleteDashboard() {
             <div className="text-[9px] uppercase tracking-[0.10em] text-text-tertiary font-bold">
               Sends
             </div>
-            <div className="display-font text-xl text-white leading-none mt-1">
+            <div className="display-font text-xl text-fg-primary leading-none mt-1">
               {recentEmailsSent}
             </div>
           </Link>
@@ -539,17 +539,17 @@ export default function AthleteDashboard() {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div className="design-card p-4">
             <div className="flex items-center justify-between mb-3">
-              <h3 className="display-font text-sm tracking-[0.06em] text-white uppercase">
+              <h3 className="display-font text-sm tracking-[0.06em] text-fg-primary uppercase">
                 Top schools
               </h3>
-              <Link to="/my-schools" className="text-[11px] text-text-secondary hover:text-white">
+              <Link to="/my-schools" className="text-[11px] text-text-secondary hover:text-fg-primary">
                 All {pipelineCount} →
               </Link>
             </div>
             {recentSchools.length === 0 ? (
               <div className="text-center py-6">
                 <p className="text-text-secondary text-[12px] mb-3">No schools yet.</p>
-                <Link to="/coach-finder" className="text-amber-400 text-[11px] hover:text-white">
+                <Link to="/coach-finder" className="text-amber-400 text-[11px] hover:text-fg-primary">
                   FIND SCHOOLS →
                 </Link>
               </div>
@@ -568,7 +568,7 @@ export default function AthleteDashboard() {
           </div>
 
           <div className="design-card p-4">
-            <h3 className="display-font text-sm tracking-[0.06em] text-white uppercase mb-3">
+            <h3 className="display-font text-sm tracking-[0.06em] text-fg-primary uppercase mb-3">
               Recent activity
             </h3>
             {activities.length === 0 ? (

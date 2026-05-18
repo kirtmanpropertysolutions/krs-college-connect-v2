@@ -6,7 +6,7 @@
    KRS College Connect — Design Tokens (locked design language)
    ============================================================ */
 :root {
-  /* Brand */
+  /* Brand — fixed across both themes */
   --crimson: #C8102E;
   --crimson-2: #A00C25;
   --crimson-3: #E11A38;
@@ -19,6 +19,56 @@
   --club-primary: #C8102E;
   --club-secondary: #fbbf24;
   --club-neutral-dark: #1B2A4A;
+
+  /* ---- Semantic tokens (dark mode = default) ----
+     Components consume these via var(--token), and `body.light` below
+     remaps the same names to the light-mode palette. That way the
+     dark visuals are 100% preserved without changing call sites, and
+     light mode is a pure variable swap. */
+  --bg-page: #0a0e1a;
+  --bg-card: #111827;
+  --bg-card-hover: #131b2c;
+  --bg-elevated: #111827;
+  --border-default: #1e293b;
+  --border-strong: #334155;
+  --text-primary: #ffffff;
+  --text-secondary: #94a3b8;
+  --text-tertiary: #64748b;
+  --text-muted: #475569;
+  --accent-crimson-fg: #ffffff;       /* text on crimson buttons */
+  --accent-gold-readable: #fbbf24;    /* gold that works against current bg */
+  --hero-glow: rgba(200, 16, 46, 0.06);
+  --hero-glow-strong: rgba(200, 16, 46, 0.12);
+  --grain-opacity: 0.6;
+  --grain-blend: overlay;
+  --elevated-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+  --hero-card-bg: linear-gradient(135deg, #131a2c 0%, #0f1729 50%, #0a0e1a 100%);
+  --kanban-col-bg: rgba(15, 23, 41, 0.6);
+}
+
+/* Light mode — opt-in via the toggle in ColorModeToggle. Warm off-white
+   surfaces, deep-navy text, and a deeper "readable" gold that doesn't
+   wash out on white. */
+body.light {
+  --bg-page: #fdfaf6;
+  --bg-card: #ffffff;
+  --bg-card-hover: #fbf6ef;
+  --bg-elevated: #ffffff;
+  --border-default: #e8e0d4;
+  --border-strong: rgba(27, 42, 74, 0.18);
+  --text-primary: #0f1729;
+  --text-secondary: #475569;
+  --text-tertiary: #64748b;
+  --text-muted: #94a3b8;
+  --accent-crimson-fg: #ffffff;        /* white on crimson is brand — unchanged */
+  --accent-gold-readable: #b8861a;     /* deeper gold for AA on white */
+  --hero-glow: rgba(200, 16, 46, 0.025);
+  --hero-glow-strong: rgba(200, 16, 46, 0.05);
+  --grain-opacity: 0.25;
+  --grain-blend: multiply;
+  --elevated-shadow: 0 1px 3px rgba(27, 42, 74, 0.08), 0 4px 12px rgba(27, 42, 74, 0.04);
+  --hero-card-bg: linear-gradient(135deg, #ffffff 0%, #fdfaf6 60%, #fbf6ef 100%);
+  --kanban-col-bg: rgba(248, 244, 236, 0.65);
 }
 
 /* KRS College Connect - Global Styles */
@@ -31,9 +81,10 @@
     /* Manrope: distinctive humanist body (refined alt to overused Inter). */
     font-family: 'Manrope', ui-sans-serif, system-ui, -apple-system, sans-serif;
     @apply antialiased;
-    background-color: #0a0e1a;
-    color: #ffffff;
+    background-color: var(--bg-page);
+    color: var(--text-primary);
     margin: 0;
+    transition: background-color 0.2s ease, color 0.2s ease;
 
     /* iOS standalone-app safe-area handling — keeps content clear of the
        notch / Dynamic Island and the home indicator when installed to home
@@ -49,15 +100,20 @@
     overscroll-behavior-y: none;
     -webkit-tap-highlight-color: transparent;
     /* Subtle atmospheric depth — single soft top-edge glow, no body-wide
-       gradient overload (per krs-brand-and-ux anti-pattern). */
+       gradient overload (per krs-brand-and-ux anti-pattern). Light mode
+       drops the glow opacity to ~half-strength to avoid pinking the
+       whole top edge of a white page. */
     background-image:
-      radial-gradient(ellipse 1200px 500px at 12% -12%, rgba(200, 16, 46, 0.06), transparent 65%);
+      radial-gradient(ellipse 1200px 500px at 12% -12%, var(--hero-glow), transparent 65%);
     background-attachment: fixed;
     font-feature-settings: 'ss01', 'cv11';
     letter-spacing: -0.005em;
   }
 
-  /* Subtle grain overlay for editorial texture — fixed, non-interactive. */
+  /* Subtle grain overlay for editorial texture — fixed, non-interactive.
+     Dark mode uses overlay blend at 0.6 (lifts shadows into a soft
+     paper-like cast). Light mode would render that as "dirty paper" on
+     a white sheet, so it switches to multiply at a much lower opacity. */
   body::before {
     content: '';
     position: fixed;
@@ -65,14 +121,20 @@
     pointer-events: none;
     background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2'/><feColorMatrix values='0 0 0 0 1  0 0 0 0 1  0 0 0 0 1  0 0 0 0.04 0'/></filter><rect width='100%25' height='100%25' filter='url(%23n)'/></svg>");
     z-index: 1;
-    opacity: 0.6;
-    mix-blend-mode: overlay;
+    opacity: var(--grain-opacity);
+    mix-blend-mode: var(--grain-blend);
   }
   body > * { position: relative; z-index: 2; }
 
-  /* Light mode styles */
+  /* Light-mode body class — applied by ThemeContext. The actual styling
+     happens via the CSS variable remap in `body.light { ... }` above
+     (kept OUTSIDE @layer base so the cascade picks it up against the
+     :root defaults instead of getting layered into Tailwind's base). */
   body.light {
-    @apply bg-gray-50 text-gray-900;
+    color-scheme: light;
+  }
+  body.dark {
+    color-scheme: dark;
   }
 
   /* Display font for headers and athlete names */
@@ -85,31 +147,40 @@
 @layer components {
   /* Locked Design Language Components */
   .hero-card {
-    background: linear-gradient(135deg, #131a2c 0%, #0f1729 50%, #0a0e1a 100%);
-    border: 0.5px solid #1e293b;
+    background: var(--hero-card-bg);
+    border: 0.5px solid var(--border-default);
     border-radius: 14px;
+    box-shadow: var(--elevated-shadow);
   }
 
   .design-card {
-    background-color: #111827;
-    border: 0.5px solid #1e293b;
+    background-color: var(--bg-card);
+    border: 0.5px solid var(--border-default);
     border-radius: 12px;
+    box-shadow: var(--elevated-shadow);
+  }
+  /* Reset the design-card shadow in dark mode — the original look had a
+     flat fill with no elevation. Light mode keeps the shadow defined
+     above so cards lift off the off-white page. */
+  body.dark .design-card,
+  body:not(.light) .design-card {
+    box-shadow: none;
   }
 
   .nav-item-active {
     background: linear-gradient(90deg, rgba(200, 16, 46, 0.18) 0%, rgba(200, 16, 46, 0.04) 100%);
-    border-left: 2px solid #C8102E;
-    color: white;
+    border-left: 2px solid var(--crimson);
+    color: var(--text-primary);
     font-weight: 500;
   }
 
   .crimson-glow {
-    background: radial-gradient(circle, rgba(200, 16, 46, 0.12) 0%, transparent 60%);
+    background: radial-gradient(circle, var(--hero-glow-strong) 0%, transparent 60%);
   }
 
   .eastside-btn {
-    background-color: #C8102E;
-    color: white;
+    background-color: var(--crimson);
+    color: var(--accent-crimson-fg);
     font-weight: 500;
     font-size: 13px;
     padding: 10px 18px;
@@ -118,13 +189,13 @@
   }
 
   .eastside-btn:hover {
-    background-color: #A00C25;
+    background-color: var(--crimson-2);
   }
 
   .secondary-btn {
     background: transparent;
-    color: white;
-    border: 0.5px solid #334155;
+    color: var(--text-primary);
+    border: 0.5px solid var(--border-strong);
     font-weight: 500;
     font-size: 13px;
     padding: 10px 18px;
@@ -133,13 +204,14 @@
   }
 
   .secondary-btn:hover {
-    border-color: #C8102E;
-    color: #C8102E;
+    border-color: var(--crimson);
+    color: var(--crimson);
   }
   /* Primary club button */
   .btn-primary {
-    @apply font-bold uppercase px-6 py-3 rounded-lg transition-colors text-white;
+    @apply font-bold uppercase px-6 py-3 rounded-lg transition-colors;
     background-color: var(--club-primary);
+    color: var(--accent-crimson-fg);
   }
 
   .btn-primary:hover {
@@ -155,12 +227,14 @@
 
   .btn-secondary:hover {
     background-color: var(--club-primary);
-    @apply text-white;
+    color: var(--accent-crimson-fg);
   }
 
   /* Ghost button */
   .btn-ghost {
-    @apply bg-transparent border border-gray-600 text-gray-300 px-6 py-3 rounded-lg transition-colors;
+    @apply bg-transparent px-6 py-3 rounded-lg transition-colors;
+    border: 1px solid var(--border-strong);
+    color: var(--text-secondary);
   }
 
   .btn-ghost:hover {
@@ -170,21 +244,27 @@
 
   /* Card styling */
   .card {
-    @apply bg-card rounded-xl border border-opacity-15 p-6;
+    @apply rounded-xl border border-opacity-15 p-6;
+    background-color: var(--bg-card);
     border-color: var(--club-primary);
   }
 
   /* Stat cards with club top border glow */
   .stat-card {
-    @apply bg-card rounded-xl border border-opacity-15 p-6 border-t-4 shadow-lg;
+    @apply rounded-xl border border-opacity-15 p-6 border-t-4 shadow-lg;
+    background-color: var(--bg-card);
     border-color: var(--club-primary);
     border-top-color: var(--club-primary);
   }
 
   /* Form input styling */
   .form-input {
-    @apply bg-card border border-gray-600 text-white placeholder-gray-400 px-4 py-3 rounded-lg focus:outline-none;
+    @apply px-4 py-3 rounded-lg focus:outline-none;
+    background-color: var(--bg-card);
+    border: 1px solid var(--border-default);
+    color: var(--text-primary);
   }
+  .form-input::placeholder { color: var(--text-tertiary); }
 
   .form-input:focus {
     border-color: var(--club-primary);
@@ -192,19 +272,31 @@
     ring-color: var(--club-primary);
   }
 
-  /* Profile form input styling - darker background per spec */
+  /* Profile form input styling - darker background per spec.
+     Uses --bg-page so it stays nested-darker in dark mode and
+     warm-off-white in light mode. */
   .input-field {
-    @apply bg-navy-950 border border-gray-700 text-white placeholder-gray-500 px-4 py-3 rounded-lg focus:outline-none focus:border-red-600 focus:ring-1 focus:ring-red-600 min-h-[48px];
+    @apply px-4 py-3 rounded-lg focus:outline-none min-h-[48px];
+    background-color: var(--bg-page);
+    border: 1px solid var(--border-default);
+    color: var(--text-primary);
+  }
+  .input-field::placeholder { color: var(--text-tertiary); }
+  .input-field:focus {
+    border-color: var(--crimson);
+    box-shadow: 0 0 0 1px var(--crimson);
   }
 
   /* Form label styling */
   .form-label {
-    @apply text-gray-400 text-sm font-medium uppercase tracking-wider mb-2 block;
+    color: var(--text-secondary);
+    @apply text-sm font-medium uppercase tracking-wider mb-2 block;
   }
 
   /* Active sidebar item */
   .nav-active {
-    @apply text-white border-l-4;
+    @apply border-l-4;
+    color: var(--accent-crimson-fg);
     background-color: var(--club-primary);
     border-left-color: color-mix(in srgb, var(--club-primary) 80%, white);
   }
@@ -221,12 +313,12 @@
 
   /* Warning yellow for pending states */
   .text-warning {
-    color: var(--club-secondary);
+    color: var(--accent-gold-readable);
   }
 
   /* Muted text for labels and descriptions */
   .text-muted {
-    @apply text-gray-400;
+    color: var(--text-tertiary);
   }
 
   /* Fade in animation for modals */
@@ -276,13 +368,29 @@
     border-radius: 999px;
     line-height: 1.4;
   }
-  .chip-slate { background: #1e293b; color: #94a3b8; }
+  .chip-slate {
+    background: var(--border-default);
+    color: var(--text-secondary);
+  }
+  body.light .chip-slate {
+    /* On warm off-white, the dark-mode slate looks like a debug box.
+       Use a soft beige fill with the readable navy text instead. */
+    background: #f1ebe0;
+    color: #1B2A4A;
+    border: 1px solid #e8e0d4;
+  }
   .chip-crimson { background: rgba(200,16,46,0.15); color: #ff6b7a; border: 1px solid rgba(200,16,46,0.3); }
+  body.light .chip-crimson { background: rgba(200,16,46,0.1); color: #A00C25; border-color: rgba(200,16,46,0.35); }
   .chip-gold { background: rgba(251,191,36,0.12); color: #fcd34d; border: 1px solid rgba(251,191,36,0.25); }
+  body.light .chip-gold { background: rgba(184,134,26,0.1); color: #8a6510; border-color: rgba(184,134,26,0.3); }
   .chip-green { background: rgba(16,185,129,0.12); color: #34d399; border: 1px solid rgba(16,185,129,0.25); }
+  body.light .chip-green { background: rgba(16,185,129,0.1); color: #047857; border-color: rgba(16,185,129,0.3); }
   .chip-blue { background: rgba(59,130,246,0.12); color: #60a5fa; border: 1px solid rgba(59,130,246,0.25); }
+  body.light .chip-blue { background: rgba(59,130,246,0.1); color: #1d4ed8; border-color: rgba(59,130,246,0.3); }
   .chip-purple { background: rgba(139,92,246,0.12); color: #a78bfa; border: 1px solid rgba(139,92,246,0.25); }
+  body.light .chip-purple { background: rgba(139,92,246,0.1); color: #6d28d9; border-color: rgba(139,92,246,0.3); }
   .chip-amber { background: rgba(245,158,11,0.12); color: #fbbf24; border: 1px solid rgba(245,158,11,0.25); }
+  body.light .chip-amber { background: rgba(245,158,11,0.1); color: #92500c; border-color: rgba(245,158,11,0.3); }
 
   /* Pill tabs (filter strips) */
   .pill {
@@ -290,14 +398,14 @@
     border-radius: 999px;
     font-size: 12px;
     font-weight: 500;
-    background: #111827;
-    border: 1px solid #1e293b;
-    color: #94a3b8;
+    background: var(--bg-card);
+    border: 1px solid var(--border-default);
+    color: var(--text-secondary);
     cursor: pointer;
     transition: all 0.15s;
   }
-  .pill:hover:not(.active) { border-color: #334155; color: white; }
-  .pill.active { background: #C8102E; color: white; border-color: #C8102E; }
+  .pill:hover:not(.active) { border-color: var(--border-strong); color: var(--text-primary); }
+  .pill.active { background: var(--crimson); color: var(--accent-crimson-fg); border-color: var(--crimson); }
 
   /* School color badge — small inline mark for each program */
   .school-badge {
@@ -321,25 +429,27 @@
 
   /* Kanban column + card */
   .kanban-col {
-    background: rgba(15, 23, 41, 0.6);
-    border: 1px solid #1e293b;
+    background: var(--kanban-col-bg);
+    border: 1px solid var(--border-default);
     border-radius: 12px;
   }
   .kanban-card {
-    background: #111827;
-    border: 1px solid #1e293b;
+    background: var(--bg-card);
+    border: 1px solid var(--border-default);
     border-radius: 10px;
     padding: 12px;
     transition: all 0.15s;
     cursor: grab;
   }
   .kanban-card:hover {
-    border-color: #243049;
+    border-color: var(--border-strong);
     transform: translateY(-2px);
-    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+    box-shadow: var(--elevated-shadow);
   }
 
-  /* Atmospheric crimson glow overlay (use with position: relative) */
+  /* Atmospheric crimson glow overlay (use with position: relative).
+     Light mode dials the inner opacity way down so the glow reads as
+     a whisper of warmth instead of a pink stain. */
   .crimson-glow-bg {
     position: relative;
     overflow: hidden;
@@ -351,6 +461,9 @@
     pointer-events: none;
     background: radial-gradient(circle at 30% 0%, rgba(200, 16, 46, 0.18) 0%, transparent 55%);
     border-radius: inherit;
+  }
+  body.light .crimson-glow-bg::before {
+    background: radial-gradient(circle at 30% 0%, rgba(200, 16, 46, 0.05) 0%, transparent 55%);
   }
   .crimson-glow-bg > * { position: relative; z-index: 1; }
 
@@ -365,7 +478,7 @@
 
   /* Custom scrollbar for sidebars + modals */
   .scroll-thin::-webkit-scrollbar { width: 6px; height: 6px; }
-  .scroll-thin::-webkit-scrollbar-thumb { background: #243049; border-radius: 3px; }
+  .scroll-thin::-webkit-scrollbar-thumb { background: var(--border-strong); border-radius: 3px; }
   .scroll-thin::-webkit-scrollbar-track { background: transparent; }
 
   /* ====================================================
@@ -399,8 +512,8 @@
     display: flex;
     justify-content: space-around;
     align-items: stretch;
-    background: #0a0e1a;
-    border-top: 0.5px solid #1e293b;
+    background: var(--bg-page);
+    border-top: 0.5px solid var(--border-default);
     padding-bottom: env(safe-area-inset-bottom, 0px);
   }
 
@@ -427,7 +540,7 @@
     gap: 2px;
     padding: 8px 4px 6px;
     min-height: 56px;
-    color: #94a3b8;
+    color: var(--text-secondary);
     font-size: 10px;
     font-weight: 600;
     letter-spacing: 0.04em;
@@ -436,7 +549,7 @@
   }
 
   .mobile-tabbar-item.active {
-    color: #C8102E;
+    color: var(--crimson);
   }
 
   .mobile-tabbar-item:active {

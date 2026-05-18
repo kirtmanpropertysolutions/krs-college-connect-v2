@@ -16,23 +16,26 @@ export default function ColorModeToggle() {
   const [saving, setSaving] = useState(false)
 
   const handleToggle = async () => {
-    if (!user || saving) return
+    if (saving) return
 
     const currentIndex = modes.findIndex(mode => mode.id === colorMode)
     const nextMode = modes[(currentIndex + 1) % modes.length]
 
+    // Update state + localStorage immediately so the UI feels instant.
+    // The DB write is fire-and-forget — if the user is signed out (eg.
+    // they're on the login page using the toggle from a future placement),
+    // we still want the local toggle to work.
+    setColorMode(nextMode.id)
+
+    if (!user) return
+
     setSaving(true)
     try {
-      // Save to database
       const { error } = await supabase
         .from('profiles')
         .update({ color_mode: nextMode.id })
         .eq('id', user.id)
-
       if (error) throw error
-
-      // Update local state
-      setColorMode(nextMode.id)
     } catch (error) {
       console.error('Error saving color mode:', error)
     } finally {
@@ -48,7 +51,7 @@ export default function ColorModeToggle() {
     <button
       onClick={handleToggle}
       disabled={saving}
-      className="flex items-center gap-2 w-full px-3 py-2 text-left text-[13px] text-gray-400 hover:text-white hover:bg-navy-800 rounded-lg transition-colors disabled:opacity-50 bg-transparent"
+      className="flex items-center gap-2 w-full px-3 py-2 text-left text-[13px] text-fg-secondary hover:text-fg-primary hover:bg-surface-card-hover rounded-lg transition-colors disabled:opacity-50 bg-transparent"
       title={`Color Mode: ${currentMode.label}`}
     >
       <IconComponent size={16} />

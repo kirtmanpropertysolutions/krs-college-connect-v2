@@ -49,10 +49,10 @@ export default class ErrorBoundary extends Component {
     if (!this.state.hasError) return this.props.children
 
     return (
-      <div className="min-h-screen bg-navy-950 flex items-center justify-center p-6">
+      <div className="min-h-screen bg-surface-page flex items-center justify-center p-6">
         <div className="max-w-md w-full text-center">
           <EastsideFCLogo size={56} className="mx-auto mb-4 opacity-80" />
-          <div className="display-font text-3xl text-white mb-2">
+          <div className="display-font text-3xl text-fg-primary mb-2">
             Something went wrong
           </div>
           <p className="text-text-secondary text-sm mb-6">

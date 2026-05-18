@@ -80,7 +80,7 @@ function SchoolCard({ school, onEmailCoach, onViewSchool, onRemove, onChangeStag
 
       <div className="flex items-center gap-3 mb-2 pr-8">
         <SchoolBadge schoolName={school.schools?.name || school.school} size="md" />
-        <h3 className="text-white font-medium text-[13px] truncate flex-1">
+        <h3 className="text-fg-primary font-medium text-[13px] truncate flex-1">
           {school.schools?.name || school.school}
         </h3>
       </div>
@@ -111,7 +111,7 @@ function SchoolCard({ school, onEmailCoach, onViewSchool, onRemove, onChangeStag
           }}
           className="opacity-0 group-hover:opacity-100 transition-opacity p-1 rounded hover:bg-navy-800"
         >
-          <MoreVertical size={16} className="text-gray-400" />
+          <MoreVertical size={16} className="text-text-tertiary" />
         </button>
 
         {showMenu && (
@@ -121,7 +121,7 @@ function SchoolCard({ school, onEmailCoach, onViewSchool, onRemove, onChangeStag
                 onEmailCoach(school)
                 setShowMenu(false)
               }}
-              className="w-full text-left px-4 py-2 text-white text-sm hover:bg-navy-700"
+              className="w-full text-left px-4 py-2 text-fg-primary text-sm hover:bg-surface-card-hover"
             >
               Email Coach
             </button>
@@ -130,7 +130,7 @@ function SchoolCard({ school, onEmailCoach, onViewSchool, onRemove, onChangeStag
                 onViewSchool(school)
                 setShowMenu(false)
               }}
-              className="w-full text-left px-4 py-2 text-white text-sm hover:bg-navy-700"
+              className="w-full text-left px-4 py-2 text-fg-primary text-sm hover:bg-surface-card-hover"
             >
               View School
             </button>
@@ -183,7 +183,7 @@ function SchoolCardPreview({ school }) {
         </span>
       )}
 
-      <h3 className="text-white font-semibold text-sm mb-2 pr-8 truncate">
+      <h3 className="text-fg-primary font-semibold text-sm mb-2 pr-8 truncate">
         {school.schools?.name || school.school}
       </h3>
 
@@ -213,7 +213,7 @@ function Column({ stage, schools, onEmailCoach, onViewSchool, onRemove, onChange
       }`}
     >
       <div className="flex items-center justify-between mb-4">
-        <h2 className="text-white text-[16px] font-medium">{stage.name}</h2>
+        <h2 className="text-fg-primary text-[16px] font-medium">{stage.name}</h2>
         <span className={`${stage.color} ${stage.textColor} text-[10px] px-2 py-1 rounded-full font-medium`}>
           {schools.length}
         </span>
@@ -281,7 +281,7 @@ function MobileSchoolCard({ school, setShowStageModal, setSelectedSchool }) {
       <div className="flex items-center gap-3 mb-3 pr-12">
         <SchoolBadge schoolName={schoolName} size="md" />
         <div className="flex-1">
-          <h3 className="text-white font-medium text-sm truncate">
+          <h3 className="text-fg-primary font-medium text-sm truncate">
             {schoolName}
           </h3>
           <div className="flex items-center gap-2 mt-1">
@@ -312,7 +312,7 @@ function MobileSchoolCard({ school, setShowStageModal, setSelectedSchool }) {
         </button>
         <button
           onClick={() => setSelectedSchool(school)}
-          className="flex-1 bg-navy-700 text-white px-3 py-2 rounded text-xs font-medium border border-gray-600"
+          className="flex-1 bg-surface-card-hover text-fg-primary px-3 py-2 rounded text-xs font-medium border border-border-default"
         >
           View Details
         </button>
@@ -337,13 +337,13 @@ function MobileStageView({ groupedSchools, expandedSections, toggleSection, setS
               className="w-full p-4 flex items-center justify-between text-left"
             >
               <div className="flex items-center gap-3">
-                <h2 className="text-white text-sm font-medium">{stage.name}</h2>
+                <h2 className="text-fg-primary text-sm font-medium">{stage.name}</h2>
                 <span className={`${stage.color} ${stage.textColor} text-xs px-2 py-1 rounded-full font-medium`}>
                   {stageSchools.length}
                 </span>
               </div>
               <div className={`transform transition-transform ${isExpanded ? 'rotate-180' : ''}`}>
-                <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg className="w-5 h-5 text-text-tertiary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
                 </svg>
               </div>
@@ -383,8 +383,8 @@ function StageModal({ school, onClose, onChangeStage }) {
     <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-end">
       <div className="bg-navy-900 w-full rounded-t-xl p-6 animate-slide-up">
         <div className="flex items-center justify-between mb-4">
-          <h3 className="text-white font-medium">Move {school.schools?.name || school.school}</h3>
-          <button onClick={onClose} className="text-gray-400 text-xl">×</button>
+          <h3 className="text-fg-primary font-medium">Move {school.schools?.name || school.school}</h3>
+          <button onClick={onClose} className="text-text-tertiary text-xl">×</button>
         </div>
 
         <div className="space-y-2">
@@ -395,7 +395,7 @@ function StageModal({ school, onClose, onChangeStage }) {
                 onChangeStage(school, stage.id)
                 onClose()
               }}
-              className="w-full text-left p-3 rounded bg-navy-800 text-white hover:bg-navy-700 transition-colors"
+              className="w-full text-left p-3 rounded bg-surface-card-hover text-fg-primary hover:bg-surface-card transition-colors"
             >
               Move to {stage.name}
             </button>
@@ -404,7 +404,7 @@ function StageModal({ school, onClose, onChangeStage }) {
 
         <button
           onClick={onClose}
-          className="w-full mt-4 p-3 bg-gray-600 text-white rounded"
+          className="w-full mt-4 p-3 bg-surface-card-hover text-fg-primary rounded border border-border-default"
         >
           Cancel
         </button>
@@ -626,7 +626,7 @@ export default function MySchools() {
     return (
       <AthleteLayout>
         <div className="p-4 md:p-8">
-          <div className="text-white">Loading pipeline...</div>
+          <div className="text-fg-primary">Loading pipeline...</div>
         </div>
       </AthleteLayout>
     )
@@ -640,7 +640,7 @@ export default function MySchools() {
             <div className="h-px w-8" style={{ background: 'var(--crimson)' }} />
             <span className="text-[10px] uppercase tracking-[0.22em] font-bold" style={{ color: 'var(--crimson)' }}>Recruiting Pipeline</span>
           </div>
-          <h1 className="display-font text-white" style={{ fontSize: '36px', margin: 0 }}>My Schools</h1>
+          <h1 className="display-font text-fg-primary" style={{ fontSize: '36px', margin: 0 }}>My Schools</h1>
           <p className="text-text-secondary text-sm mt-1">Track every school in your recruiting pipeline</p>
         </div>
 
@@ -649,7 +649,7 @@ export default function MySchools() {
             <p className="text-text-secondary mb-3 text-[13px]">No schools in your pipeline yet</p>
             <button
               onClick={() => navigate('/coach-finder')}
-              className="text-eastside-gold text-[11px] hover:text-white transition-colors"
+              className="text-eastside-gold text-[11px] hover:text-fg-primary transition-colors"
             >
               FIND SCHOOLS →
             </button>

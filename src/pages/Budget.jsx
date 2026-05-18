@@ -146,7 +146,7 @@ export default function Budget() {
               Cost transparency
             </span>
           </div>
-          <h1 className="display-font text-4xl text-white mb-5">Budget Builder</h1>
+          <h1 className="display-font text-4xl text-fg-primary mb-5">Budget Builder</h1>
 
           <div className="hero-card crimson-glow-bg p-8 text-center">
             <div
@@ -158,7 +158,7 @@ export default function Budget() {
             >
               <DollarSign size={26} className="text-red-500" strokeWidth={2} />
             </div>
-            <h2 className="display-font text-2xl text-white mb-2">
+            <h2 className="display-font text-2xl text-fg-primary mb-2">
               No camps on your schedule yet
             </h2>
             <p className="text-text-secondary text-sm leading-relaxed max-w-md mx-auto mb-6">
@@ -185,7 +185,7 @@ export default function Budget() {
             Cost transparency
           </span>
         </div>
-        <h1 className="display-font text-4xl text-white mb-2">Budget Builder</h1>
+        <h1 className="display-font text-4xl text-fg-primary mb-2">Budget Builder</h1>
         <p className="text-text-secondary text-sm mb-6 leading-relaxed">
           The real cost of ID camps — fee + travel + lodging + food. Estimate
           each line so you (and your parents) know what you're actually
@@ -197,7 +197,7 @@ export default function Budget() {
           <div className="text-[10px] uppercase tracking-[0.18em] text-text-secondary font-bold mb-1">
             Total budget
           </div>
-          <div className="display-font text-5xl md:text-6xl text-white leading-none mb-3">
+          <div className="display-font text-5xl md:text-6xl text-fg-primary leading-none mb-3">
             {fmt$(totals.grandTotal)}
           </div>
           <div className="text-[12px] text-text-tertiary mb-5">
@@ -234,7 +234,7 @@ export default function Budget() {
                         style={{ background: cat.color }}
                       />
                       <span className="text-text-secondary">{cat.label}</span>
-                      <span className="text-white font-semibold">{fmt$(cat.total)}</span>
+                      <span className="text-fg-primary font-semibold">{fmt$(cat.total)}</span>
                       <span className="text-text-tertiary">· {pct}%</span>
                     </div>
                   )
@@ -252,7 +252,7 @@ export default function Budget() {
             <Info size={14} style={{ color: 'var(--gold)' }} />
           </div>
           <div className="text-[12px] text-text-secondary leading-relaxed">
-            <span className="font-semibold text-white">Real talk: </span>
+            <span className="font-semibold text-fg-primary">Real talk: </span>
             ECNL families spend $5,000–$10,000 per year on recruiting on top
             of regular club fees. Camps are the biggest line item after
             club dues. Travel often costs more than the camp itself —
@@ -262,7 +262,7 @@ export default function Budget() {
         </div>
 
         {/* Camps list — each expandable to edit per-line expenses */}
-        <h2 className="display-font text-sm tracking-[0.06em] text-white uppercase mb-3">
+        <h2 className="display-font text-sm tracking-[0.06em] text-fg-primary uppercase mb-3">
           Your camps
         </h2>
 
@@ -286,7 +286,7 @@ export default function Budget() {
                     <Calendar size={16} className="text-red-500" />
                   </div>
                   <div className="flex-1 min-w-0">
-                    <div className="text-white font-semibold text-[14px] leading-tight truncate">
+                    <div className="text-fg-primary font-semibold text-[14px] leading-tight truncate">
                       {camp.notes || camp.school_name}
                     </div>
                     <div className="text-[11px] text-text-tertiary mt-0.5 flex items-center gap-2">
@@ -301,7 +301,7 @@ export default function Budget() {
                     </div>
                   </div>
                   <div className="flex-shrink-0 text-right">
-                    <div className="display-font text-lg text-white">{fmt$(campTotal)}</div>
+                    <div className="display-font text-lg text-fg-primary">{fmt$(campTotal)}</div>
                     <div className="text-[10px] text-text-tertiary uppercase tracking-widest">
                       Total
                     </div>

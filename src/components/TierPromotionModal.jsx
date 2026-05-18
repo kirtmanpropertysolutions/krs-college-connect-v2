@@ -51,7 +51,7 @@ export default function TierPromotionModal({ tier, onClose }) {
         />
         <button
           onClick={onClose}
-          className="absolute top-4 right-4 text-text-tertiary hover:text-white"
+          className="absolute top-4 right-4 text-text-tertiary hover:text-fg-primary"
           aria-label="Close"
         >
           <X size={18} />
@@ -103,7 +103,7 @@ export default function TierPromotionModal({ tier, onClose }) {
             You're now a
           </p>
           <h2
-            className="display-font text-[36px] text-white leading-none mb-4 tracking-[0.05em]"
+            className="display-font text-[36px] text-fg-primary leading-none mb-4 tracking-[0.05em]"
             style={{ color: tier.color }}
           >
             {tier.name}

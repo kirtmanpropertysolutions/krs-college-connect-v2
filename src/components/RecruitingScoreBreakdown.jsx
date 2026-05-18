@@ -43,14 +43,14 @@ export default function RecruitingScoreBreakdown({ score, breakdown, onClose }) 
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70" onClick={onClose}>
-      <div className="bg-navy-900 border border-gray-700 rounded-2xl max-w-lg w-full max-h-[85vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
-        <div className="sticky top-0 bg-navy-900 border-b border-gray-700 p-5 flex items-center justify-between">
+      <div className="bg-surface-card border border-border-default rounded-2xl max-w-lg w-full max-h-[85vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
+        <div className="sticky top-0 bg-surface-card border-b border-border-default p-5 flex items-center justify-between">
           <div>
-            <p className="text-xs uppercase tracking-wider text-gray-400">RECRUITING SCORE</p>
-            <h2 className="text-3xl font-black text-white">{score}<span className="text-lg text-gray-400 font-normal"> / 100</span></h2>
+            <p className="text-xs uppercase tracking-wider text-text-tertiary">RECRUITING SCORE</p>
+            <h2 className="text-3xl font-black text-fg-primary">{score}<span className="text-lg text-text-tertiary font-normal"> / 100</span></h2>
           </div>
-          <button onClick={onClose} className="w-10 h-10 rounded-full bg-navy-800 hover:bg-navy-700 flex items-center justify-center">
-            <X className="w-5 h-5 text-gray-400"/>
+          <button onClick={onClose} className="w-10 h-10 rounded-full bg-surface-card-hover hover:bg-surface-page flex items-center justify-center">
+            <X className="w-5 h-5 text-text-tertiary"/>
           </button>
         </div>
 
@@ -59,21 +59,21 @@ export default function RecruitingScoreBreakdown({ score, breakdown, onClose }) 
             const pct = Math.round((s.score / s.max) * 100)
             const isMaxed = s.score >= s.max
             return (
-              <div key={s.key} className="bg-navy-800 rounded-lg p-4">
+              <div key={s.key} className="bg-surface-card-hover rounded-lg p-4 border border-border-default">
                 <div className="flex items-baseline justify-between mb-2">
-                  <h3 className="font-semibold text-white">{s.label}</h3>
-                  <span className={isMaxed ? 'text-green-400 text-sm font-mono' : 'text-gray-400 text-sm font-mono'}>
+                  <h3 className="font-semibold text-fg-primary">{s.label}</h3>
+                  <span className={isMaxed ? 'text-green-500 text-sm font-mono' : 'text-text-tertiary text-sm font-mono'}>
                     {s.score} / {s.max}
                   </span>
                 </div>
-                <div className="h-2 bg-navy-700 rounded-full overflow-hidden mb-3">
+                <div className="h-2 bg-border-default rounded-full overflow-hidden mb-3">
                   <div
                     className={isMaxed ? 'h-full bg-green-500' : 'h-full bg-club-primary'}
                     style={{width: `${pct}%`, transition: 'width 600ms ease-out'}}
                   />
                 </div>
-                <p className="text-sm text-gray-300 mb-1">{s.description}</p>
-                <p className="text-xs text-gray-500 mb-3">{s.tip}</p>
+                <p className="text-sm text-text-secondary mb-1">{s.description}</p>
+                <p className="text-xs text-text-tertiary mb-3">{s.tip}</p>
                 {!isMaxed && (
                   <Link
                     to={s.cta.href}
@@ -84,7 +84,7 @@ export default function RecruitingScoreBreakdown({ score, breakdown, onClose }) 
                   </Link>
                 )}
                 {isMaxed && (
-                  <p className="text-sm text-green-400 font-medium">✓ Maxed out</p>
+                  <p className="text-sm text-green-500 font-medium">✓ Maxed out</p>
                 )}
               </div>
             )

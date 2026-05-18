@@ -140,7 +140,7 @@ export default function AdminCamps() {
         </div>
         <div className="flex items-end justify-between flex-wrap gap-3">
           <div>
-            <h1 className="display-font text-4xl text-white">ID Camps</h1>
+            <h1 className="display-font text-4xl text-fg-primary">ID Camps</h1>
             <p className="text-text-secondary text-sm mt-1">
               The camps you recommend to your athletes. They see this list under Recruiting Events.
             </p>
@@ -188,7 +188,7 @@ export default function AdminCamps() {
                       {c.school_name}
                     </span>
                   </div>
-                  <h3 className="display-font text-xl text-white leading-tight">{c.name}</h3>
+                  <h3 className="display-font text-xl text-fg-primary leading-tight">{c.name}</h3>
                   <div className="flex flex-wrap items-center gap-3 mt-2 text-[12px] text-text-secondary">
                     <span className="inline-flex items-center gap-1">
                       <Calendar size={12} />
@@ -227,7 +227,7 @@ export default function AdminCamps() {
                 <div className="flex flex-col gap-2 flex-shrink-0">
                   <button
                     onClick={() => setEditing(c)}
-                    className="tap-target text-text-tertiary hover:text-white"
+                    className="tap-target text-text-tertiary hover:text-fg-primary"
                     aria-label="Edit"
                   >
                     <Edit2 size={16} />
@@ -257,13 +257,13 @@ export default function AdminCamps() {
             onClick={(e) => e.stopPropagation()}
           >
             <div className="flex items-center justify-between mb-4">
-              <h3 className="display-font text-xl text-white">
+              <h3 className="display-font text-xl text-fg-primary">
                 {editing.id ? 'Edit camp' : 'Add a camp'}
               </h3>
               <button
                 onClick={() => setEditing(null)}
                 disabled={saving}
-                className="text-text-tertiary hover:text-white"
+                className="text-text-tertiary hover:text-fg-primary"
                 aria-label="Close"
               >
                 <X size={18} />
@@ -390,7 +390,7 @@ export default function AdminCamps() {
       )}
 
       {toast && (
-        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 design-card px-4 py-3 text-sm text-white shadow-2xl animate-slide-up-soft">
+        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 design-card px-4 py-3 text-sm text-fg-primary shadow-2xl animate-slide-up-soft">
           {toast}
         </div>
       )}

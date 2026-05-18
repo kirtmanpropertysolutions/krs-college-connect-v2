@@ -122,12 +122,19 @@ export default async function handler(req, res) {
   })
 
   let userId
+  let userEmail = null
   try {
     const { data: userData, error: userErr } = await supabase.auth.getUser(accessToken)
     if (userErr || !userData?.user) {
       return safeError(res, 401, 'Auth token invalid or expired', opId)
     }
     userId = userData.user.id
+    // Mirror auth.users.email onto profiles.email so admin views
+    // (AdminAthletes, etc.) don't need to join auth schema. Without
+    // this, every new signup landed in the roster as "No email on
+    // file" — the email lived only in auth.users, which PostgREST
+    // doesn't expose to anon/authenticated.
+    userEmail = userData.user.email || null
   } catch (e) {
     console.error(`[validate-invite ${opId}] getUser failed:`, e)
     return safeError(res, 401, 'Auth token invalid or expired', opId)
@@ -185,10 +192,12 @@ export default async function handler(req, res) {
   }
 
   // ── Create profile ────────────────────────────────────────────────
+  // email mirrored from auth.users so admin views can list the roster
+  // without needing a JOIN into the auth schema.
   const { error: profileError } = await supabase
     .from('profiles')
     .upsert(
-      { id: userId, org_id: orgId, role: 'athlete' },
+      { id: userId, org_id: orgId, role: 'athlete', email: userEmail },
       { onConflict: 'id' }
     )
   if (profileError) {

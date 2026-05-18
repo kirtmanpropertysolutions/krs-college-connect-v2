@@ -245,7 +245,7 @@ Reply to this email if you have any trouble signing up.
           style={{ borderColor: 'rgba(200,16,46,0.4)' }}
         >
           <CheckCircle2 size={16} style={{ color: 'var(--crimson-3)' }} />
-          <span className="text-sm text-white">{toast}</span>
+          <span className="text-sm text-fg-primary">{toast}</span>
         </div>
       )}
 
@@ -257,7 +257,7 @@ Reply to this email if you have any trouble signing up.
             Onboarding
           </span>
         </div>
-        <h1 className="display-font text-4xl text-white">Invite Codes</h1>
+        <h1 className="display-font text-4xl text-fg-primary">Invite Codes</h1>
         <p className="text-text-secondary text-sm mt-1">Generate codes athletes use to sign up to your club.</p>
       </div>
 
@@ -277,7 +277,7 @@ Reply to this email if you have any trouble signing up.
             </span>
           </div>
           <div className="flex items-center gap-4 mb-4 flex-wrap">
-            <code className="text-white text-2xl font-mono font-bold bg-black/40 px-4 py-2 rounded border border-card-border">
+            <code className="text-fg-primary text-2xl font-mono font-bold bg-black/40 px-4 py-2 rounded border border-card-border">
               {justCreated.code}
             </code>
             {justCreated.label && (
@@ -308,7 +308,7 @@ Reply to this email if you have any trouble signing up.
             </button>
             <button
               onClick={() => setJustCreated(null)}
-              className="ml-auto text-xs text-text-tertiary hover:text-white px-2"
+              className="ml-auto text-xs text-text-tertiary hover:text-fg-primary px-2"
             >
               Dismiss
             </button>
@@ -318,23 +318,23 @@ Reply to this email if you have any trouble signing up.
 
       {/* Create New Code */}
       <div className="design-card p-6">
-        <h2 className="display-font text-lg text-white mb-1">Create new code</h2>
+        <h2 className="display-font text-lg text-fg-primary mb-1">Create new code</h2>
         <p className="text-[11px] uppercase tracking-widest text-text-tertiary mb-5">Each code is unique to your club</p>
 
           <div className="grid md:grid-cols-3 gap-4 mb-6">
             <div>
-              <label className="block text-gray-400 text-sm mb-2">Code</label>
+              <label className="block text-text-tertiary text-sm mb-2">Code</label>
               <div className="flex gap-2">
                 <input
                   type="text"
                   placeholder="EASTSIDE2026"
                   value={newCode.code}
                   onChange={(e) => setNewCode({ ...newCode, code: e.target.value.toUpperCase() })}
-                  className="flex-1 px-3 py-2 bg-navy-800 border border-gray-600 rounded text-white placeholder-gray-400 focus:outline-none focus:border-eastside-crimson font-mono"
+                  className="flex-1 px-3 py-2 bg-navy-800 border border-gray-600 rounded text-fg-primary placeholder-gray-400 focus:outline-none focus:border-eastside-crimson font-mono"
                 />
                 <button
                   onClick={generateRandomCode}
-                  className="px-3 py-2 border border-gray-600 text-gray-400 rounded hover:border-eastside-crimson hover:text-eastside-crimson transition-colors"
+                  className="px-3 py-2 border border-gray-600 text-text-tertiary rounded hover:border-eastside-crimson hover:text-eastside-crimson transition-colors"
                   title="Generate Random"
                 >
                   <Shuffle size={16} />
@@ -343,24 +343,24 @@ Reply to this email if you have any trouble signing up.
             </div>
 
             <div>
-              <label className="block text-gray-400 text-sm mb-2">Label (optional)</label>
+              <label className="block text-text-tertiary text-sm mb-2">Label (optional)</label>
               <input
                 type="text"
                 placeholder="Spring 2026 cohort"
                 value={newCode.label}
                 onChange={(e) => setNewCode({ ...newCode, label: e.target.value })}
-                className="w-full px-3 py-2 bg-navy-800 border border-gray-600 rounded text-white placeholder-gray-400 focus:outline-none focus:border-eastside-crimson"
+                className="w-full px-3 py-2 bg-navy-800 border border-gray-600 rounded text-fg-primary placeholder-gray-400 focus:outline-none focus:border-eastside-crimson"
               />
             </div>
 
             <div>
-              <label className="block text-gray-400 text-sm mb-2">Max Uses</label>
+              <label className="block text-text-tertiary text-sm mb-2">Max Uses</label>
               <input
                 type="number"
                 min="1"
                 value={newCode.max_uses}
                 onChange={(e) => setNewCode({ ...newCode, max_uses: e.target.value })}
-                className="w-full px-3 py-2 bg-navy-800 border border-gray-600 rounded text-white focus:outline-none focus:border-eastside-crimson"
+                className="w-full px-3 py-2 bg-navy-800 border border-gray-600 rounded text-fg-primary focus:outline-none focus:border-eastside-crimson"
               />
             </div>
           </div>
@@ -376,13 +376,13 @@ Reply to this email if you have any trouble signing up.
 
         {/* All Codes */}
         <div className="space-y-4">
-          <h2 className="text-white text-lg font-medium">ALL CODES</h2>
+          <h2 className="text-fg-primary text-lg font-medium">ALL CODES</h2>
 
           {loading ? (
-            <div className="design-card p-8 text-center text-gray-400">Loading codes...</div>
+            <div className="design-card p-8 text-center text-text-tertiary">Loading codes...</div>
           ) : codes.length === 0 ? (
             <div className="design-card p-8 text-center">
-              <p className="text-gray-400 text-sm">No codes yet. Create one above to start inviting athletes.</p>
+              <p className="text-text-tertiary text-sm">No codes yet. Create one above to start inviting athletes.</p>
             </div>
           ) : (
             <div className="space-y-3">
@@ -391,20 +391,20 @@ Reply to this email if you have any trouble signing up.
                   <div className="flex items-center justify-between">
                     <div className="flex-1">
                       <div className="flex items-center gap-4 mb-2">
-                        <code className="text-white text-lg font-mono font-medium bg-gray-800 px-3 py-1 rounded">
+                        <code className="text-fg-primary text-lg font-mono font-medium bg-gray-800 px-3 py-1 rounded">
                           {code.code}
                         </code>
                         {code.label && (
-                          <span className="text-gray-400 text-sm">{code.label}</span>
+                          <span className="text-text-tertiary text-sm">{code.label}</span>
                         )}
                         <span className={`px-2 py-1 rounded text-xs font-medium ${
-                          code.active ? 'bg-green-900 text-green-300' : 'bg-gray-800 text-gray-400'
+                          code.active ? 'bg-green-900 text-green-300' : 'bg-gray-800 text-text-tertiary'
                         }`}>
                           {code.active ? 'Active' : 'Expired'}
                         </span>
                       </div>
 
-                      <div className="flex items-center gap-6 text-sm text-gray-400">
+                      <div className="flex items-center gap-6 text-sm text-text-tertiary">
                         <span>Uses: {code.uses || 0}/{code.max_uses}</span>
                         <span>Created: {formatDate(code.created_at)}</span>
                       </div>
@@ -424,7 +424,7 @@ Reply to this email if you have any trouble signing up.
 
                       <button
                         onClick={() => copyToClipboard(signupUrl(code.code), 'Signup link copied')}
-                        className="p-2 text-text-tertiary hover:text-white transition-colors"
+                        className="p-2 text-text-tertiary hover:text-fg-primary transition-colors"
                         title="Copy signup link"
                       >
                         <Link2 size={16} />
@@ -432,7 +432,7 @@ Reply to this email if you have any trouble signing up.
 
                       <button
                         onClick={() => copyToClipboard(code.code, 'Code copied')}
-                        className="p-2 text-text-tertiary hover:text-white transition-colors"
+                        className="p-2 text-text-tertiary hover:text-fg-primary transition-colors"
                         title="Copy code only"
                       >
                         <Copy size={16} />
@@ -440,7 +440,7 @@ Reply to this email if you have any trouble signing up.
 
                       <button
                         onClick={() => toggleCodeStatus(code.id, code.active)}
-                        className="p-2 text-text-tertiary hover:text-white transition-colors"
+                        className="p-2 text-text-tertiary hover:text-fg-primary transition-colors"
                         title={code.active ? 'Deactivate' : 'Activate'}
                       >
                         {code.active ? <ToggleRight size={16} /> : <ToggleLeft size={16} />}
@@ -481,10 +481,10 @@ Reply to this email if you have any trouble signing up.
                 Send invite
               </span>
             </div>
-            <h3 className="display-font text-2xl text-white mb-1">Who's it going to?</h3>
+            <h3 className="display-font text-2xl text-fg-primary mb-1">Who's it going to?</h3>
             <p className="text-text-secondary text-sm mb-5">
               We'll open Gmail with the invite pre-filled.
-              Code: <span className="font-mono text-white">{inviteModal.code.code}</span>
+              Code: <span className="font-mono text-fg-primary">{inviteModal.code.code}</span>
             </p>
 
             <div className="space-y-3 mb-5">
@@ -499,7 +499,7 @@ Reply to this email if you have any trouble signing up.
                   value={inviteModal.email}
                   onChange={(e) => setInviteModal({ ...inviteModal, email: e.target.value })}
                   onKeyDown={(e) => e.key === 'Enter' && submitInviteSend()}
-                  className="w-full px-3 py-2.5 bg-navy-800 border border-card-border rounded-md text-white placeholder-text-tertiary focus:outline-none focus:border-eastside-crimson"
+                  className="w-full px-3 py-2.5 bg-navy-800 border border-card-border rounded-md text-fg-primary placeholder-text-tertiary focus:outline-none focus:border-eastside-crimson"
                 />
               </div>
               <div>
@@ -512,7 +512,7 @@ Reply to this email if you have any trouble signing up.
                   value={inviteModal.firstName}
                   onChange={(e) => setInviteModal({ ...inviteModal, firstName: e.target.value })}
                   onKeyDown={(e) => e.key === 'Enter' && submitInviteSend()}
-                  className="w-full px-3 py-2.5 bg-navy-800 border border-card-border rounded-md text-white placeholder-text-tertiary focus:outline-none focus:border-eastside-crimson"
+                  className="w-full px-3 py-2.5 bg-navy-800 border border-card-border rounded-md text-fg-primary placeholder-text-tertiary focus:outline-none focus:border-eastside-crimson"
                 />
               </div>
             </div>

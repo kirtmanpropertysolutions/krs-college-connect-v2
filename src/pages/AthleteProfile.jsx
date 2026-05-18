@@ -193,7 +193,7 @@ export default function AthleteProfile() {
     return (
       <AthleteLayout>
         <div className="p-8">
-          <div className="text-white">Loading profile...</div>
+          <div className="text-fg-primary">Loading profile...</div>
         </div>
       </AthleteLayout>
     )
@@ -207,7 +207,7 @@ export default function AthleteProfile() {
         {/* Profile Completion Bar */}
         <div className="mb-8">
           <div className="flex justify-between items-center mb-3">
-            <h2 className="display-font text-white text-xl">PROFILE COMPLETION</h2>
+            <h2 className="display-font text-fg-primary text-xl">PROFILE COMPLETION</h2>
             <span className="text-club-secondary font-bold">{completionPercentage}%</span>
           </div>
           <div className="w-full bg-gray-700 rounded-full h-3">
@@ -221,10 +221,10 @@ export default function AthleteProfile() {
         <div className="space-y-8">
           {/* Personal Info Card */}
           <div className="card">
-            <h3 className="display-font text-white text-xl mb-6">PERSONAL INFO</h3>
+            <h3 className="display-font text-fg-primary text-xl mb-6">PERSONAL INFO</h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
-                <label className="block text-gray-400 text-sm uppercase tracking-wider mb-2">
+                <label className="block text-text-tertiary text-sm uppercase tracking-wider mb-2">
                   Full Name
                 </label>
                 <input
@@ -243,7 +243,7 @@ export default function AthleteProfile() {
               </div>
 
               <div>
-                <label className="block text-gray-400 text-sm uppercase tracking-wider mb-2">
+                <label className="block text-text-tertiary text-sm uppercase tracking-wider mb-2">
                   Position
                 </label>
                 <select
@@ -268,7 +268,7 @@ export default function AthleteProfile() {
               </div>
 
               <div>
-                <label className="block text-gray-400 text-sm uppercase tracking-wider mb-2">
+                <label className="block text-text-tertiary text-sm uppercase tracking-wider mb-2">
                   Graduation Year
                 </label>
                 <input
@@ -289,7 +289,7 @@ export default function AthleteProfile() {
               </div>
 
               <div>
-                <label className="block text-gray-400 text-sm uppercase tracking-wider mb-2">
+                <label className="block text-text-tertiary text-sm uppercase tracking-wider mb-2">
                   Club Team
                 </label>
                 <input
@@ -308,7 +308,7 @@ export default function AthleteProfile() {
               </div>
 
               <div>
-                <label className="block text-gray-400 text-sm uppercase tracking-wider mb-2">
+                <label className="block text-text-tertiary text-sm uppercase tracking-wider mb-2">
                   High School
                 </label>
                 <input
@@ -327,7 +327,7 @@ export default function AthleteProfile() {
               </div>
 
               <div>
-                <label className="block text-gray-400 text-sm uppercase tracking-wider mb-2">
+                <label className="block text-text-tertiary text-sm uppercase tracking-wider mb-2">
                   City
                 </label>
                 <input
@@ -346,7 +346,7 @@ export default function AthleteProfile() {
               </div>
 
               <div>
-                <label className="block text-gray-400 text-sm uppercase tracking-wider mb-2">
+                <label className="block text-text-tertiary text-sm uppercase tracking-wider mb-2">
                   State
                 </label>
                 <input
@@ -365,7 +365,7 @@ export default function AthleteProfile() {
               </div>
 
               <div>
-                <label className="block text-gray-400 text-sm uppercase tracking-wider mb-2">
+                <label className="block text-text-tertiary text-sm uppercase tracking-wider mb-2">
                   Jersey Number
                 </label>
                 <input
@@ -386,7 +386,7 @@ export default function AthleteProfile() {
               </div>
 
               <div>
-                <label className="block text-gray-400 text-sm uppercase tracking-wider mb-2">
+                <label className="block text-text-tertiary text-sm uppercase tracking-wider mb-2">
                   Dominant Foot
                 </label>
                 <select
@@ -415,7 +415,7 @@ export default function AthleteProfile() {
                   legacy consumers working), but the input + display
                   are inches and we convert on save/load. */}
               <div>
-                <label className="block text-gray-400 text-sm uppercase tracking-wider mb-2">
+                <label className="block text-text-tertiary text-sm uppercase tracking-wider mb-2">
                   Height (inches)
                 </label>
                 <input
@@ -454,7 +454,7 @@ export default function AthleteProfile() {
               </div>
 
               <div>
-                <label className="block text-gray-400 text-sm uppercase tracking-wider mb-2">
+                <label className="block text-text-tertiary text-sm uppercase tracking-wider mb-2">
                   Weight (lbs)
                 </label>
                 <input
@@ -478,10 +478,10 @@ export default function AthleteProfile() {
 
           {/* Academic Info Card */}
           <div className="card">
-            <h3 className="display-font text-white text-xl mb-6">ACADEMIC INFO</h3>
+            <h3 className="display-font text-fg-primary text-xl mb-6">ACADEMIC INFO</h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
-                <label className="block text-gray-400 text-sm uppercase tracking-wider mb-2">
+                <label className="block text-text-tertiary text-sm uppercase tracking-wider mb-2">
                   GPA
                 </label>
                 <input
@@ -503,7 +503,7 @@ export default function AthleteProfile() {
               </div>
 
               <div>
-                <label className="block text-gray-400 text-sm uppercase tracking-wider mb-2">
+                <label className="block text-text-tertiary text-sm uppercase tracking-wider mb-2">
                   SAT Score
                 </label>
                 <input
@@ -524,7 +524,7 @@ export default function AthleteProfile() {
               </div>
 
               <div>
-                <label className="block text-gray-400 text-sm uppercase tracking-wider mb-2">
+                <label className="block text-text-tertiary text-sm uppercase tracking-wider mb-2">
                   ACT Score
                 </label>
                 <input
@@ -545,7 +545,7 @@ export default function AthleteProfile() {
               </div>
 
               <div>
-                <label className="block text-gray-400 text-sm uppercase tracking-wider mb-2">
+                <label className="block text-text-tertiary text-sm uppercase tracking-wider mb-2">
                   Intended Major
                 </label>
                 <input
@@ -564,7 +564,7 @@ export default function AthleteProfile() {
               </div>
 
               <div>
-                <label className="block text-gray-400 text-sm uppercase tracking-wider mb-2">
+                <label className="block text-text-tertiary text-sm uppercase tracking-wider mb-2">
                   Academic Interests
                 </label>
                 <input
@@ -583,7 +583,7 @@ export default function AthleteProfile() {
               </div>
 
               <div className="md:col-span-2">
-                <label className="block text-gray-400 text-sm uppercase tracking-wider mb-2">
+                <label className="block text-text-tertiary text-sm uppercase tracking-wider mb-2">
                   Honors/AP Classes
                 </label>
                 <textarea
@@ -604,10 +604,10 @@ export default function AthleteProfile() {
 
           {/* Soccer Stats Card */}
           <div className="card">
-            <h3 className="display-font text-white text-xl mb-6">SOCCER STATS (SEASON)</h3>
+            <h3 className="display-font text-fg-primary text-xl mb-6">SOCCER STATS (SEASON)</h3>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               <div>
-                <label className="block text-gray-400 text-sm uppercase tracking-wider mb-2">
+                <label className="block text-text-tertiary text-sm uppercase tracking-wider mb-2">
                   Goals
                 </label>
                 <input
@@ -627,7 +627,7 @@ export default function AthleteProfile() {
               </div>
 
               <div>
-                <label className="block text-gray-400 text-sm uppercase tracking-wider mb-2">
+                <label className="block text-text-tertiary text-sm uppercase tracking-wider mb-2">
                   Assists
                 </label>
                 <input
@@ -647,7 +647,7 @@ export default function AthleteProfile() {
               </div>
 
               <div>
-                <label className="block text-gray-400 text-sm uppercase tracking-wider mb-2">
+                <label className="block text-text-tertiary text-sm uppercase tracking-wider mb-2">
                   Minutes Played
                 </label>
                 <input
@@ -667,7 +667,7 @@ export default function AthleteProfile() {
               </div>
 
               <div>
-                <label className="block text-gray-400 text-sm uppercase tracking-wider mb-2">
+                <label className="block text-text-tertiary text-sm uppercase tracking-wider mb-2">
                   Games Played
                 </label>
                 <input
@@ -687,7 +687,7 @@ export default function AthleteProfile() {
               </div>
 
               <div>
-                <label className="block text-gray-400 text-sm uppercase tracking-wider mb-2">
+                <label className="block text-text-tertiary text-sm uppercase tracking-wider mb-2">
                   Clean Sheets
                 </label>
                 <input
@@ -707,7 +707,7 @@ export default function AthleteProfile() {
               </div>
 
               <div>
-                <label className="block text-gray-400 text-sm uppercase tracking-wider mb-2">
+                <label className="block text-text-tertiary text-sm uppercase tracking-wider mb-2">
                   Shots on Goal
                 </label>
                 <input
@@ -727,7 +727,7 @@ export default function AthleteProfile() {
               </div>
 
               <div>
-                <label className="block text-gray-400 text-sm uppercase tracking-wider mb-2">
+                <label className="block text-text-tertiary text-sm uppercase tracking-wider mb-2">
                   Pass Completion %
                 </label>
                 <input
@@ -752,8 +752,8 @@ export default function AthleteProfile() {
 
           {/* Social Media Card */}
           <div className="card">
-            <h3 className="display-font text-white text-xl mb-6">SOCIAL MEDIA</h3>
-            <p className="text-gray-400 text-sm mb-6">
+            <h3 className="display-font text-fg-primary text-xl mb-6">SOCIAL MEDIA</h3>
+            <p className="text-text-tertiary text-sm mb-6">
               These links are auto-included in every email you send to coaches.
             </p>
             <div className="space-y-4">
@@ -762,7 +762,7 @@ export default function AthleteProfile() {
                   📷
                 </div>
                 <div className="flex-1">
-                  <label className="block text-gray-400 text-sm uppercase tracking-wider mb-2">
+                  <label className="block text-text-tertiary text-sm uppercase tracking-wider mb-2">
                     Instagram
                   </label>
                   <input
@@ -786,7 +786,7 @@ export default function AthleteProfile() {
                   🐦
                 </div>
                 <div className="flex-1">
-                  <label className="block text-gray-400 text-sm uppercase tracking-wider mb-2">
+                  <label className="block text-text-tertiary text-sm uppercase tracking-wider mb-2">
                     X (Twitter)
                   </label>
                   <input
@@ -810,7 +810,7 @@ export default function AthleteProfile() {
                   🎵
                 </div>
                 <div className="flex-1">
-                  <label className="block text-gray-400 text-sm uppercase tracking-wider mb-2">
+                  <label className="block text-text-tertiary text-sm uppercase tracking-wider mb-2">
                     TikTok
                   </label>
                   <input
@@ -834,7 +834,7 @@ export default function AthleteProfile() {
                   📺
                 </div>
                 <div className="flex-1">
-                  <label className="block text-gray-400 text-sm uppercase tracking-wider mb-2">
+                  <label className="block text-text-tertiary text-sm uppercase tracking-wider mb-2">
                     YouTube
                   </label>
                   <input
@@ -857,8 +857,8 @@ export default function AthleteProfile() {
 
           {/* Highlight Reels Card */}
           <div className="card">
-            <h3 className="display-font text-white text-xl mb-6">HIGHLIGHT REELS</h3>
-            <p className="text-gray-400 text-sm mb-6">
+            <h3 className="display-font text-fg-primary text-xl mb-6">HIGHLIGHT REELS</h3>
+            <p className="text-text-tertiary text-sm mb-6">
               Tip: Athletes with highlight reels get 3x more coach responses.
             </p>
 
@@ -870,7 +870,7 @@ export default function AthleteProfile() {
                     📹
                   </div>
                   <div>
-                    <h4 className="text-white font-semibold">Trace Profile URL</h4>
+                    <h4 className="text-fg-primary font-semibold">Trace Profile URL</h4>
                     <p className="text-orange-200 text-sm">
                       The #1 video platform for club soccer. College coaches actively search Trace profiles.
                     </p>
@@ -897,7 +897,7 @@ export default function AthleteProfile() {
                     ▶️
                   </div>
                   <div>
-                    <h4 className="text-white font-semibold">Hudl Highlight Reel URL</h4>
+                    <h4 className="text-fg-primary font-semibold">Hudl Highlight Reel URL</h4>
                     <p className="text-blue-200 text-sm">
                       Share your Hudl highlight reel directly with college coaches.
                     </p>
@@ -922,7 +922,7 @@ export default function AthleteProfile() {
             {/* Additional highlight fields */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
-                <label className="block text-gray-400 text-sm uppercase tracking-wider mb-2">
+                <label className="block text-text-tertiary text-sm uppercase tracking-wider mb-2">
                   YouTube Highlights
                 </label>
                 <input
@@ -941,7 +941,7 @@ export default function AthleteProfile() {
               </div>
 
               <div>
-                <label className="block text-gray-400 text-sm uppercase tracking-wider mb-2">
+                <label className="block text-text-tertiary text-sm uppercase tracking-wider mb-2">
                   Veo Link
                 </label>
                 <input
@@ -963,7 +963,7 @@ export default function AthleteProfile() {
 
           {/* Bio Card */}
           <div className="card">
-            <h3 className="display-font text-white text-xl mb-6">BIO / RECRUITING STATEMENT</h3>
+            <h3 className="display-font text-fg-primary text-xl mb-6">BIO / RECRUITING STATEMENT</h3>
             <textarea
               value={athlete?.bio || ''}
               onChange={(e) => {
@@ -977,7 +977,7 @@ export default function AthleteProfile() {
               maxLength="500"
             />
             <div className="flex justify-between items-center mt-2">
-              <span className="text-gray-500 text-sm">
+              <span className="text-text-muted text-sm">
                 {(athlete?.bio || '').length}/500 characters
               </span>
               {saveStatus.bio && (
@@ -994,7 +994,7 @@ export default function AthleteProfile() {
               (handlePhotoUpload uses a unique timestamped path + upsert
               so the CDN never serves a stale version). */}
           <div className="card">
-            <h3 className="display-font text-white text-xl mb-6">PROFILE PHOTO</h3>
+            <h3 className="display-font text-fg-primary text-xl mb-6">PROFILE PHOTO</h3>
             <div className="border-2 border-dashed border-gray-600 rounded-lg p-6 text-center">
               {athlete?.profile_photo_url ? (
                 <img
@@ -1007,7 +1007,7 @@ export default function AthleteProfile() {
                   📷
                 </div>
               )}
-              <p className="text-gray-400 mb-4 text-sm">
+              <p className="text-text-tertiary mb-4 text-sm">
                 {athlete?.profile_photo_url
                   ? 'Tap to change your headshot.'
                   : 'Upload a professional headshot — coaches see this on your public profile.'}
@@ -1032,7 +1032,7 @@ export default function AthleteProfile() {
                   ? 'Change photo'
                   : 'Choose file'}
               </button>
-              <p className="text-gray-500 text-xs mt-3">
+              <p className="text-text-muted text-xs mt-3">
                 JPG, PNG, or WebP · Max 5 MB
               </p>
               {photoError && (
@@ -1051,14 +1051,14 @@ export default function AthleteProfile() {
               Gmail compose pre-filled, PDF → client-side render of
               the athlete profile for email attachments. */}
           <div className="card">
-            <h3 className="display-font text-white text-xl mb-4">SHARE YOUR PROFILE</h3>
-            <p className="text-gray-400 text-sm mb-5 leading-relaxed">
+            <h3 className="display-font text-fg-primary text-xl mb-4">SHARE YOUR PROFILE</h3>
+            <p className="text-text-tertiary text-sm mb-5 leading-relaxed">
               This is the public link coaches see. Paste it into outreach
               emails or share with anyone — no sign-in needed to view.
             </p>
 
             <div className="bg-navy-950 border border-gray-700 rounded-lg px-3 py-2 mb-3 flex items-center gap-2">
-              <code className="flex-1 text-xs text-gray-300 truncate">
+              <code className="flex-1 text-xs text-text-secondary truncate">
                 {typeof window !== 'undefined'
                   ? `${window.location.origin}/p/${user?.id || ''}`
                   : ''}

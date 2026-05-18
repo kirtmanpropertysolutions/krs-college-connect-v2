@@ -335,7 +335,7 @@ export default function CoachFinder() {
     return (
       <AthleteLayout>
         <div className="p-8">
-          <div className="text-white">Loading coach finder...</div>
+          <div className="text-fg-primary">Loading coach finder...</div>
         </div>
       </AthleteLayout>
     )
@@ -360,7 +360,7 @@ export default function CoachFinder() {
               <div className="h-px w-8" style={{ background: 'var(--crimson)' }} />
               <span className="text-[10px] uppercase tracking-[0.22em] font-bold" style={{ color: 'var(--crimson)' }}>The Database</span>
             </div>
-            <h1 className="display-font text-4xl text-white mb-1">Coach Finder</h1>
+            <h1 className="display-font text-4xl text-fg-primary mb-1">Coach Finder</h1>
             <p className="text-text-secondary text-sm">
               {filteredSchools.length < schools.length
                 ? `${filteredSchools.length} of ${schools.length} schools`
@@ -379,8 +379,8 @@ export default function CoachFinder() {
         {/* Feature 5: Recommended for You */}
         {!quizResponses?.completed_at ? (
           <div className="design-card p-6 mb-8 text-center">
-            <h2 className="display-font text-xl text-white mb-4">RECOMMENDED FOR YOU</h2>
-            <p className="text-gray-400 mb-4">
+            <h2 className="display-font text-xl text-fg-primary mb-4">RECOMMENDED FOR YOU</h2>
+            <p className="text-text-tertiary mb-4">
               Take the School Fit Quiz for personalized recommendations based on your preferences for academics, distance, school size, and more.
             </p>
             <button
@@ -394,7 +394,7 @@ export default function CoachFinder() {
           <div className="design-card p-6 mb-8">
             <div className="flex justify-between items-center mb-4">
               <div className="flex items-center gap-2">
-                <h2 className="display-font text-xl text-white">RECOMMENDED FOR YOU</h2>
+                <h2 className="display-font text-xl text-fg-primary">RECOMMENDED FOR YOU</h2>
                 <span className="text-xs text-eastside-gold font-medium px-2 py-1 rounded bg-eastside-gold bg-opacity-10">
                   Quiz complete
                 </span>
@@ -423,7 +423,7 @@ export default function CoachFinder() {
           </div>
         ) : (
           <div className="design-card p-6 mb-8 text-center">
-            <p className="text-gray-400">
+            <p className="text-text-tertiary">
               Complete your profile to see personalized recommendations
               <button
                 onClick={() => navigate('/profile')}
@@ -438,7 +438,7 @@ export default function CoachFinder() {
         {/* Filter Bar */}
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-5 gap-3 mb-8">
           <div>
-            <label className="block text-gray-400 text-sm uppercase tracking-wider mb-2">
+            <label className="block text-text-tertiary text-sm uppercase tracking-wider mb-2">
               Division
             </label>
             <select
@@ -456,7 +456,7 @@ export default function CoachFinder() {
           </div>
 
           <div>
-            <label className="block text-gray-400 text-sm uppercase tracking-wider mb-2">
+            <label className="block text-text-tertiary text-sm uppercase tracking-wider mb-2">
               Conference
             </label>
             <select
@@ -472,7 +472,7 @@ export default function CoachFinder() {
           </div>
 
           <div>
-            <label className="block text-gray-400 text-sm uppercase tracking-wider mb-2">
+            <label className="block text-text-tertiary text-sm uppercase tracking-wider mb-2">
               Region
             </label>
             <select
@@ -488,7 +488,7 @@ export default function CoachFinder() {
           </div>
 
           <div>
-            <label className="block text-gray-400 text-sm uppercase tracking-wider mb-2">
+            <label className="block text-text-tertiary text-sm uppercase tracking-wider mb-2">
               State
             </label>
             <select
@@ -504,7 +504,7 @@ export default function CoachFinder() {
           </div>
 
           <div className="md:col-span-2">
-            <label className="block text-gray-400 text-sm uppercase tracking-wider mb-2">
+            <label className="block text-text-tertiary text-sm uppercase tracking-wider mb-2">
               Search School Name
             </label>
             <input
@@ -520,7 +520,7 @@ export default function CoachFinder() {
         {/* Schools Grid */}
         {filteredSchools.length === 0 ? (
           <div className="card text-center py-12">
-            <div className="text-gray-400 mb-4">
+            <div className="text-text-tertiary mb-4">
               {schools.length === 0 ? (
                 'No schools in the database yet. Seed data is coming.'
               ) : (
@@ -528,7 +528,7 @@ export default function CoachFinder() {
               )}
             </div>
             {schools.length === 0 && (
-              <p className="text-gray-500 text-sm">
+              <p className="text-text-muted text-sm">
                 The schools database will be populated in the next phase.
               </p>
             )}
@@ -592,11 +592,11 @@ export default function CoachFinder() {
         {showAddCoachModal && (
           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
             <div className="bg-navy-900 rounded-lg p-6 w-full max-w-md">
-              <h2 className="display-font text-xl text-white mb-6">ADD COACH</h2>
+              <h2 className="display-font text-xl text-fg-primary mb-6">ADD COACH</h2>
 
               <div className="space-y-4">
                 <div>
-                  <label className="block text-gray-400 text-sm uppercase tracking-wider mb-2">
+                  <label className="block text-text-tertiary text-sm uppercase tracking-wider mb-2">
                     School
                   </label>
                   <select
@@ -613,14 +613,14 @@ export default function CoachFinder() {
                     ))}
                   </select>
                   {schools.length === 0 && (
-                    <p className="text-gray-500 text-xs mt-1">
+                    <p className="text-text-muted text-xs mt-1">
                       No schools available. Schools will be added in seed data.
                     </p>
                   )}
                 </div>
 
                 <div>
-                  <label className="block text-gray-400 text-sm uppercase tracking-wider mb-2">
+                  <label className="block text-text-tertiary text-sm uppercase tracking-wider mb-2">
                     Coach Name
                   </label>
                   <input
@@ -634,7 +634,7 @@ export default function CoachFinder() {
                 </div>
 
                 <div>
-                  <label className="block text-gray-400 text-sm uppercase tracking-wider mb-2">
+                  <label className="block text-text-tertiary text-sm uppercase tracking-wider mb-2">
                     Title
                   </label>
                   <input
@@ -647,7 +647,7 @@ export default function CoachFinder() {
                 </div>
 
                 <div>
-                  <label className="block text-gray-400 text-sm uppercase tracking-wider mb-2">
+                  <label className="block text-text-tertiary text-sm uppercase tracking-wider mb-2">
                     Email
                   </label>
                   <input
@@ -660,7 +660,7 @@ export default function CoachFinder() {
                 </div>
 
                 <div>
-                  <label className="block text-gray-400 text-sm uppercase tracking-wider mb-2">
+                  <label className="block text-text-tertiary text-sm uppercase tracking-wider mb-2">
                     Phone
                   </label>
                   <input
@@ -673,7 +673,7 @@ export default function CoachFinder() {
                 </div>
 
                 <div>
-                  <label className="block text-gray-400 text-sm uppercase tracking-wider mb-2">
+                  <label className="block text-text-tertiary text-sm uppercase tracking-wider mb-2">
                     Visibility
                   </label>
                   <select

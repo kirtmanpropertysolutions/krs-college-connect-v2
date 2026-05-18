@@ -34,7 +34,7 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="min-h-screen bg-navy-950 flex items-center justify-center p-6 relative">
+    <div className="min-h-screen bg-surface-page flex items-center justify-center p-6 relative">
       <div className="max-w-5xl w-full grid md:grid-cols-[1.1fr_1fr] gap-16 items-center">
         {/* LEFT — Brand pitch */}
         <div className="hidden md:block">
@@ -70,10 +70,10 @@ export default function LoginPage() {
               </div>
             </div>
             <div className="pt-2">
-              <div className="display-font text-2xl tracking-[0.08em] text-white leading-tight">
+              <div className="display-font text-2xl tracking-[0.08em] text-fg-primary leading-tight">
                 Eastside FC
               </div>
-              <div className="display-font text-2xl tracking-[0.08em] text-white leading-tight">
+              <div className="display-font text-2xl tracking-[0.08em] text-fg-primary leading-tight">
                 Washington
               </div>
               <div className="text-[10px] text-text-secondary tracking-[0.2em] uppercase mt-2 font-semibold">
@@ -82,7 +82,7 @@ export default function LoginPage() {
             </div>
           </div>
 
-          <h1 className="display-font text-[64px] leading-[0.98] mb-6 text-white tracking-[-0.005em]">
+          <h1 className="display-font text-[64px] leading-[0.98] mb-6 text-fg-primary tracking-[-0.005em]">
             Every recruit.
             <br />
             <span style={{ color: 'var(--crimson)' }}>Every program.</span>
@@ -118,7 +118,7 @@ export default function LoginPage() {
               />
               <EastsideFCLogo size={80} className="relative" />
             </div>
-            <div className="display-font text-xl tracking-[0.08em] text-white text-center">
+            <div className="display-font text-xl tracking-[0.08em] text-fg-primary text-center">
               Eastside FC
             </div>
             <div className="text-[10px] uppercase tracking-[0.2em] text-text-secondary mt-1">
@@ -132,7 +132,7 @@ export default function LoginPage() {
               Welcome back
             </div>
           </div>
-          <h2 className="display-font text-[26px] text-white mb-7 leading-tight">
+          <h2 className="display-font text-[26px] text-fg-primary mb-7 leading-tight">
             Sign in to your club
           </h2>
 
@@ -194,7 +194,7 @@ export default function LoginPage() {
           <div className="mt-5 text-center">
             <Link
               to="/forgot-password"
-              className="text-text-tertiary text-xs hover:text-white transition-colors"
+              className="text-text-tertiary text-xs hover:text-fg-primary transition-colors"
             >
               Forgot password?
             </Link>

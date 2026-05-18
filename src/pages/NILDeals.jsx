@@ -195,7 +195,7 @@ export default function NILDeals() {
                 Club partnerships
               </span>
             </div>
-            <h1 className="display-font text-4xl text-white">NIL Deals</h1>
+            <h1 className="display-font text-4xl text-fg-primary">NIL Deals</h1>
             <p className="text-text-secondary text-sm mt-1">
               Sponsorships your club has lined up for athletes. Apply directly through your director.
             </p>
@@ -231,7 +231,7 @@ export default function NILDeals() {
               <Sparkles size={15} style={{ color: 'var(--gold)' }} />
             </div>
             <div className="text-sm text-text-secondary leading-relaxed">
-              <span className="font-semibold text-white">Curated by your club.</span>{' '}
+              <span className="font-semibold text-fg-primary">Curated by your club.</span>{' '}
               These are partnerships your director has personally sourced —
               local sponsors, brand relationships, and product trades. New
               deal? Ask your director to add it.
@@ -275,7 +275,7 @@ export default function NILDeals() {
             <div className="flex items-center justify-center gap-2 mb-3">
               <span className="chip chip-amber">Coming soon</span>
             </div>
-            <h2 className="display-font text-3xl text-white mb-3 leading-tight">
+            <h2 className="display-font text-3xl text-fg-primary mb-3 leading-tight">
               NIL deals are on the way
             </h2>
             <p className="text-text-secondary text-sm max-w-md mx-auto leading-relaxed mb-6">
@@ -318,13 +318,13 @@ export default function NILDeals() {
                   {/* Brand header */}
                   <div className="flex items-start gap-3 mb-3">
                     <div
-                      className="w-11 h-11 rounded-lg flex items-center justify-center font-bold text-white text-[10px] flex-shrink-0"
+                      className="w-11 h-11 rounded-lg flex items-center justify-center font-bold text-fg-primary text-[10px] flex-shrink-0"
                       style={{ background: d.logo_color || '#1F2937', letterSpacing: '0.05em' }}
                     >
                       {d.logo_abbrev || d.brand.slice(0, 4).toUpperCase()}
                     </div>
                     <div className="flex-1 min-w-0">
-                      <div className="display-font text-[15px] text-white leading-tight">
+                      <div className="display-font text-[15px] text-fg-primary leading-tight">
                         {d.brand}
                       </div>
                       <div className="text-[10px] uppercase tracking-widest text-text-tertiary font-bold mt-0.5">
@@ -432,7 +432,7 @@ export default function NILDeals() {
                       {s.label}
                     </span>
                   </div>
-                  <div className="display-font text-2xl text-white">{s.value}</div>
+                  <div className="display-font text-2xl text-fg-primary">{s.value}</div>
                   <div className="text-[11px] text-text-tertiary mt-1">{s.sub}</div>
                 </div>
               ))}

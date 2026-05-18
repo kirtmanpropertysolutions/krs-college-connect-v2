@@ -128,7 +128,7 @@ export default function RecruitingEvents() {
             Director-curated
           </span>
         </div>
-        <h1 className="display-font text-4xl text-white">ID Camps</h1>
+        <h1 className="display-font text-4xl text-fg-primary">ID Camps</h1>
         <p className="text-text-secondary text-sm mt-1 mb-6">
           Camps {profile?.organization?.name || 'your club'} recommends.
           Add to your schedule to track, then register on the school's site.
@@ -137,7 +137,7 @@ export default function RecruitingEvents() {
         {/* My schedule (only if there's something on it) */}
         {scheduled.length > 0 && (
           <div className="mb-7">
-            <h2 className="display-font text-sm tracking-[0.06em] text-white uppercase mb-3">
+            <h2 className="display-font text-sm tracking-[0.06em] text-fg-primary uppercase mb-3">
               Your schedule
             </h2>
             <div className="space-y-2">
@@ -156,7 +156,7 @@ export default function RecruitingEvents() {
                             <span className="chip chip-amber">Registered</span>
                           )}
                         </div>
-                        <h3 className="text-white font-semibold text-[14px] leading-tight">
+                        <h3 className="text-fg-primary font-semibold text-[14px] leading-tight">
                           {s.notes || s.school_name}
                         </h3>
                         <div className="text-[12px] text-text-secondary mt-1 flex items-center gap-2 flex-wrap">
@@ -198,7 +198,7 @@ export default function RecruitingEvents() {
         )}
 
         {/* Curated picks */}
-        <h2 className="display-font text-sm tracking-[0.06em] text-white uppercase mb-3">
+        <h2 className="display-font text-sm tracking-[0.06em] text-fg-primary uppercase mb-3">
           Director's picks
         </h2>
 
@@ -233,7 +233,7 @@ export default function RecruitingEvents() {
                           {c.school_name}
                         </span>
                       </div>
-                      <h3 className="display-font text-lg text-white leading-tight">{c.name}</h3>
+                      <h3 className="display-font text-lg text-fg-primary leading-tight">{c.name}</h3>
                       <div className="flex flex-wrap items-center gap-3 mt-2 text-[12px] text-text-secondary">
                         <span className="inline-flex items-center gap-1">
                           <Calendar size={12} />
@@ -295,7 +295,7 @@ export default function RecruitingEvents() {
       </div>
 
       {toast && (
-        <div className="fixed bottom-24 left-1/2 -translate-x-1/2 z-50 design-card px-4 py-3 text-sm text-white shadow-2xl animate-slide-up-soft">
+        <div className="fixed bottom-24 left-1/2 -translate-x-1/2 z-50 design-card px-4 py-3 text-sm text-fg-primary shadow-2xl animate-slide-up-soft">
           {toast}
         </div>
       )}

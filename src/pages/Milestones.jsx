@@ -114,7 +114,7 @@ export default function Milestones() {
         {/* Back link */}
         <Link
           to="/"
-          className="inline-flex items-center gap-1 text-text-secondary hover:text-white text-[12px] mb-4"
+          className="inline-flex items-center gap-1 text-text-secondary hover:text-fg-primary text-[12px] mb-4"
         >
           <ArrowLeft size={14} /> Dashboard
         </Link>
@@ -126,7 +126,7 @@ export default function Milestones() {
             Trophy room
           </span>
         </div>
-        <h1 className="display-font text-4xl text-white mb-5">Milestones</h1>
+        <h1 className="display-font text-4xl text-fg-primary mb-5">Milestones</h1>
 
         {/* Tier ladder strip */}
         <div className="design-card p-4 mb-4 overflow-x-auto">
@@ -178,7 +178,7 @@ export default function Milestones() {
             <Trophy size={22} style={{ color: tierInfo.tier.color }} />
           </div>
           <div className="flex-1">
-            <div className="display-font text-white text-lg" style={{ color: tierInfo.tier.color }}>
+            <div className="display-font text-fg-primary text-lg" style={{ color: tierInfo.tier.color }}>
               {tierInfo.tier.name}
             </div>
             <div className="text-[11px] text-text-secondary">
@@ -186,7 +186,7 @@ export default function Milestones() {
               {tierInfo.next && (
                 <span>
                   {' · '}
-                  <span className="text-white">{tierInfo.remaining} to {tierInfo.next.name}</span>
+                  <span className="text-fg-primary">{tierInfo.remaining} to {tierInfo.next.name}</span>
                 </span>
               )}
             </div>
@@ -216,7 +216,7 @@ export default function Milestones() {
           return (
             <div key={tier} className="mb-7">
               <div className="mb-3">
-                <h3 className="display-font text-white text-lg tracking-[0.06em] uppercase">
+                <h3 className="display-font text-fg-primary text-lg tracking-[0.06em] uppercase">
                   {TIER_HEADINGS[tier]}
                 </h3>
                 <p className="text-[12px] text-text-secondary">{TIER_TAGLINES[tier]}</p>
@@ -275,7 +275,7 @@ export default function Milestones() {
           >
             <button
               onClick={() => setDetailMilestone(null)}
-              className="absolute top-4 right-4 text-text-tertiary hover:text-white"
+              className="absolute top-4 right-4 text-text-tertiary hover:text-fg-primary"
               aria-label="Close"
             >
               <X size={18} />
@@ -302,7 +302,7 @@ export default function Milestones() {
                 <div className="text-[10px] uppercase tracking-[0.16em] text-text-tertiary font-bold mb-0.5">
                   {TIER_HEADINGS[detailMilestone.tier]}
                 </div>
-                <h3 className="display-font text-xl text-white leading-tight">
+                <h3 className="display-font text-xl text-fg-primary leading-tight">
                   {detailMilestone.name}
                 </h3>
               </div>

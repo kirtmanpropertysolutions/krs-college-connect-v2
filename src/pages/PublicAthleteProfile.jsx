@@ -302,7 +302,7 @@ export default function PublicAthleteProfile() {
       <div className="min-h-screen bg-navy-950 flex items-center justify-center p-6">
         <div className="max-w-md text-center">
           <EastsideFCLogo size={56} className="mx-auto mb-4 opacity-80" />
-          <div className="display-font text-3xl text-white mb-2">Profile not found</div>
+          <div className="display-font text-3xl text-fg-primary mb-2">Profile not found</div>
           <p className="text-text-secondary text-sm mb-6">
             {error || 'This recruiting profile may have been moved or is no longer public.'}
           </p>
@@ -366,12 +366,19 @@ export default function PublicAthleteProfile() {
   return (
     <div className="min-h-screen bg-navy-950">
       {/* Top brand bar */}
-      <header className="border-b border-card-border" style={{ background: 'rgba(10,14,26,0.85)', backdropFilter: 'blur(12px)' }}>
+      <header
+        className="border-b border-card-border"
+        style={{
+          background: 'color-mix(in srgb, var(--bg-page) 85%, transparent)',
+          backdropFilter: 'blur(12px)',
+          WebkitBackdropFilter: 'blur(12px)',
+        }}
+      >
         <div className="max-w-5xl mx-auto px-6 py-4 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <EastsideFCLogo size={36} />
             <div className="leading-tight">
-              <div className="display-font text-[14px] text-white tracking-[0.08em]">
+              <div className="display-font text-[14px] text-fg-primary tracking-[0.08em]">
                 {org?.name || 'Eastside FC'}
               </div>
               <div className="text-[9px] text-text-tertiary uppercase tracking-[0.2em]">Recruiting profile</div>
@@ -404,7 +411,7 @@ export default function PublicAthleteProfile() {
                   Class of {gradYear} · {club}
                 </span>
               </div>
-              <h1 className="display-font text-[44px] md:text-[56px] text-white leading-[1.02] mb-1">{fullName}</h1>
+              <h1 className="display-font text-[44px] md:text-[56px] text-fg-primary leading-[1.02] mb-1">{fullName}</h1>
               <div className="display-font text-xl md:text-2xl tracking-[0.06em]" style={{ color: 'var(--crimson-3)' }}>
                 {position.toUpperCase()}{jersey ? ` · #${jersey}` : ''}
               </div>
@@ -432,7 +439,7 @@ export default function PublicAthleteProfile() {
                   <s.Icon size={13} style={{ color: 'var(--crimson-3)' }} />
                 </div>
               </div>
-              <div className="display-font text-2xl md:text-3xl text-white leading-tight">{s.value}</div>
+              <div className="display-font text-2xl md:text-3xl text-fg-primary leading-tight">{s.value}</div>
             </div>
           ))}
         </div>
@@ -441,7 +448,7 @@ export default function PublicAthleteProfile() {
         <div className="design-card p-6">
           <div className="flex items-center justify-between mb-4 flex-wrap gap-2">
             <div>
-              <h2 className="display-font text-lg text-white">Highlight reel</h2>
+              <h2 className="display-font text-lg text-fg-primary">Highlight reel</h2>
               <div className="text-[11px] uppercase tracking-widest text-text-tertiary mt-1">
                 {hasMuxReel
                   ? `${muxClips.length} clip${muxClips.length > 1 ? 's' : ''} · Clip ${activeClipIndex + 1} of ${muxClips.length}`
@@ -457,14 +464,14 @@ export default function PublicAthleteProfile() {
                 <button
                   onClick={() => setActiveClipIndex(i => Math.max(0, i - 1))}
                   disabled={activeClipIndex === 0}
-                  className="p-1.5 rounded border border-card-border text-text-tertiary hover:text-white disabled:opacity-30"
+                  className="p-1.5 rounded border border-card-border text-text-tertiary hover:text-fg-primary disabled:opacity-30"
                 >
                   <ChevronLeft size={14} />
                 </button>
                 <button
                   onClick={() => setActiveClipIndex(i => Math.min(muxClips.length - 1, i + 1))}
                   disabled={activeClipIndex === muxClips.length - 1}
-                  className="p-1.5 rounded border border-card-border text-text-tertiary hover:text-white disabled:opacity-30"
+                  className="p-1.5 rounded border border-card-border text-text-tertiary hover:text-fg-primary disabled:opacity-30"
                 >
                   <ChevronRight size={14} />
                 </button>
@@ -524,26 +531,26 @@ export default function PublicAthleteProfile() {
               <div className="h-px w-6" style={{ background: 'var(--crimson)' }} />
               <span className="text-[10px] uppercase tracking-[0.22em] font-bold" style={{ color: 'var(--crimson)' }}>Profile</span>
             </div>
-            <h3 className="display-font text-lg text-white mb-4">At a glance</h3>
+            <h3 className="display-font text-lg text-fg-primary mb-4">At a glance</h3>
             {/* GPA / SAT / ACT intentionally hidden on public view —
                 coaches request academic detail through outreach reply.
                 See migration 045_public_profile_privacy.sql. */}
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <div className="text-[10px] uppercase tracking-widest text-text-tertiary font-bold">Class of</div>
-                <div className="display-font text-2xl text-white mt-1">{gradYear || '—'}</div>
+                <div className="display-font text-2xl text-fg-primary mt-1">{gradYear || '—'}</div>
               </div>
               <div>
                 <div className="text-[10px] uppercase tracking-widest text-text-tertiary font-bold">Position</div>
-                <div className="display-font text-2xl text-white mt-1">{position || '—'}</div>
+                <div className="display-font text-2xl text-fg-primary mt-1">{position || '—'}</div>
               </div>
               <div>
                 <div className="text-[10px] uppercase tracking-widest text-text-tertiary font-bold">High school</div>
-                <div className="text-white text-sm mt-1">{hs || '—'}</div>
+                <div className="text-fg-primary text-sm mt-1">{hs || '—'}</div>
               </div>
               <div>
                 <div className="text-[10px] uppercase tracking-widest text-text-tertiary font-bold">Club</div>
-                <div className="text-white text-sm mt-1">{club}</div>
+                <div className="text-fg-primary text-sm mt-1">{club}</div>
               </div>
             </div>
           </div>
@@ -553,7 +560,7 @@ export default function PublicAthleteProfile() {
               <div className="h-px w-6" style={{ background: 'var(--crimson)' }} />
               <span className="text-[10px] uppercase tracking-[0.22em] font-bold" style={{ color: 'var(--crimson)' }}>Target programs</span>
             </div>
-            <h3 className="display-font text-lg text-white mb-4">
+            <h3 className="display-font text-lg text-fg-primary mb-4">
               {targetSchools.length > 0 ? `${targetSchools.length} programs on the list` : 'Building target list'}
             </h3>
             {targetSchools.length === 0 ? (
@@ -564,12 +571,12 @@ export default function PublicAthleteProfile() {
                   <div key={i} className="flex items-center gap-3 p-2 rounded-md transition hover:bg-navy-800">
                     <div
                       className="w-9 h-9 rounded-md flex items-center justify-center text-[10px] font-bold text-white flex-shrink-0"
-                      style={{ background: s.primary_color || '#1e293b' }}
+                      style={{ background: s.primary_color || 'var(--border-default)' }}
                     >
                       {(s.short_name || s.name).split(' ').map(w => w[0]).join('').slice(0, 3).toUpperCase()}
                     </div>
                     <div className="flex-1 min-w-0">
-                      <div className="text-sm text-white truncate">{s.name}</div>
+                      <div className="text-sm text-fg-primary truncate">{s.name}</div>
                       <div className="text-[11px] text-text-tertiary">
                         {s.division} · {s.conference || '—'} · {s.state || '—'}
                       </div>
@@ -590,7 +597,7 @@ export default function PublicAthleteProfile() {
             <div className="h-px w-6" style={{ background: 'var(--crimson)' }} />
             <span className="text-[10px] uppercase tracking-[0.22em] font-bold" style={{ color: 'var(--crimson)' }}>For coaches</span>
           </div>
-          <h3 className="display-font text-2xl text-white mb-2">Want to talk to {firstName}?</h3>
+          <h3 className="display-font text-2xl text-fg-primary mb-2">Want to talk to {firstName}?</h3>
           <p className="text-text-secondary text-sm leading-relaxed max-w-2xl mb-4">
             Reply directly to {firstName}'s outreach email — replies land in their own inbox.
             Or contact the {club} college placement office for additional info.
@@ -622,7 +629,7 @@ export default function PublicAthleteProfile() {
           </div>
           <div className="text-[10px] uppercase tracking-[0.22em] text-text-tertiary">
             Powered by{' '}
-            <Link to="/login" className="hover:text-white" style={{ color: 'var(--crimson-3)' }}>
+            <Link to="/login" className="hover:text-fg-primary" style={{ color: 'var(--crimson-3)' }}>
               KRS College Connect
             </Link>
           </div>

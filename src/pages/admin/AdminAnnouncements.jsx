@@ -157,37 +157,37 @@ export default function AdminAnnouncements() {
             Broadcasts
           </span>
         </div>
-        <h1 className="display-font text-4xl text-white">Announcements</h1>
+        <h1 className="display-font text-4xl text-fg-primary">Announcements</h1>
         <p className="text-text-secondary text-sm mt-1">Send updates to your athletes and parents.</p>
       </div>
 
       {/* Compose Announcement */}
       <div className="design-card p-6">
-        <h2 className="display-font text-lg text-white mb-1">Compose announcement</h2>
+        <h2 className="display-font text-lg text-fg-primary mb-1">Compose announcement</h2>
         <p className="text-[11px] uppercase tracking-widest text-text-tertiary mb-5">Reaches every athlete in your club</p>
 
           <div className="space-y-4">
             {/* Title */}
             <div>
-              <label className="block text-gray-400 text-sm mb-2">Title</label>
+              <label className="block text-text-tertiary text-sm mb-2">Title</label>
               <input
                 type="text"
                 placeholder="Weekly Update"
                 value={newAnnouncement.title}
                 onChange={(e) => setNewAnnouncement({ ...newAnnouncement, title: e.target.value })}
-                className="w-full px-3 py-2 bg-navy-800 border border-gray-600 rounded text-white placeholder-gray-400 focus:outline-none focus:border-eastside-crimson"
+                className="w-full px-3 py-2 bg-navy-800 border border-gray-600 rounded text-fg-primary placeholder-gray-400 focus:outline-none focus:border-eastside-crimson"
               />
             </div>
 
             {/* Message Body */}
             <div>
-              <label className="block text-gray-400 text-sm mb-2">Message</label>
+              <label className="block text-text-tertiary text-sm mb-2">Message</label>
               <textarea
                 placeholder="Your announcement message..."
                 rows={4}
                 value={newAnnouncement.body}
                 onChange={(e) => setNewAnnouncement({ ...newAnnouncement, body: e.target.value })}
-                className="w-full px-3 py-2 bg-navy-800 border border-gray-600 rounded text-white placeholder-gray-400 focus:outline-none focus:border-eastside-crimson resize-vertical"
+                className="w-full px-3 py-2 bg-navy-800 border border-gray-600 rounded text-fg-primary placeholder-gray-400 focus:outline-none focus:border-eastside-crimson resize-vertical"
               />
             </div>
 
@@ -195,11 +195,11 @@ export default function AdminAnnouncements() {
             <div className="grid md:grid-cols-3 gap-4">
               {/* Audience */}
               <div>
-                <label className="block text-gray-400 text-sm mb-2">Audience</label>
+                <label className="block text-text-tertiary text-sm mb-2">Audience</label>
                 <select
                   value={newAnnouncement.audience}
                   onChange={(e) => setNewAnnouncement({ ...newAnnouncement, audience: e.target.value })}
-                  className="w-full px-3 py-2 bg-navy-800 border border-gray-600 rounded text-white focus:outline-none focus:border-eastside-crimson"
+                  className="w-full px-3 py-2 bg-navy-800 border border-gray-600 rounded text-fg-primary focus:outline-none focus:border-eastside-crimson"
                 >
                   {audiences.map(audience => (
                     <option key={audience} value={audience}>{audience}</option>
@@ -209,11 +209,11 @@ export default function AdminAnnouncements() {
 
               {/* Priority */}
               <div>
-                <label className="block text-gray-400 text-sm mb-2">Priority</label>
+                <label className="block text-text-tertiary text-sm mb-2">Priority</label>
                 <select
                   value={newAnnouncement.priority}
                   onChange={(e) => setNewAnnouncement({ ...newAnnouncement, priority: e.target.value })}
-                  className="w-full px-3 py-2 bg-navy-800 border border-gray-600 rounded text-white focus:outline-none focus:border-eastside-crimson"
+                  className="w-full px-3 py-2 bg-navy-800 border border-gray-600 rounded text-fg-primary focus:outline-none focus:border-eastside-crimson"
                 >
                   {priorities.map(priority => (
                     <option key={priority} value={priority}>{priority}</option>
@@ -223,11 +223,11 @@ export default function AdminAnnouncements() {
 
               {/* Send Timing */}
               <div>
-                <label className="block text-gray-400 text-sm mb-2">Timing</label>
+                <label className="block text-text-tertiary text-sm mb-2">Timing</label>
                 <select
                   value={newAnnouncement.send_now ? 'now' : 'later'}
                   onChange={(e) => setNewAnnouncement({ ...newAnnouncement, send_now: e.target.value === 'now' })}
-                  className="w-full px-3 py-2 bg-navy-800 border border-gray-600 rounded text-white focus:outline-none focus:border-eastside-crimson"
+                  className="w-full px-3 py-2 bg-navy-800 border border-gray-600 rounded text-fg-primary focus:outline-none focus:border-eastside-crimson"
                 >
                   <option value="now">Send Now</option>
                   <option value="later">Schedule for Later</option>
@@ -239,21 +239,21 @@ export default function AdminAnnouncements() {
             {!newAnnouncement.send_now && (
               <div className="grid md:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-gray-400 text-sm mb-2">Date</label>
+                  <label className="block text-text-tertiary text-sm mb-2">Date</label>
                   <input
                     type="date"
                     value={newAnnouncement.scheduled_date}
                     onChange={(e) => setNewAnnouncement({ ...newAnnouncement, scheduled_date: e.target.value })}
-                    className="w-full px-3 py-2 bg-navy-800 border border-gray-600 rounded text-white focus:outline-none focus:border-eastside-crimson"
+                    className="w-full px-3 py-2 bg-navy-800 border border-gray-600 rounded text-fg-primary focus:outline-none focus:border-eastside-crimson"
                   />
                 </div>
                 <div>
-                  <label className="block text-gray-400 text-sm mb-2">Time</label>
+                  <label className="block text-text-tertiary text-sm mb-2">Time</label>
                   <input
                     type="time"
                     value={newAnnouncement.scheduled_time}
                     onChange={(e) => setNewAnnouncement({ ...newAnnouncement, scheduled_time: e.target.value })}
-                    className="w-full px-3 py-2 bg-navy-800 border border-gray-600 rounded text-white focus:outline-none focus:border-eastside-crimson"
+                    className="w-full px-3 py-2 bg-navy-800 border border-gray-600 rounded text-fg-primary focus:outline-none focus:border-eastside-crimson"
                   />
                 </div>
               </div>
@@ -268,7 +268,7 @@ export default function AdminAnnouncements() {
               >
                 {sending ? 'Sending...' : (newAnnouncement.send_now ? 'Send Announcement' : 'Schedule Announcement')}
               </button>
-              <button className="border border-gray-600 text-white px-6 py-2 rounded font-medium hover:border-eastside-crimson hover:text-eastside-crimson transition-colors">
+              <button className="border border-gray-600 text-fg-primary px-6 py-2 rounded font-medium hover:border-eastside-crimson hover:text-eastside-crimson transition-colors">
                 <Eye size={16} className="inline mr-2" />
                 Preview
               </button>
@@ -278,13 +278,13 @@ export default function AdminAnnouncements() {
 
         {/* Announcement History */}
         <div className="space-y-4">
-          <h2 className="text-white text-lg font-medium">ANNOUNCEMENT HISTORY</h2>
+          <h2 className="text-fg-primary text-lg font-medium">ANNOUNCEMENT HISTORY</h2>
 
           {loading ? (
-            <div className="design-card p-8 text-center text-gray-400">Loading announcements...</div>
+            <div className="design-card p-8 text-center text-text-tertiary">Loading announcements...</div>
           ) : announcements.length === 0 ? (
             <div className="design-card p-8 text-center">
-              <p className="text-gray-400 text-sm">No announcements yet. Compose your first above.</p>
+              <p className="text-text-tertiary text-sm">No announcements yet. Compose your first above.</p>
             </div>
           ) : (
             <div className="space-y-3">
@@ -293,14 +293,14 @@ export default function AdminAnnouncements() {
                   <div className="flex items-start justify-between mb-3">
                     <div className="flex-1">
                       <div className="flex items-center gap-3 mb-2">
-                        <h3 className="text-white font-medium">{announcement.title}</h3>
+                        <h3 className="text-fg-primary font-medium">{announcement.title}</h3>
                         <span className={`px-2 py-1 rounded text-xs font-medium flex items-center gap-1 ${getPriorityColor(announcement.priority)}`}>
                           {getPriorityIcon(announcement.priority)}
                           {announcement.priority}
                         </span>
                       </div>
                       <p className="text-gray-300 text-sm mb-2">{announcement.body}</p>
-                      <div className="flex items-center gap-4 text-xs text-gray-400">
+                      <div className="flex items-center gap-4 text-xs text-text-tertiary">
                         <span className="flex items-center gap-1">
                           <Calendar size={12} />
                           {formatDate(announcement.created_at)}
@@ -312,7 +312,7 @@ export default function AdminAnnouncements() {
                       </div>
                     </div>
                     <div className="text-right">
-                      <div className="text-gray-400 text-sm">Read: 0 of 0</div>
+                      <div className="text-text-tertiary text-sm">Read: 0 of 0</div>
                     </div>
                   </div>
                 </div>

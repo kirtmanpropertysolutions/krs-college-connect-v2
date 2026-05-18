@@ -59,7 +59,7 @@ export default function SignupPage() {
   const codeFromUrl = searchParams.get('code')
 
   return (
-    <div className="min-h-screen bg-navy-950 flex items-center justify-center p-6 relative">
+    <div className="min-h-screen bg-surface-page flex items-center justify-center p-6 relative">
       <div className="max-w-5xl w-full grid md:grid-cols-[1.1fr_1fr] gap-16 items-center">
         {/* LEFT — Pitch */}
         <div className="hidden md:block">
@@ -76,7 +76,7 @@ export default function SignupPage() {
           <div className="flex items-center gap-4 mb-8">
             <EastsideFCLogo size={64} />
             <div>
-              <div className="display-font text-xl tracking-[0.08em] text-white leading-tight">
+              <div className="display-font text-xl tracking-[0.08em] text-fg-primary leading-tight">
                 Eastside FC Washington
               </div>
               <div className="text-xs text-text-secondary tracking-wider uppercase mt-0.5">
@@ -85,7 +85,7 @@ export default function SignupPage() {
             </div>
           </div>
 
-          <h1 className="display-font text-[56px] leading-[1.02] mb-6 text-white">
+          <h1 className="display-font text-[56px] leading-[1.02] mb-6 text-fg-primary">
             Welcome to your<br />
             <span style={{ color: 'var(--crimson)' }}>club's recruiting</span><br />
             engine.
@@ -119,7 +119,7 @@ export default function SignupPage() {
           <div className="flex md:hidden items-center gap-3 mb-7 pb-5 border-b border-card-border">
             <EastsideFCLogo size={52} />
             <div>
-              <div className="display-font text-base tracking-[0.08em] text-white">Eastside FC</div>
+              <div className="display-font text-base tracking-[0.08em] text-fg-primary">Eastside FC</div>
               <div className="text-[10px] uppercase tracking-widest text-text-secondary">
                 Join the club
               </div>
@@ -135,7 +135,7 @@ export default function SignupPage() {
               {codeFromUrl ? 'Invite received' : 'New athlete'}
             </div>
           </div>
-          <h2 className="display-font text-[26px] text-white mb-1 leading-tight">
+          <h2 className="display-font text-[26px] text-fg-primary mb-1 leading-tight">
             Create your account
           </h2>
           <p className="text-text-secondary text-sm mb-6">

@@ -4,6 +4,7 @@ import { useAuth } from '../hooks/authContext'
 import { supabase } from '../lib/supabase'
 import { LogOut, Bell, Menu, X } from 'lucide-react'
 import EastsideFCLogo from './EastsideFC_Logo'
+import ColorModeToggle from './ColorModeToggle.jsx'
 
 export default function AdminLayout({ children }) {
   const location = useLocation()
@@ -44,7 +45,11 @@ export default function AdminLayout({ children }) {
       {/* Top Navigation — editorial bar */}
       <nav
         className="border-b border-card-border sticky top-0 z-30"
-        style={{ background: 'rgba(10,14,26,0.88)', backdropFilter: 'blur(14px)' }}
+        style={{
+          background: 'color-mix(in srgb, var(--bg-page) 88%, transparent)',
+          backdropFilter: 'blur(14px)',
+          WebkitBackdropFilter: 'blur(14px)',
+        }}
       >
         <div className="max-w-7xl mx-auto px-4 md:px-8 h-16 flex items-center justify-between">
           {/* Left — Club crest + identity.
@@ -61,12 +66,18 @@ export default function AdminLayout({ children }) {
                     'radial-gradient(circle, rgba(200,16,46,0.28) 0%, transparent 65%)',
                 }}
               />
-              <div className="relative rounded-xl p-1 border border-red-900/40 bg-navy-950/60">
+              <div
+                className="relative rounded-xl p-1"
+                style={{
+                  background: 'color-mix(in srgb, var(--bg-page) 60%, transparent)',
+                  border: '1px solid rgba(200,16,46,0.25)',
+                }}
+              >
                 <EastsideFCLogo size={48} />
               </div>
             </div>
             <div className="leading-tight border-l border-card-border pl-3 md:pl-4 min-w-0">
-              <div className="display-font text-[14px] md:text-[16px] text-white tracking-[0.08em] truncate">
+              <div className="display-font text-[14px] md:text-[16px] text-fg-primary tracking-[0.08em] truncate">
                 Eastside FC
               </div>
               <div className="text-[9px] text-text-tertiary uppercase tracking-[0.18em] mt-0.5 hidden sm:block">
@@ -86,8 +97,8 @@ export default function AdminLayout({ children }) {
                 to={item.path}
                 className={`text-[13px] font-medium px-3.5 py-2 rounded-md transition-all relative ${
                   isActive(item.path)
-                    ? 'text-white'
-                    : 'text-text-secondary hover:text-white hover:bg-navy-800'
+                    ? 'text-fg-primary'
+                    : 'text-text-secondary hover:text-fg-primary hover:bg-surface-card-hover'
                 }`}
                 style={
                   isActive(item.path)
@@ -103,10 +114,17 @@ export default function AdminLayout({ children }) {
             ))}
           </div>
 
-          {/* Right (desktop) - Notifications, Admin Info & Sign Out */}
+          {/* Right (desktop) - Color mode, Notifications, Admin Info & Sign Out */}
           <div className="hidden md:flex items-center gap-3">
+            {/* Themed for the admin top bar — the layout pill from
+                AthleteLayout's sidebar would be too wide here, but the
+                same ColorModeToggle component cycles Light/Dark/Auto. */}
+            <div className="hidden md:block">
+              <ColorModeToggle />
+            </div>
+
             <button
-              className="relative w-9 h-9 rounded-lg hover:bg-navy-800 flex items-center justify-center text-text-secondary hover:text-white transition-colors"
+              className="relative w-9 h-9 rounded-lg hover:bg-surface-card-hover flex items-center justify-center text-text-secondary hover:text-fg-primary transition-colors"
               aria-label="Notifications"
             >
               <Bell size={17} />
@@ -117,7 +135,7 @@ export default function AdminLayout({ children }) {
             </button>
 
             <div className="text-right hidden lg:block">
-              <div className="text-white text-[13px] font-semibold leading-tight truncate max-w-[180px]">
+              <div className="text-fg-primary text-[13px] font-semibold leading-tight truncate max-w-[180px]">
                 {profile?.full_name || 'Admin'}
               </div>
               <div className="text-text-tertiary text-[11px] leading-tight truncate max-w-[180px]">{user?.email}</div>
@@ -126,7 +144,7 @@ export default function AdminLayout({ children }) {
             <button
               onClick={handleSignOut}
               disabled={signingOut}
-              className="flex items-center gap-2 px-3 py-1.5 text-text-secondary text-[12px] border border-card-border rounded-md hover:border-eastside-crimson hover:text-white transition-colors disabled:opacity-50"
+              className="flex items-center gap-2 px-3 py-1.5 text-text-secondary text-[12px] border border-card-border rounded-md hover:border-eastside-crimson hover:text-fg-primary transition-colors disabled:opacity-50"
             >
               <LogOut size={13} />
               <span className="hidden lg:inline">{signingOut ? 'Signing out…' : 'Sign Out'}</span>
@@ -136,7 +154,7 @@ export default function AdminLayout({ children }) {
           {/* Right (mobile) - Hamburger */}
           <button
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            className="md:hidden w-9 h-9 rounded-lg hover:bg-navy-800 flex items-center justify-center text-white"
+            className="md:hidden w-9 h-9 rounded-lg hover:bg-surface-card-hover flex items-center justify-center text-fg-primary"
             aria-label={mobileMenuOpen ? 'Close menu' : 'Open menu'}
           >
             {mobileMenuOpen ? <X size={20} /> : <Menu size={20} />}
@@ -145,7 +163,10 @@ export default function AdminLayout({ children }) {
 
         {/* Mobile drawer (slides down below the top bar) */}
         {mobileMenuOpen && (
-          <div className="md:hidden border-t border-card-border" style={{ background: 'rgba(10,14,26,0.96)' }}>
+          <div
+            className="md:hidden border-t border-card-border"
+            style={{ background: 'color-mix(in srgb, var(--bg-page) 96%, transparent)' }}
+          >
             <div className="px-4 py-3 space-y-1">
               {navItems.map(item => (
                 <Link
@@ -154,8 +175,8 @@ export default function AdminLayout({ children }) {
                   onClick={() => setMobileMenuOpen(false)}
                   className={`block text-[14px] font-medium px-3 py-2.5 rounded-md ${
                     isActive(item.path)
-                      ? 'text-white'
-                      : 'text-text-secondary hover:text-white hover:bg-navy-800'
+                      ? 'text-fg-primary'
+                      : 'text-text-secondary hover:text-fg-primary hover:bg-surface-card-hover'
                   }`}
                   style={
                     isActive(item.path)
@@ -171,10 +192,13 @@ export default function AdminLayout({ children }) {
               ))}
               <div className="border-t border-card-border pt-3 mt-3">
                 <div className="px-3 mb-2">
-                  <div className="text-white text-[13px] font-semibold leading-tight truncate">
+                  <div className="text-fg-primary text-[13px] font-semibold leading-tight truncate">
                     {profile?.full_name || 'Admin'}
                   </div>
                   <div className="text-text-tertiary text-[11px] leading-tight truncate">{user?.email}</div>
+                </div>
+                <div className="px-3 mb-2">
+                  <ColorModeToggle />
                 </div>
                 <button
                   onClick={() => {
@@ -182,7 +206,7 @@ export default function AdminLayout({ children }) {
                     handleSignOut()
                   }}
                   disabled={signingOut}
-                  className="w-full text-left flex items-center gap-2 px-3 py-2.5 text-text-secondary text-[13px] hover:text-white hover:bg-navy-800 rounded-md transition-colors disabled:opacity-50"
+                  className="w-full text-left flex items-center gap-2 px-3 py-2.5 text-text-secondary text-[13px] hover:text-fg-primary hover:bg-surface-card-hover rounded-md transition-colors disabled:opacity-50"
                 >
                   <LogOut size={14} />
                   {signingOut ? 'Signing out…' : 'Sign Out'}

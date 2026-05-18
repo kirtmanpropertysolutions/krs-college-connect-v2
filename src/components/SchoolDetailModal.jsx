@@ -320,16 +320,19 @@ export default function SchoolDetailModal({
           notch via safe-area-inset-top. Desktop: centered card with a
           max height, content inside scrolls. */}
       <div
-        className="fixed inset-0 md:inset-auto md:max-w-[900px] md:max-h-[85vh] md:rounded-xl md:m-auto bg-navy-900 shadow-2xl border border-gray-600 w-full overflow-y-auto animate-fadeIn"
+        className="fixed inset-0 md:inset-auto md:max-w-[900px] md:max-h-[85vh] md:rounded-xl md:m-auto bg-surface-card shadow-2xl border border-border-default w-full overflow-y-auto animate-fadeIn"
         style={{ paddingTop: 'env(safe-area-inset-top, 0px)' }}
         onClick={(e) => e.stopPropagation()}
       >
-        {/* Header with gradient */}
+        {/* Header with gradient — uses the school's primary color as a
+            tint over deep navy. We keep navy as the second stop in both
+            themes so the header remains dark and text-white stays
+            readable; this also keeps the school-color tint visible. */}
         <div
           className="sticky z-10 relative px-5 py-5 md:p-6 text-white"
           style={{
             top: 'env(safe-area-inset-top, 0px)',
-            background: `linear-gradient(135deg, ${school.primary_color}26 0%, #0F1E36 100%)`,
+            background: `linear-gradient(135deg, ${school.primary_color}66 0%, #0F1E36 100%)`,
           }}
         >
           {/* Close button — pushed below the notch on iPhone via the
@@ -369,10 +372,10 @@ export default function SchoolDetailModal({
                 </span>
               )}
               {school.conference && (
-                <span className="text-gray-300 text-sm">{school.conference}</span>
+                <span className="text-text-secondary text-sm">{school.conference}</span>
               )}
               {(school.city || school.state) && (
-                <span className="text-gray-300 text-sm">
+                <span className="text-text-secondary text-sm">
                   {[school.city, school.state].filter(Boolean).join(', ')}
                 </span>
               )}
@@ -391,13 +394,13 @@ export default function SchoolDetailModal({
                 </button>
 
                 {showRemoveDropdown && (
-                  <div className="absolute right-0 top-10 bg-navy-800 border border-gray-600 rounded-lg py-2 min-w-[200px] z-30">
+                  <div className="absolute right-0 top-10 bg-surface-card-hover border border-border-default rounded-lg py-2 min-w-[200px] z-30">
                     <button
                       onClick={() => {
                         if (onRemoveFromPipeline) onRemoveFromPipeline(school)
                         setShowRemoveDropdown(false)
                       }}
-                      className="w-full text-left px-4 py-2 text-red-400 text-sm hover:bg-navy-700"
+                      className="w-full text-left px-4 py-2 text-red-500 text-sm hover:bg-surface-card"
                     >
                       Remove from Pipeline
                     </button>
@@ -422,27 +425,27 @@ export default function SchoolDetailModal({
             main area scrolling independently. */}
         <div className="flex flex-col md:flex-row md:h-[640px] md:max-h-[calc(85vh-160px)] md:overflow-hidden">
           {/* Left sidebar — 30% on desktop, full width stacked on mobile */}
-          <div className="w-full md:w-[30%] bg-navy-800 px-5 py-5 md:p-6 border-b md:border-b-0 md:border-r border-gray-600 md:overflow-y-auto">
+          <div className="w-full md:w-[30%] bg-surface-card-hover px-5 py-5 md:p-6 border-b md:border-b-0 md:border-r border-border-default md:overflow-y-auto">
             <div className="space-y-6">
               {/* Program Email */}
               <div>
-                <h3 className="text-white font-bold mb-2 text-sm uppercase tracking-wider">Program Email</h3>
+                <h3 className="text-fg-primary font-bold mb-2 text-sm uppercase tracking-wider">Program Email</h3>
                 {realProgramEmail ? (
                   <div className="bg-green-900 bg-opacity-20 border border-green-600 border-opacity-30 rounded-lg p-3">
                     <div className="flex items-center gap-2 mb-2">
                       <span className="bg-green-600 text-white text-xs px-2 py-1 rounded font-bold">✓ VERIFIED</span>
                     </div>
                     <div className="flex items-center gap-2 mb-2">
-                      <span className="text-gray-300 text-sm">{realProgramEmail}</span>
+                      <span className="text-text-secondary text-sm">{realProgramEmail}</span>
                       <button
                         onClick={() => copyToClipboard(realProgramEmail)}
-                        className="text-gray-400 hover:text-white text-xs"
+                        className="text-text-tertiary hover:text-fg-primary text-xs"
                         title="Copy email"
                       >
                         📋
                       </button>
                     </div>
-                    <p className="text-gray-400 text-xs mb-3">
+                    <p className="text-text-tertiary text-xs mb-3">
                       Email the program — they forward to recruiting.
                     </p>
                     <button
@@ -453,14 +456,14 @@ export default function SchoolDetailModal({
                     </button>
                   </div>
                 ) : (
-                  <p className="text-gray-400 text-sm">No program email on file</p>
+                  <p className="text-text-tertiary text-sm">No program email on file</p>
                 )}
               </div>
 
               {/* Athletics Website */}
               {school.athletics_website && (
                 <div>
-                  <h3 className="text-white font-bold mb-2 text-sm uppercase tracking-wider">Athletics Website</h3>
+                  <h3 className="text-fg-primary font-bold mb-2 text-sm uppercase tracking-wider">Athletics Website</h3>
                   <a
                     href={school.athletics_website.startsWith('http') ? school.athletics_website : `https://${school.athletics_website}`}
                     target="_blank"
@@ -474,16 +477,16 @@ export default function SchoolDetailModal({
 
               {/* Academic Rank */}
               <div>
-                <h3 className="text-white font-bold mb-2 text-sm uppercase tracking-wider">Academic Rank</h3>
-                <p className="text-gray-400 text-sm">
+                <h3 className="text-fg-primary font-bold mb-2 text-sm uppercase tracking-wider">Academic Rank</h3>
+                <p className="text-text-tertiary text-sm">
                   {school.academic_rank ? `#${school.academic_rank} US News` : 'Not ranked'}
                 </p>
               </div>
 
               {/* Enrollment */}
               <div>
-                <h3 className="text-white font-bold mb-2 text-sm uppercase tracking-wider">Enrollment</h3>
-                <p className="text-gray-400 text-sm">
+                <h3 className="text-fg-primary font-bold mb-2 text-sm uppercase tracking-wider">Enrollment</h3>
+                <p className="text-text-tertiary text-sm">
                   {school.enrollment ? school.enrollment.toLocaleString() : 'Unknown'}
                 </p>
               </div>
@@ -491,8 +494,8 @@ export default function SchoolDetailModal({
               {/* Region */}
               {school.region && (
                 <div>
-                  <h3 className="text-white font-bold mb-2 text-sm uppercase tracking-wider">Region</h3>
-                  <p className="text-gray-400 text-sm">{school.region}</p>
+                  <h3 className="text-fg-primary font-bold mb-2 text-sm uppercase tracking-wider">Region</h3>
+                  <p className="text-text-tertiary text-sm">{school.region}</p>
                 </div>
               )}
             </div>
@@ -501,7 +504,7 @@ export default function SchoolDetailModal({
           {/* Right main area - 70% */}
           <div className="flex-1 flex flex-col">
             {/* Tabs */}
-            <div className="flex border-b border-gray-600 bg-navy-900 overflow-x-auto">
+            <div className="flex border-b border-border-default bg-surface-card overflow-x-auto">
               {['COACHES', 'ABOUT SCHOOL', 'MY NOTES'].map((tab) => (
                 <button
                   key={tab}
@@ -509,7 +512,7 @@ export default function SchoolDetailModal({
                   className={`px-6 py-4 text-sm font-bold transition-colors ${
                     activeTab === tab
                       ? 'text-club-primary border-b-2 border-club-primary'
-                      : 'text-gray-400 hover:text-white'
+                      : 'text-text-tertiary hover:text-fg-primary'
                   }`}
                 >
                   {tab}
@@ -531,14 +534,14 @@ export default function SchoolDetailModal({
                         <div
                           key={coach.id}
                           onClick={() => setActiveCoachPopover(coach)}
-                          className="bg-navy-800 hover:bg-navy-700 rounded-lg p-4 cursor-pointer transition-colors"
+                          className="bg-surface-card-hover hover:bg-surface-card rounded-lg p-4 cursor-pointer transition-colors border border-border-default"
                         >
                           <div className="flex items-start justify-between gap-3">
                             <div className="flex-1 min-w-0">
-                              <h4 className="font-semibold text-white truncate">{coach.full_name || coach.name}</h4>
-                              <p className="text-sm text-gray-400">{coach.title || 'Coach'}</p>
+                              <h4 className="font-semibold text-fg-primary truncate">{coach.full_name || coach.name}</h4>
+                              <p className="text-sm text-text-secondary">{coach.title || 'Coach'}</p>
                               {coach.email && (
-                                <p className="text-xs text-gray-500 truncate flex items-center gap-1 mt-1">
+                                <p className="text-xs text-text-tertiary truncate flex items-center gap-1 mt-1">
                                   <span className={`inline-block w-2 h-2 rounded-full ${verification.dot}`}/>
                                   {coach.email}
                                 </p>
@@ -558,7 +561,7 @@ export default function SchoolDetailModal({
                       )
                     })
                   ) : (
-                    <p className="text-gray-400">No verified coaches yet.</p>
+                    <p className="text-text-tertiary">No verified coaches yet.</p>
                   )}
 
                   {/* Placeholder coaches section */}
@@ -580,10 +583,10 @@ export default function SchoolDetailModal({
                       {(expandedPlaceholders || realCoaches.length === 0) && (
                         <div className="mt-2 space-y-2">
                           {placeholderCoaches.map((coach) => (
-                            <div key={coach.id} className="bg-gray-800 rounded-lg p-3 flex justify-between items-center">
+                            <div className="bg-surface-card-hover rounded-lg p-3 flex justify-between items-center" key={coach.id}>
                               <div>
-                                <h5 className="text-white font-medium">{coach.name}</h5>
-                                <p className="text-gray-400 text-sm">{coach.title}</p>
+                                <h5 className="text-fg-primary font-medium">{coach.name}</h5>
+                                <p className="text-text-secondary text-sm">{coach.title}</p>
                               </div>
                               <button
                                 onClick={() => setShowAddCoachModal(true)}
@@ -603,12 +606,12 @@ export default function SchoolDetailModal({
               {activeTab === 'ABOUT SCHOOL' && (
                 <div className="space-y-6">
                   <div>
-                    <p className="text-gray-300 text-base leading-relaxed mb-4">
+                    <p className="text-text-secondary text-base leading-relaxed mb-4">
                       {buildAboutDescription()}
                     </p>
 
                     {school.academic_rank && (
-                      <p className="text-gray-300 text-sm mb-4">
+                      <p className="text-text-secondary text-sm mb-4">
                         Ranked #{school.academic_rank} nationally (US News)
                       </p>
                     )}
@@ -627,11 +630,11 @@ export default function SchoolDetailModal({
                     )}
                   </div>
 
-                  <div className="bg-gray-800 bg-opacity-50 rounded-lg p-4 border border-gray-600">
-                    <p className="text-gray-400 text-sm">
+                  <div className="bg-surface-card-hover rounded-lg p-4 border border-border-default">
+                    <p className="text-text-secondary text-sm">
                       <strong>About this program</strong> — coming soon
                     </p>
-                    <p className="text-gray-500 text-xs mt-1">
+                    <p className="text-text-tertiary text-xs mt-1">
                       Program history, notable alumni, recent achievements, coaching philosophy
                     </p>
                   </div>
@@ -641,7 +644,7 @@ export default function SchoolDetailModal({
               {activeTab === 'MY NOTES' && (
                 <div className="space-y-4">
                   <div className="flex items-center justify-between mb-2">
-                    <p className="text-gray-400 text-sm">Private to you. Track visit impressions, pros/cons, conversation notes.</p>
+                    <p className="text-text-tertiary text-sm">Private to you. Track visit impressions, pros/cons, conversation notes.</p>
                     <div className="text-xs min-h-[20px]">
                       {saveStatus === 'saving' && <span className="text-club-secondary flex items-center gap-1"><Loader2 className="w-3 h-3 animate-spin" /> Saving...</span>}
                       {saveStatus === 'saved' && <span className="text-green-400 flex items-center gap-1"><Check className="w-3 h-3" /> Saved</span>}
@@ -654,7 +657,7 @@ export default function SchoolDetailModal({
                     onChange={handleNotesChange}
                     onBlur={handleNotesBlur}
                     placeholder="Add your private notes about this school..."
-                    className="w-full h-64 bg-navy-800 text-white rounded-lg p-4 border border-gray-600 focus:border-club-primary focus:outline-none resize-none"
+                    className="w-full h-64 bg-surface-page text-fg-primary rounded-lg p-4 border border-border-default focus:border-club-primary focus:outline-none resize-none placeholder:text-text-tertiary"
                   />
                 </div>
               )}
