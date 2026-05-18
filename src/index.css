@@ -2,6 +2,25 @@
 @tailwind components;
 @tailwind utilities;
 
+/* ============================================================
+   KRS College Connect — Design Tokens (locked design language)
+   ============================================================ */
+:root {
+  /* Brand */
+  --crimson: #C8102E;
+  --crimson-2: #A00C25;
+  --crimson-3: #E11A38;
+  --navy-dark: #0a0e1a;
+  --navy-mid: #111827;
+  --navy-light: #131b2c;
+  --gold: #fbbf24;
+
+  /* Defaults for club-themed variables (Eastside FC) */
+  --club-primary: #C8102E;
+  --club-secondary: #fbbf24;
+  --club-neutral-dark: #1B2A4A;
+}
+
 /* KRS College Connect - Global Styles */
 @layer base {
   * {
@@ -9,11 +28,47 @@
   }
 
   body {
-    @apply font-sans antialiased;
+    /* Manrope: distinctive humanist body (refined alt to overused Inter). */
+    font-family: 'Manrope', ui-sans-serif, system-ui, -apple-system, sans-serif;
+    @apply antialiased;
     background-color: #0a0e1a;
     color: #ffffff;
     margin: 0;
+
+    /* iOS standalone-app safe-area handling — keeps content clear of the
+       notch / Dynamic Island and the home indicator when installed to home
+       screen via the PWA manifest. Padded body, not children, so layout
+       components don't have to know about it. */
+    padding-top: env(safe-area-inset-top, 0px);
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+    padding-left: env(safe-area-inset-left, 0px);
+    padding-right: env(safe-area-inset-right, 0px);
+
+    /* Disable iOS rubber-band overscroll glow at the body boundary so the
+       installed-app feel matches a native shell. */
+    overscroll-behavior-y: none;
+    -webkit-tap-highlight-color: transparent;
+    /* Subtle atmospheric depth — single soft top-edge glow, no body-wide
+       gradient overload (per krs-brand-and-ux anti-pattern). */
+    background-image:
+      radial-gradient(ellipse 1200px 500px at 12% -12%, rgba(200, 16, 46, 0.06), transparent 65%);
+    background-attachment: fixed;
+    font-feature-settings: 'ss01', 'cv11';
+    letter-spacing: -0.005em;
   }
+
+  /* Subtle grain overlay for editorial texture — fixed, non-interactive. */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2'/><feColorMatrix values='0 0 0 0 1  0 0 0 0 1  0 0 0 0 1  0 0 0 0.04 0'/></filter><rect width='100%25' height='100%25' filter='url(%23n)'/></svg>");
+    z-index: 1;
+    opacity: 0.6;
+    mix-blend-mode: overlay;
+  }
+  body > * { position: relative; z-index: 2; }
 
   /* Light mode styles */
   body.light {
@@ -204,5 +259,292 @@
       opacity: 1;
       transform: translateY(0);
     }
+  }
+
+  /* ====================================================
+     Prototype-aligned additions
+     ==================================================== */
+
+  /* Chips for status / metadata */
+  .chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 11px;
+    font-weight: 600;
+    padding: 3px 9px;
+    border-radius: 999px;
+    line-height: 1.4;
+  }
+  .chip-slate { background: #1e293b; color: #94a3b8; }
+  .chip-crimson { background: rgba(200,16,46,0.15); color: #ff6b7a; border: 1px solid rgba(200,16,46,0.3); }
+  .chip-gold { background: rgba(251,191,36,0.12); color: #fcd34d; border: 1px solid rgba(251,191,36,0.25); }
+  .chip-green { background: rgba(16,185,129,0.12); color: #34d399; border: 1px solid rgba(16,185,129,0.25); }
+  .chip-blue { background: rgba(59,130,246,0.12); color: #60a5fa; border: 1px solid rgba(59,130,246,0.25); }
+  .chip-purple { background: rgba(139,92,246,0.12); color: #a78bfa; border: 1px solid rgba(139,92,246,0.25); }
+  .chip-amber { background: rgba(245,158,11,0.12); color: #fbbf24; border: 1px solid rgba(245,158,11,0.25); }
+
+  /* Pill tabs (filter strips) */
+  .pill {
+    padding: 6px 12px;
+    border-radius: 999px;
+    font-size: 12px;
+    font-weight: 500;
+    background: #111827;
+    border: 1px solid #1e293b;
+    color: #94a3b8;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .pill:hover:not(.active) { border-color: #334155; color: white; }
+  .pill.active { background: #C8102E; color: white; border-color: #C8102E; }
+
+  /* School color badge — small inline mark for each program */
+  .school-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    color: white;
+    border-radius: 8px;
+    font-size: 11px;
+    letter-spacing: 0.02em;
+    flex-shrink: 0;
+  }
+
+  /* Tabular numerics for stats */
+  .stat-num {
+    font-variant-numeric: tabular-nums;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+  }
+
+  /* Kanban column + card */
+  .kanban-col {
+    background: rgba(15, 23, 41, 0.6);
+    border: 1px solid #1e293b;
+    border-radius: 12px;
+  }
+  .kanban-card {
+    background: #111827;
+    border: 1px solid #1e293b;
+    border-radius: 10px;
+    padding: 12px;
+    transition: all 0.15s;
+    cursor: grab;
+  }
+  .kanban-card:hover {
+    border-color: #243049;
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+  }
+
+  /* Atmospheric crimson glow overlay (use with position: relative) */
+  .crimson-glow-bg {
+    position: relative;
+    overflow: hidden;
+  }
+  .crimson-glow-bg::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background: radial-gradient(circle at 30% 0%, rgba(200, 16, 46, 0.18) 0%, transparent 55%);
+    border-radius: inherit;
+  }
+  .crimson-glow-bg > * { position: relative; z-index: 1; }
+
+  /* Slide up + fade in for prototype-matched modals */
+  .animate-slide-up-soft {
+    animation: slideUpSoft 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  @keyframes slideUpSoft {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  /* Custom scrollbar for sidebars + modals */
+  .scroll-thin::-webkit-scrollbar { width: 6px; height: 6px; }
+  .scroll-thin::-webkit-scrollbar-thumb { background: #243049; border-radius: 3px; }
+  .scroll-thin::-webkit-scrollbar-track { background: transparent; }
+
+  /* ====================================================
+     Mobile-app polish
+     iOS Safari aggressively zooms when a form field has a
+     font-size under 16px and the user taps it. Forcing 16px
+     on all native inputs at the mobile breakpoint kills the
+     zoom-jank that makes web apps feel "webby".
+     ==================================================== */
+  @media (max-width: 640px) {
+    input,
+    select,
+    textarea {
+      font-size: 16px !important;
+    }
+  }
+
+  /* Mobile bottom nav — safe-area-aware tab bar for athlete view.
+     We pad the bottom with env(safe-area-inset-bottom) so the
+     home-indicator on notched iPhones doesn't overlap tab labels.
+     Note: backdrop-filter:blur is intentionally omitted here.
+     On older iPhones the blur burns more GPU than the rest of the
+     page combined and causes scroll jank. A solid rgba background
+     looks 95% identical at this opacity. */
+  .mobile-tabbar {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    z-index: 50;
+    display: flex;
+    justify-content: space-around;
+    align-items: stretch;
+    background: #0a0e1a;
+    border-top: 0.5px solid #1e293b;
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
+
+  /* Strip the heavy backdrop-blur effect off all top-bar / nav
+     surfaces on mobile. Backdrop-filter is the single biggest GPU
+     cost in the app and the saturation of our dark navy means a
+     solid background reads nearly identical. Desktop keeps the
+     blur — laptops don't struggle with it. */
+  @media (max-width: 768px) {
+    header.md\\:hidden,
+    .mobile-tabbar,
+    [style*="backdropFilter"] {
+      backdrop-filter: none !important;
+      -webkit-backdrop-filter: none !important;
+    }
+  }
+
+  .mobile-tabbar-item {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 2px;
+    padding: 8px 4px 6px;
+    min-height: 56px;
+    color: #94a3b8;
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    transition: color 0.15s;
+  }
+
+  .mobile-tabbar-item.active {
+    color: #C8102E;
+  }
+
+  .mobile-tabbar-item:active {
+    background: rgba(200, 16, 46, 0.08);
+  }
+
+  /* Reserve space at the bottom of scrollable pages so the
+     tab bar doesn't cover the last item. Applied via wrapper. */
+  .mobile-tabbar-spacer {
+    height: calc(56px + env(safe-area-inset-bottom, 0px));
+  }
+
+  @media (min-width: 768px) {
+    .mobile-tabbar,
+    .mobile-tabbar-spacer {
+      display: none;
+    }
+  }
+
+  /* Minimum touch target. Apple HIG and Material both recommend
+     44pt minimum. We apply this to icon-only buttons via a utility
+     so we don't accidentally bloat dense desktop UI. */
+  .tap-target {
+    min-height: 44px;
+    min-width: 44px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  /* Suppress iOS callout/selection on UI chrome (sidebar, headers,
+     nav). Keep selection enabled inside content areas. */
+  .no-select {
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    user-select: none;
+  }
+
+  /* ====================================================
+     Gamification animations — zero JS, pure CSS keyframes.
+     Used by the new dashboard layout to make milestones
+     feel alive (cards fade up, earned trophies pulse,
+     streak flame flickers, tier-promotion badge bounces in).
+     ==================================================== */
+
+  /* Quest cards slide up + fade in on mount. Combined with an
+     inline animation-delay per index, the stack reveals in a
+     subtle cascade — feels like the dashboard is "loading itself"
+     rather than just appearing flat. */
+  .quest-fadein {
+    opacity: 0;
+    transform: translateY(10px);
+    animation: questFadeIn 0.45s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  }
+  @keyframes questFadeIn {
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  /* Earned trophy tiles get an ambient pulse glow so they read as
+     "alive". Subtle — 3-second loop, max 20% intensity. Won't
+     distract from the page but signals the badge is real. */
+  .trophy-earned-glow {
+    animation: trophyPulse 3s ease-in-out infinite;
+  }
+  @keyframes trophyPulse {
+    0%, 100% { box-shadow: 0 0 0 0 rgba(200, 16, 46, 0); }
+    50%      { box-shadow: 0 0 16px 2px rgba(200, 16, 46, 0.18); }
+  }
+
+  /* Streak flame icon flickers (just opacity, no transform — keeps
+     the cursor target stable). Only applied when streak > 0 so a
+     0-day streak doesn't fake activity. */
+  .flame-flicker {
+    animation: flameFlicker 2.6s ease-in-out infinite;
+  }
+  @keyframes flameFlicker {
+    0%, 100% { opacity: 1; }
+    50%      { opacity: 0.65; }
+  }
+
+  /* Tier-promotion modal badge — spring scale-in. Bigger than the
+     normal slide-up because this IS the ceremonial moment. */
+  .tier-promo-badge {
+    animation: tierPromoBadge 0.7s cubic-bezier(0.34, 1.56, 0.64, 1);
+  }
+  @keyframes tierPromoBadge {
+    0%   { opacity: 0; transform: scale(0.4) rotate(-12deg); }
+    60%  { opacity: 1; transform: scale(1.12) rotate(4deg); }
+    100% { opacity: 1; transform: scale(1) rotate(0); }
+  }
+
+  /* Sparkle ring behind the tier-promo badge — a pulsing crimson
+     halo to give the moment visual weight without confetti. */
+  .tier-promo-ring {
+    animation: tierPromoRing 2s ease-out 0.3s infinite;
+  }
+  @keyframes tierPromoRing {
+    0%   { opacity: 0.45; transform: scale(1); }
+    100% { opacity: 0; transform: scale(1.6); }
+  }
+
+  /* Milestone toast — badge icon bounces in slightly before the
+     text reads. Just enough motion to register the moment. */
+  .toast-badge-pop {
+    animation: toastBadgePop 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+  }
+  @keyframes toastBadgePop {
+    0%   { transform: scale(0.4); opacity: 0; }
+    100% { transform: scale(1); opacity: 1; }
   }
 }

@@ -1,11 +1,11 @@
 import { useState, useEffect } from 'react'
-import { useAuth } from '../hooks/useAuth'
+import { useAuth } from '../hooks/authContext'
 import { useNavigate } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
 import AthleteLayout from '../components/AthleteLayout.jsx'
 import SchoolDetailModal from '../components/SchoolDetailModal.jsx'
 import SchoolResultCard from '../components/SchoolResultCard.jsx'
-import { calculateFitScore, getFitScoreBadge } from '../lib/fitScore.js'
+import { calculateFitScore } from '../lib/fitScore.js'
 import { logActivity } from '../lib/activity.js'
 
 const QUESTIONS = [
@@ -320,10 +320,13 @@ export default function SchoolFitQuiz() {
     setIsComplete(false)
   }
 
-  // Get top 10 school matches using completed quiz responses
+  // Get top 10 school matches using completed quiz responses.
+  // Previously short-circuited to [] when profile.athlete was missing —
+  // breaking the quiz for athletes who hadn't completed onboarding. Now
+  // we always compute scores; calculateFitScore handles missing athlete
+  // data with sensible defaults (region falls back to WA, GPA component
+  // gets a neutral score).
   const getTopMatches = () => {
-    if (!profile?.athlete) return []
-
     const quizResponses = {
       ...answers,
       completed_at: new Date().toISOString()
@@ -369,14 +372,13 @@ export default function SchoolFitQuiz() {
             </div>
           )}
 
-          <div style={{ marginBottom: '24px' }}>
-            <div className="flex items-center gap-2 mb-1">
-              <h1 style={{ color: 'white', fontSize: '22px', fontWeight: 500, letterSpacing: '-0.01em', margin: 0 }}>YOUR TOP MATCHES</h1>
-              <span className="text-xs text-eastside-gold font-medium px-2 py-1 rounded bg-eastside-gold bg-opacity-10">
-                Quiz complete
-              </span>
+          <div style={{ marginBottom: '28px' }}>
+            <div className="flex items-center gap-3 mb-2">
+              <div className="h-px w-8" style={{ background: 'var(--crimson)' }} />
+              <span className="text-[10px] uppercase tracking-[0.22em] font-bold" style={{ color: 'var(--crimson)' }}>Quiz complete</span>
             </div>
-            <p style={{ color: '#94a3b8', fontSize: '13px', margin: '4px 0 0 0' }}>Schools recommended based on your quiz responses</p>
+            <h1 className="display-font text-white" style={{ fontSize: '36px', margin: 0 }}>Your top matches</h1>
+            <p className="text-text-secondary text-sm mt-1">Schools recommended based on your quiz responses</p>
           </div>
 
           {/* TOP 10 RESULTS */}
@@ -444,9 +446,14 @@ export default function SchoolFitQuiz() {
       <div className="p-8 max-w-md mx-auto">
         {/* Header */}
         <div className="text-center mb-8">
-          <h1 className="display-font text-3xl text-white mb-2">SCHOOL FIT QUIZ</h1>
-          <p className="text-gray-400">
-            10 questions. Tap to answer. Powers your personalized school recommendations.
+          <div className="flex items-center justify-center gap-3 mb-2">
+            <div className="h-px w-8" style={{ background: 'var(--crimson)' }} />
+            <span className="text-[10px] uppercase tracking-[0.22em] font-bold" style={{ color: 'var(--crimson)' }}>Find Your Fit</span>
+            <div className="h-px w-8" style={{ background: 'var(--crimson)' }} />
+          </div>
+          <h1 className="display-font text-4xl text-white mb-1">School Fit Quiz</h1>
+          <p className="text-text-secondary text-sm">
+            10 questions. Tap to answer. Powers your personalized recommendations.
           </p>
         </div>
 

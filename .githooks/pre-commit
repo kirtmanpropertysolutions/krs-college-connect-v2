@@ -1,0 +1,23 @@
+#!/bin/bash
+# Block commits containing Supabase keys, JWT tokens, or other secrets.
+#
+# The patterns deliberately require enough trailing context that they
+# only match real key VALUES, not variable name references, placeholder
+# text, or the scanner's own regex literal. Catches:
+#
+#   * sb_secret_<20+ char body>     — Supabase new secret keys
+#   * sb_publishable_<20+ char body> — Supabase new publishable keys
+#   * eyJhbGciOi<30+ char body>     — Supabase legacy JWTs (anon, service_role)
+#
+# Deliberately does NOT match:
+#   * `SUPABASE_SERVICE_ROLE_KEY=your_..._here` placeholders in .env.example
+#   * `Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')` references in edge functions
+#   * The short prefix `eyJhbGc` as it appears in pattern definitions
+#   * This file itself, by the same logic
+PATTERNS='sb_secret_[A-Za-z0-9_]{20,}|sb_publishable_[A-Za-z0-9_]{20,}|eyJhbGciOi[A-Za-z0-9_-]{30,}'
+if git diff --cached | grep -E "$PATTERNS" > /dev/null; then
+  echo "🚨 BLOCKED: Hardcoded secret detected in staged changes."
+  echo "Move it to .env.local and use process.env (or Deno.env.get) instead."
+  git diff --cached | grep -E "$PATTERNS" | head -5
+  exit 1
+fi

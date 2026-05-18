@@ -3,8 +3,57 @@
   <head>
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>krs-temp</title>
+    <!-- The .png filename is historical; the actual bytes are a JPEG.
+         Declaring image/jpeg matches reality and prevents mime warnings. -->
+    <link rel="alternate icon" type="image/jpeg" href="/eastside-fc-logo.png" />
+
+    <!-- Mobile viewport: viewport-fit=cover lets the app use the full screen
+         on notched iPhones; user-scalable=yes preserves accessibility. -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <meta name="description" content="KRS College Connect — the recruiting platform built for ECNL clubs. Every recruit. Every program. One platform." />
+    <meta name="theme-color" content="#0a0e1a" />
+
+    <!-- PWA manifest — makes the site installable as a real app on iOS and Android -->
+    <link rel="manifest" href="/manifest.json" />
+
+    <!-- iOS-specific home-screen app integration -->
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-title" content="KRS" />
+    <link rel="apple-touch-icon" href="/eastside-fc-logo.png" />
+    <link rel="apple-touch-icon" sizes="180x180" href="/eastside-fc-logo.png" />
+
+    <!-- Android Chrome -->
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="application-name" content="KRS College Connect" />
+
+    <!-- Social previews (when athletes share their profile URL) -->
+    <meta property="og:title" content="KRS College Connect" />
+    <meta property="og:description" content="Every recruit. Every program. One platform." />
+    <meta property="og:type" content="website" />
+    <meta property="og:image" content="/eastside-fc-logo.png" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="KRS College Connect" />
+    <meta name="twitter:description" content="Every recruit. Every program. One platform." />
+    <meta name="twitter:image" content="/eastside-fc-logo.png" />
+
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <!-- Open a TCP/TLS connection to Supabase in parallel with the JS
+         download so the very first auth/profile query doesn't pay the
+         full handshake cost on first paint. dns-prefetch on the
+         wildcard helps the (less common) realtime + storage subdomains. -->
+    <link rel="preconnect" href="https://vhndqfsbhhfnpinixofe.supabase.co" crossorigin />
+    <link rel="dns-prefetch" href="https://vhndqfsbhhfnpinixofe.supabase.co" />
+    <!-- Mux thumbnail + player CDN — both fetched as soon as the user
+         opens a clip; dns-prefetch saves ~100 ms on first thumbnail load. -->
+    <link rel="dns-prefetch" href="https://image.mux.com" />
+    <link rel="dns-prefetch" href="https://cdn.jsdelivr.net" />
+    <!-- Oswald: athletic display headlines. Manrope: distinctive humanist body
+         (per krs-brand-and-ux: "crisp geometric sans for headlines, humanist
+         sans for body" — and per frontend-design: avoid generic Inter). -->
+    <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;600;700&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+    <title>KRS College Connect</title>
   </head>
   <body>
     <div id="root"></div>

@@ -1,17 +1,18 @@
-import { useState, useEffect } from 'react'
-import { useAuth } from '../hooks/useAuth'
+import { useState, useEffect, useCallback } from 'react'
+import { useAuth } from '../hooks/authContext'
 import { useNavigate, useSearchParams, Link } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
 import { getPipelineWithStats } from '../lib/pipelineWithStats'
 import { timeAgo } from '../lib/timeAgo'
 import { logActivity } from '../lib/activity'
-import { Users } from 'lucide-react'
+import { Users, Mail, Copy, ExternalLink, CheckCircle2, AlertCircle, Clock, Trophy, Calendar as CalendarIcon } from 'lucide-react'
 import AthleteLayout from '../components/AthleteLayout.jsx'
 import SchoolBadge from '../components/SchoolBadge.jsx'
 import { getSchoolColors, isLightColor } from '../lib/schoolColors'
 
 export default function Outreach() {
   const { user, profile } = useAuth()
+  const userId = user?.id
   const navigate = useNavigate()
   const [searchParams] = useSearchParams()
 
@@ -35,51 +36,13 @@ export default function Outreach() {
   const [pipelineWithStats, setPipelineWithStats] = useState([])
   const [outreachHistory, setOutreachHistory] = useState([])
   const [recentCoaches, setRecentCoaches] = useState([])
+  // Admin announcements — read from the `announcements` table for the
+  // athlete's org. Lives in the new INBOX tab. (The old INBOX tab was
+  // mislabeled — it was actually outreach SENT history, which is now
+  // renamed accordingly.)
+  const [announcements, setAnnouncements] = useState([])
   const [loading, setLoading] = useState(true)
   const [preview, setPreview] = useState({ subject: '', body: '', hasMissing: false })
-
-  // Load data on mount and handle URL params
-  useEffect(() => {
-    loadData()
-    handleUrlParams()
-  }, [user?.id])
-
-  // Update preview when template or selections change
-  useEffect(() => {
-    const updatePreview = async () => {
-      if (selectedTemplate && athlete) {
-        const newPreview = await getPreview()
-        setPreview(newPreview)
-      } else {
-        setPreview({ subject: '', body: '', hasMissing: false })
-      }
-    }
-    updatePreview()
-  }, [selectedTemplate, selectedCoach, selectedSchool, athlete])
-
-  const handleUrlParams = () => {
-    const schoolParam = searchParams.get('school')
-    const coachIdParam = searchParams.get('coach_id')
-
-    if (schoolParam && coachIdParam) {
-      // Direct coach + school from SchoolDetailModal
-      setActiveTab('compose')
-      loadCoachFromCoachId(coachIdParam, decodeURIComponent(schoolParam))
-    } else if (schoolParam) {
-      // Just school name - preselect school
-      setActiveTab('compose')
-      preSelectSchoolByName(decodeURIComponent(schoolParam))
-    }
-
-    // Legacy URL params (school_id based)
-    const schoolId = searchParams.get('school_id')
-    const programEmail = searchParams.get('program_email')
-
-    if ((coachIdParam && schoolId) || schoolId || programEmail) {
-      setActiveTab('compose')
-      loadCoachFromParams(coachIdParam, schoolId, programEmail)
-    }
-  }
 
   const loadCoachFromCoachId = async (coachId, schoolName) => {
     try {
@@ -181,8 +144,32 @@ export default function Outreach() {
     }
   }
 
-  const loadData = async () => {
-    if (!user?.id) return
+  const handleUrlParams = useCallback(() => {
+    const schoolParam = searchParams.get('school')
+    const coachIdParam = searchParams.get('coach_id')
+
+    if (schoolParam && coachIdParam) {
+      // Direct coach + school from SchoolDetailModal
+      setActiveTab('compose')
+      loadCoachFromCoachId(coachIdParam, decodeURIComponent(schoolParam))
+    } else if (schoolParam) {
+      // Just school name - preselect school
+      setActiveTab('compose')
+      preSelectSchoolByName(decodeURIComponent(schoolParam))
+    }
+
+    // Legacy URL params (school_id based)
+    const schoolId = searchParams.get('school_id')
+    const programEmail = searchParams.get('program_email')
+
+    if ((coachIdParam && schoolId) || schoolId || programEmail) {
+      setActiveTab('compose')
+      loadCoachFromParams(coachIdParam, schoolId, programEmail)
+    }
+  }, [searchParams])
+
+  const loadData = useCallback(async () => {
+    if (!userId) return
 
     try {
       const [coachesRes, schoolsRes, templatesRes, pipelineStats, historyRes, athleteRes, recentCoachesRes] = await Promise.all([
@@ -201,25 +188,25 @@ export default function Outreach() {
           .select('*')
           .order('template_type', { ascending: true }),
 
-        getPipelineWithStats(user.id),
+        getPipelineWithStats(userId),
 
         supabase
           .from('outreach')
           .select('*, coaches(name), schools(name)')
-          .eq('athlete_id', user.id)
+          .eq('athlete_id', userId)
           .order('sent_at', { ascending: false }),
 
         supabase
           .from('athletes')
           .select('*')
-          .eq('user_id', user.id)
+          .eq('user_id', userId)
           .single(),
 
         // Recent coaches query
         supabase
           .from('outreach')
           .select('coach_id, coach_name, school, sent_at')
-          .eq('athlete_id', user.id)
+          .eq('athlete_id', userId)
           .not('coach_id', 'is', null)
           .order('sent_at', { ascending: false })
           .limit(3)
@@ -231,6 +218,16 @@ export default function Outreach() {
       setPipelineWithStats(pipelineStats)
       setOutreachHistory(historyRes.data || [])
       setAthlete(athleteRes.data || null)
+
+      // Load admin announcements for the athlete's org (powers the new
+      // INBOX tab). RLS already restricts results to the user's org so
+      // we don't filter by org_id here — the policy does it for us.
+      const { data: annData } = await supabase
+        .from('announcements')
+        .select('id, title, body, created_at')
+        .order('created_at', { ascending: false })
+        .limit(50)
+      setAnnouncements(annData || [])
 
       // Process recent coaches - get unique coaches by coach_id
       const uniqueRecentCoaches = []
@@ -247,7 +244,15 @@ export default function Outreach() {
     } finally {
       setLoading(false)
     }
-  }
+  }, [userId])
+
+  // Load data on mount and handle URL params
+  useEffect(() => {
+    // Sync-with-external-state: load outreach data from Supabase whenever the signed-in user changes.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    loadData()
+    handleUrlParams()
+  }, [loadData, handleUrlParams])
 
   // Handle selecting a school from pipeline
   const handleSelectSchool = (school) => {
@@ -366,7 +371,7 @@ export default function Outreach() {
   }
 
   // Build variables object for template substitution
-  const getTemplateVariables = async (coach, school) => {
+  const getTemplateVariables = useCallback(async (coach, school) => {
     // Format social handles as required by templates
     const formatSocialHandles = () => {
       const handles = []
@@ -383,7 +388,7 @@ export default function Outreach() {
       const { data: primaryHl } = await supabase
         .from('highlights')
         .select('url')
-        .eq('athlete_id', user.id)
+        .eq('athlete_id', userId)
         .eq('is_primary', true)
         .maybeSingle()
 
@@ -432,10 +437,10 @@ export default function Outreach() {
       // Placeholder for future features
       upcoming_games: ''
     }
-  }
+  }, [athlete, profile, userId])
 
   // Generate preview with proper substitution
-  const getPreview = async () => {
+  const getPreview = useCallback(async () => {
     if (!selectedTemplate) {
       return { subject: '', body: '', hasMissing: false }
     }
@@ -448,7 +453,20 @@ export default function Outreach() {
     const hasMissing = (subject + body).includes('[') && (subject + body).includes(']')
 
     return { subject, body, hasMissing }
-  }
+  }, [selectedTemplate, selectedCoach, selectedSchool, getTemplateVariables])
+
+  // Update preview when template or selections change (sync-with-derived-async-state)
+  useEffect(() => {
+    const updatePreview = async () => {
+      if (selectedTemplate && athlete) {
+        const newPreview = await getPreview()
+        setPreview(newPreview)
+      } else {
+        setPreview({ subject: '', body: '', hasMissing: false })
+      }
+    }
+    updatePreview()
+  }, [selectedTemplate, athlete, getPreview])
 
   // Get plain text preview
   const getPlainTextPreview = async () => {
@@ -472,11 +490,16 @@ export default function Outreach() {
       setShowToast('Copied to clipboard ✓')
       setTimeout(() => setShowToast(''), 3000)
     } catch (error) {
+      // navigator.clipboard requires HTTPS + user gesture; some
+      // mobile browsers also block it inside iframes. Surface the
+      // failure so the user can fall back to "Open in mail app".
       console.error('Error copying to clipboard:', error)
+      setShowToast("Couldn't copy — try Open in mail app instead.")
+      setTimeout(() => setShowToast(''), 4000)
     }
   }
 
-  // Open in mail app
+  // Open in mail app (uses default mailto: handler — Mail.app, Outlook, etc.)
   const handleOpenMail = async () => {
     const preview = await getPlainTextPreview()
     if (!preview.subject || !preview.body) return
@@ -491,6 +514,87 @@ export default function Outreach() {
 
     setShowToast('Opened in mail app ✓')
     setTimeout(() => setShowToast(''), 3000)
+  }
+
+  // Send via Gmail web compose — pre-fills To / Subject / Body and opens Gmail
+  // in a new tab. The email goes FROM the athlete's own Gmail address, so
+  // replies land in their inbox and Gmail's sender reputation gives clean
+  // inbox placement.
+  //
+  // CRITICAL: window.open MUST be called synchronously in the click handler.
+  // If you await first, the browser drops user-gesture context, blocks the
+  // popup (or strips the URL params, landing the user on /mail/u/0/ instead
+  // of /mail/?view=cm). So we open about:blank immediately, then update the
+  // popup's location after the async preview/log work finishes.
+  const handleSendViaGmail = () => {
+    // ─── ALL SYNCHRONOUS — no awaits before navigation ───────────────
+    // The previous version awaited two async calls (getPlainTextPreview
+    // and logOutreach) before navigating to Gmail. On mobile Safari and
+    // PWAs the user-gesture context evaporates across those awaits, so
+    // the navigation either silently fails or gets bounced to Safari's
+    // tab handler. Now we use the already-computed `preview` state
+    // (kept up-to-date by the useEffect that watches template/coach/
+    // school changes) so no DB roundtrip blocks the nav. Logging is
+    // fire-and-forget after navigation kicks off.
+    const email = selectedCoach?.email || selectedSchool?.program_email
+    if (!selectedTemplate || !email) {
+      setShowToast('Pick a template and a coach with an email first.')
+      setTimeout(() => setShowToast(''), 3000)
+      return
+    }
+
+    // Pull from cached preview state. Strip HTML tags so Gmail body
+    // doesn't show <p>…</p> in plain compose. Empty state means the
+    // useEffect hasn't computed yet — fall back to a useful message.
+    const subject = (preview?.subject || '').replace(/<[^>]*>/g, '').trim()
+    const body = (preview?.body || '').replace(/<[^>]*>/g, '').trim()
+    if (!subject || !body) {
+      setShowToast('Preview still loading — try again in a second.')
+      setTimeout(() => setShowToast(''), 2500)
+      return
+    }
+
+    const gmailUrl =
+      'https://mail.google.com/mail/?view=cm&tf=cm' +
+      '&to=' + encodeURIComponent(email) +
+      '&su=' + encodeURIComponent(subject) +
+      '&body=' + encodeURIComponent(body)
+
+    // Mobile / PWA → direct navigation in the same tab (popup-free).
+    // Desktop → popup so the outreach page stays open in the background.
+    const isStandalonePWA =
+      window.matchMedia?.('(display-mode: standalone)').matches ||
+      window.navigator?.standalone === true
+    const isMobile = window.matchMedia?.('(max-width: 768px)').matches
+    const useDirectNav = isMobile || isStandalonePWA
+
+    if (useDirectNav) {
+      // Fire-and-forget the log so the navigation isn't blocked.
+      // If the network drops mid-write that's acceptable — the
+      // user's email send is the priority, not the activity log.
+      logOutreach('sent_via_gmail', subject, body).catch((e) =>
+        console.warn('outreach log (non-blocking) failed:', e?.message)
+      )
+      // Synchronous nav — preserves user gesture across iOS Safari + PWA.
+      // (Called inside the click handler, not render — lint false positive.)
+      // eslint-disable-next-line react-hooks/immutability
+      window.location.href = gmailUrl
+      return
+    }
+
+    // Desktop path — open popup synchronously, then log + redirect
+    const popup = window.open(gmailUrl, '_blank')
+    if (!popup) {
+      // Popup blocked — fall back to same-tab nav. Click handler, not render.
+      // eslint-disable-next-line react-hooks/immutability
+      window.location.href = gmailUrl
+      return
+    }
+    logOutreach('sent_via_gmail', subject, body).catch((e) =>
+      console.warn('outreach log (non-blocking) failed:', e?.message)
+    )
+    setShowToast('Opened in Gmail — send it from your account.')
+    setTimeout(() => setShowToast(''), 3500)
   }
 
   // Log outreach to database
@@ -535,20 +639,45 @@ export default function Outreach() {
     }
   }
 
-  // Update reply status
-  const updateReplyStatus = async (logId, replied, status) => {
+  // Update reply status — wired to the "Got a reply" buttons in the INBOX tab.
+  // Stamps reply_received_at so analytics + dashboards can show reply velocity.
+  const updateReplyStatus = async (logId, status) => {
     try {
       await supabase
         .from('outreach')
         .update({
-          coach_replied: replied,
-          coach_reply_status: status
+          coach_replied: true,
+          coach_reply_status: status,
+          reply_received_at: new Date().toISOString()
         })
         .eq('id', logId)
 
+      // Log activity so the recent activity feed picks it up.
+      try {
+        await logActivity(user.id, 'coach_replied', {
+          outreach_id: logId,
+          reply_status: status
+        })
+      } catch { /* non-blocking */ }
+
+      setShowToast('Reply logged ✓')
+      setTimeout(() => setShowToast(''), 2500)
       loadData()
     } catch (error) {
       console.error('Error updating reply status:', error)
+    }
+  }
+
+  // Clear a logged reply (in case the athlete clicked the wrong button)
+  const clearReplyStatus = async (logId) => {
+    try {
+      await supabase
+        .from('outreach')
+        .update({ coach_replied: false, coach_reply_status: null, reply_received_at: null })
+        .eq('id', logId)
+      loadData()
+    } catch (error) {
+      console.error('Error clearing reply status:', error)
     }
   }
 
@@ -621,9 +750,13 @@ export default function Outreach() {
     <AthleteLayout>
       <div className="px-4 md:px-8 py-8">
         {/* Header */}
-        <div style={{ marginBottom: '24px' }}>
-          <h1 style={{ color: 'white', fontSize: '22px', fontWeight: 500, letterSpacing: '-0.01em', margin: 0 }}>OUTREACH</h1>
-          <p style={{ color: '#94a3b8', fontSize: '13px', margin: '4px 0 0 0' }}>Compose professional emails to coaches using proven templates</p>
+        <div style={{ marginBottom: '28px' }}>
+          <div className="flex items-center gap-3 mb-2">
+            <div className="h-px w-8" style={{ background: 'var(--crimson)' }} />
+            <span className="text-[10px] uppercase tracking-[0.22em] font-bold" style={{ color: 'var(--crimson)' }}>Coach Email</span>
+          </div>
+          <h1 className="display-font text-white" style={{ fontSize: '36px', margin: 0 }}>Outreach</h1>
+          <p className="text-text-secondary text-sm mt-1">Send from your own email — coaches reply to your inbox.</p>
         </div>
 
         {/* Toast notification */}
@@ -640,7 +773,18 @@ export default function Outreach() {
               {[
                 { id: 'compose', label: 'COMPOSE' },
                 { id: 'pipeline', label: 'MY PIPELINE' },
-                { id: 'inbox', label: 'INBOX' }
+                // INBOX is now for admin announcements (messages from
+                // the club director). SENT replaces what used to be
+                // mis-labeled "INBOX" — i.e. the outreach history of
+                // emails the athlete sent themselves. Coaches reply
+                // straight to the athlete's Gmail, not to the platform,
+                // so there are no incoming-from-coach messages.
+                {
+                  id: 'inbox',
+                  label:
+                    'INBOX' + (announcements.length ? ` (${announcements.length})` : ''),
+                },
+                { id: 'sent', label: 'SENT' },
               ].map(tab => (
                 <button
                   key={tab.id}
@@ -858,20 +1002,25 @@ export default function Outreach() {
                   )
                 })()}
 
+                {/* Plain-text preview. Previously used dangerouslySetInnerHTML
+                    which would have executed any <script> tag that ended up
+                    in the substituted body — e.g. via a coach's scraped name
+                    or an athlete's bio that contained markup. Email body is
+                    sent via Gmail compose URL as plain text anyway, so we
+                    render it as text here too. The whitespace-pre-line keeps
+                    line breaks intact. */}
                 <div className="bg-navy-900 rounded-lg p-4 border border-gray-600">
                   <div className="mb-3">
                     <label className="text-gray-400 text-sm uppercase tracking-wider">Subject</label>
-                    <div
-                      className="text-white bg-gray-800 rounded px-3 py-2 mt-1 font-mono text-sm"
-                      dangerouslySetInnerHTML={{ __html: preview.subject }}
-                    />
+                    <div className="text-white bg-gray-800 rounded px-3 py-2 mt-1 font-mono text-sm">
+                      {preview.subject}
+                    </div>
                   </div>
                   <div>
                     <label className="text-gray-400 text-sm uppercase tracking-wider">Body</label>
-                    <div
-                      className="text-white bg-gray-800 rounded px-3 py-2 mt-1 font-mono text-sm whitespace-pre-line max-h-60 overflow-y-auto"
-                      dangerouslySetInnerHTML={{ __html: preview.body }}
-                    />
+                    <div className="text-white bg-gray-800 rounded px-3 py-2 mt-1 font-mono text-sm whitespace-pre-line max-h-60 overflow-y-auto">
+                      {preview.body}
+                    </div>
                   </div>
                 </div>
               </div>
@@ -879,22 +1028,44 @@ export default function Outreach() {
 
             {/* Action Buttons */}
             {canSend && (
-              <div className="flex gap-4">
-                <button
-                  onClick={handleCopyEmail}
-                  className="btn-primary flex-1"
-                  disabled={!canSend}
-                >
-                  📋 COPY EMAIL
-                </button>
-                <button
-                  onClick={handleOpenMail}
-                  className={`flex-1 ${hasEmail ? 'btn-secondary' : 'btn-secondary opacity-50 cursor-not-allowed'}`}
-                  disabled={!hasEmail}
-                  title={!hasEmail ? 'No email on file — use Copy' : ''}
-                >
-                  ✉️ OPEN IN MAIL APP
-                </button>
+              <div>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mb-3">
+                  {/* Primary — Send via Gmail (most athletes use Gmail) */}
+                  <button
+                    onClick={handleSendViaGmail}
+                    className={`eastside-btn flex items-center justify-center gap-2 ${hasEmail ? '' : 'opacity-50 cursor-not-allowed'}`}
+                    disabled={!hasEmail}
+                    title={!hasEmail ? 'No coach email on file — use Copy instead' : 'Opens Gmail compose with the email pre-filled'}
+                    style={{ padding: '12px 18px', fontSize: '13px' }}
+                  >
+                    <Mail size={16} /> SEND VIA GMAIL
+                  </button>
+
+                  {/* Open in OS default mail app (Outlook / Mail.app / Yahoo / etc.) */}
+                  <button
+                    onClick={handleOpenMail}
+                    className={`secondary-btn flex items-center justify-center gap-2 ${hasEmail ? '' : 'opacity-50 cursor-not-allowed'}`}
+                    disabled={!hasEmail}
+                    title={!hasEmail ? 'No coach email on file — use Copy instead' : 'Opens your default email app (Mail / Outlook)'}
+                    style={{ padding: '12px 18px', fontSize: '13px' }}
+                  >
+                    <ExternalLink size={16} /> OPEN MAIL APP
+                  </button>
+
+                  {/* Universal fallback — always works */}
+                  <button
+                    onClick={handleCopyEmail}
+                    className="secondary-btn flex items-center justify-center gap-2"
+                    style={{ padding: '12px 18px', fontSize: '13px' }}
+                    title="Copy the email to your clipboard — paste into any email tool"
+                  >
+                    <Copy size={16} /> COPY EMAIL
+                  </button>
+                </div>
+                <p className="text-[11px] text-text-tertiary text-center leading-relaxed">
+                  Emails are sent from <span className="text-white">your own email address</span>, not from KRS.
+                  Replies land in your inbox — log them back here so your pipeline stays up to date.
+                </p>
               </div>
             )}
           </div>
@@ -958,34 +1129,163 @@ export default function Outreach() {
           </div>
         )}
 
-        {/* INBOX TAB */}
+        {/* INBOX TAB — admin announcements from the club director.
+            Athletes never receive coach replies on the platform (coaches
+            reply directly to the athlete's Gmail), so an "inbox" of
+            club-sent messages is the only thing that makes sense here. */}
         {activeTab === 'inbox' && (
           <div className="card">
-            <h2 className="display-font text-xl text-white mb-6">OUTREACH HISTORY</h2>
+            <div className="flex items-center justify-between mb-6">
+              <h2 className="display-font text-xl text-white">CLUB MESSAGES</h2>
+              <div className="text-xs text-text-tertiary">
+                {announcements.length} {announcements.length === 1 ? 'message' : 'messages'}
+              </div>
+            </div>
+
+            {announcements.length === 0 ? (
+              <div className="text-center py-12">
+                <div className="w-14 h-14 rounded-2xl mx-auto mb-4 flex items-center justify-center border border-red-900/40"
+                     style={{ background: 'linear-gradient(135deg, rgba(200,16,46,0.18) 0%, rgba(10,14,26,0.5) 100%)' }}>
+                  <Mail size={22} className="text-red-500" />
+                </div>
+                <h3 className="display-font text-lg text-white mb-2">No messages yet</h3>
+                <p className="text-text-secondary text-sm max-w-sm mx-auto leading-relaxed">
+                  Your club director will post announcements here — recruiting
+                  tips, important deadlines, and updates from the program.
+                </p>
+              </div>
+            ) : (
+              <div className="space-y-3">
+                {announcements.map((a) => (
+                  <div key={a.id} className="design-card p-4">
+                    <div className="flex items-start justify-between gap-3 mb-2">
+                      <h3 className="text-white font-semibold text-[15px] leading-snug flex-1">
+                        {a.title}
+                      </h3>
+                      <span className="text-text-tertiary text-[11px] flex-shrink-0 whitespace-nowrap">
+                        {new Date(a.created_at).toLocaleDateString(undefined, {
+                          month: 'short',
+                          day: 'numeric',
+                        })}
+                      </span>
+                    </div>
+                    <p className="text-text-secondary text-sm leading-relaxed whitespace-pre-wrap">
+                      {a.body}
+                    </p>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* SENT TAB — outreach history (was previously mis-labeled
+            "INBOX"). Shows every email the athlete has sent to a coach,
+            with reply-logging controls so they can mark whether they
+            heard back. */}
+        {activeTab === 'sent' && (
+          <div className="card">
+            <div className="flex items-center justify-between mb-6">
+              <h2 className="display-font text-xl text-white">OUTREACH HISTORY</h2>
+              <div className="flex gap-2 text-xs text-text-tertiary">
+                <span>{outreachHistory.length} total</span>
+                <span>·</span>
+                <span className="text-green-400">
+                  {outreachHistory.filter(o => o.coach_replied).length} replied
+                </span>
+              </div>
+            </div>
 
             {outreachHistory.length === 0 ? (
               <div className="text-center py-12">
                 <div className="text-gray-400 mb-4">No outreach yet. Pick a coach above and get started.</div>
               </div>
             ) : (
-              <div className="space-y-4">
-                {outreachHistory.map((log) => (
-                  <div key={log.id} className="bg-navy-900 rounded-lg p-4">
-                    <div className="flex justify-between items-start mb-2">
-                      <div>
-                        <div className="text-white font-medium">
-                          {log.coach_name || 'Program Email'} • {log.school}
+              <div className="space-y-3">
+                {outreachHistory.map((log) => {
+                  const replyChipMap = {
+                    positive: { cls: 'chip-green',   icon: CheckCircle2, label: 'Positive reply' },
+                    pending:  { cls: 'chip-amber',   icon: Clock,        label: 'Still talking' },
+                    negative: { cls: 'chip-slate',   icon: AlertCircle,  label: 'Polite no' },
+                    visit:    { cls: 'chip-blue',    icon: CalendarIcon, label: 'Visit scheduled' },
+                    offer:    { cls: 'chip-purple',  icon: Trophy,       label: 'Offer received' }
+                  }
+                  const replyChip = log.coach_reply_status ? replyChipMap[log.coach_reply_status] : null
+
+                  return (
+                    <div key={log.id} className="design-card p-4">
+                      <div className="flex flex-wrap justify-between items-start gap-2 mb-2">
+                        <div className="min-w-0 flex-1">
+                          <div className="text-white font-medium truncate">
+                            {log.coach_name || 'Program Email'} <span className="text-text-tertiary">·</span> {log.school}
+                          </div>
+                          <div className="text-text-tertiary text-xs">
+                            {new Date(log.sent_at || log.created_at).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })}
+                            {' · '}
+                            <span className="capitalize">{log.status || 'sent'}</span>
+                          </div>
                         </div>
-                        <div className="text-gray-400 text-sm">
-                          {new Date(log.created_at).toLocaleDateString()} • {log.status}
-                        </div>
+                        {replyChip && (
+                          <span className={`chip ${replyChip.cls} flex items-center gap-1`}>
+                            <replyChip.icon size={12} /> {replyChip.label}
+                          </span>
+                        )}
                       </div>
+                      <div className="text-text-secondary text-sm mb-3">
+                        <strong className="text-text-tertiary text-xs uppercase tracking-wider mr-1">Subject:</strong>
+                        {log.subject}
+                      </div>
+
+                      {/* Reply-logging controls */}
+                      {!log.coach_replied ? (
+                        <div className="border-t border-card-border pt-3 mt-2">
+                          <div className="text-[11px] uppercase tracking-widest text-text-tertiary font-bold mb-2">
+                            Did you hear back? Log it here
+                          </div>
+                          <div className="flex flex-wrap gap-2">
+                            <button onClick={() => updateReplyStatus(log.id, 'positive')}
+                                    className="chip chip-green hover:brightness-125 cursor-pointer flex items-center gap-1.5"
+                                    style={{ padding: '5px 10px', fontSize: 11 }}>
+                              <CheckCircle2 size={12} /> Positive
+                            </button>
+                            <button onClick={() => updateReplyStatus(log.id, 'pending')}
+                                    className="chip chip-amber hover:brightness-125 cursor-pointer flex items-center gap-1.5"
+                                    style={{ padding: '5px 10px', fontSize: 11 }}>
+                              <Clock size={12} /> Still talking
+                            </button>
+                            <button onClick={() => updateReplyStatus(log.id, 'visit')}
+                                    className="chip chip-blue hover:brightness-125 cursor-pointer flex items-center gap-1.5"
+                                    style={{ padding: '5px 10px', fontSize: 11 }}>
+                              <CalendarIcon size={12} /> Visit
+                            </button>
+                            <button onClick={() => updateReplyStatus(log.id, 'offer')}
+                                    className="chip chip-purple hover:brightness-125 cursor-pointer flex items-center gap-1.5"
+                                    style={{ padding: '5px 10px', fontSize: 11 }}>
+                              <Trophy size={12} /> Offer
+                            </button>
+                            <button onClick={() => updateReplyStatus(log.id, 'negative')}
+                                    className="chip chip-slate hover:brightness-125 cursor-pointer flex items-center gap-1.5"
+                                    style={{ padding: '5px 10px', fontSize: 11 }}>
+                              <AlertCircle size={12} /> Polite no
+                            </button>
+                          </div>
+                        </div>
+                      ) : (
+                        <div className="border-t border-card-border pt-3 mt-2 flex items-center justify-between">
+                          <div className="text-xs text-text-tertiary">
+                            Reply logged {log.reply_received_at ? timeAgo(log.reply_received_at) : ''}
+                          </div>
+                          <button
+                            onClick={() => clearReplyStatus(log.id)}
+                            className="text-[11px] text-text-tertiary hover:text-white underline"
+                          >
+                            undo
+                          </button>
+                        </div>
+                      )}
                     </div>
-                    <div className="text-gray-400 text-sm">
-                      <strong>Subject:</strong> {log.subject}
-                    </div>
-                  </div>
-                ))}
+                  )
+                })}
               </div>
             )}
           </div>

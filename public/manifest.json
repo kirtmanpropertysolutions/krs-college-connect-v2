@@ -1,0 +1,20 @@
+{
+  "name": "KRS College Connect",
+  "short_name": "KRS",
+  "description": "Recruiting platform for ECNL girls' soccer clubs — coach contacts, college fit, video, outreach.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "background_color": "#0a0e1a",
+  "theme_color": "#0a0e1a",
+  "categories": ["sports", "education", "productivity"],
+  "icons": [
+    {
+      "src": "/eastside-fc-logo.png",
+      "sizes": "any",
+      "type": "image/jpeg",
+      "purpose": "any"
+    }
+  ]
+}

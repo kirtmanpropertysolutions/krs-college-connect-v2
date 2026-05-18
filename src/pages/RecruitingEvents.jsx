@@ -1,613 +1,304 @@
-import { useState, useEffect } from 'react'
-import { useAuth } from '../hooks/useAuth'
+/**
+ * RecruitingEvents — athlete-facing ID camp browser.
+ *
+ * Two sections:
+ *   1. "Your director's picks" — curated camps from `id_camps`
+ *      (admin-managed via /admin/camps). Each has an Add-to-schedule
+ *      button.
+ *   2. "My schedule" — camps the athlete has registered for, from
+ *      `scheduled_camps`. Past camps shown as "Attended".
+ *
+ * Adding to the schedule is what awards the first_id_camp_registered
+ * milestone. Once camp_date passes, the milestone engine flips it to
+ * first_id_camp_attended on the next dashboard load.
+ */
+
+import { useEffect, useState, useMemo, useCallback } from 'react'
+import {
+  Calendar,
+  MapPin,
+  DollarSign,
+  ExternalLink,
+  Star,
+  Plus,
+  Check,
+  Trash2,
+} from 'lucide-react'
+import { format, parseISO } from 'date-fns'
+import { useAuth } from '../hooks/authContext'
 import { supabase } from '../lib/supabase'
-import { logActivity } from '../lib/activity'
-import { Plus, ChevronLeft, ChevronRight, ExternalLink, Edit, Trash2, X } from 'lucide-react'
 import AthleteLayout from '../components/AthleteLayout.jsx'
-import SchoolBadge from '../components/SchoolBadge.jsx'
-import { getSchoolColors, isLightColor } from '../lib/schoolColors'
-
-const VERIFIED_ATHLETICS_URLS = {
-  "University of Southern California": "https://usctrojans.com/sports/womens-soccer",
-  "USC": "https://usctrojans.com/sports/womens-soccer",
-  "University of Washington": "https://gohuskies.com/sports/womens-soccer",
-  "University of California, Los Angeles": "https://uclabruins.com/sports/womens-soccer",
-  "UCLA": "https://uclabruins.com/sports/womens-soccer",
-  "Oregon State University": "https://osubeavers.com/sports/womens-soccer",
-  "Washington State University": "https://wsucougars.com/sports/womens-soccer",
-  "Northwestern University": "https://nusports.com/sports/womens-soccer",
-  "Pennsylvania State University": "https://gopsusports.com/sports/womens-soccer",
-  "Penn State": "https://gopsusports.com/sports/womens-soccer",
-  "Adams State University": "https://gogrizzlies.com/sports/womens-soccer",
-  "Adams State": "https://gogrizzlies.com/sports/womens-soccer",
-  "Seattle Pacific University": "https://spufalcons.com/sports/womens-soccer",
-  "Seattle Pacific": "https://spufalcons.com/sports/womens-soccer",
-  "Academy of Art University": "https://academyartathletics.com",
-  "Simon Fraser University": "https://sfuathletics.ca/sports/womens-soccer",
-  "Portland Community College": "https://athletics.pcc.edu",
-  "University of Colorado Boulder": "https://cubuffs.com/sports/womens-soccer",
-  "University of Arizona": "https://arizonawildcats.com/sports/womens-soccer",
-  "Arizona State University": "https://thesundevils.com/sports/womens-soccer",
-  "University of Oregon": "https://goducks.com/sports/womens-soccer",
-  "Rutgers University": "https://scarletknights.com/sports/womens-soccer",
-  "University of Maryland": "https://umterps.com/sports/womens-soccer",
-  "University of Michigan": "https://mgoblue.com/sports/womens-soccer"
-}
-
-// Helper functions
-const getAthleticsUrl = (schoolName) => {
-  // Try exact match first
-  if (VERIFIED_ATHLETICS_URLS[schoolName]) {
-    return VERIFIED_ATHLETICS_URLS[schoolName]
-  }
-
-  // Fall back to Google search
-  return `https://www.google.com/search?q=${encodeURIComponent(schoolName + ' women\'s soccer athletics')}`
-}
-
-const getDivisionColor = (schoolName) => {
-  // Simple heuristic - could be enhanced with actual division data
-  if (schoolName.includes('CC') || schoolName === 'Portland CC') return 'bg-green-700'
-  return 'bg-blue-600' // Default to D1
-}
-
-// Pipeline School Card Component
-function PipelineSchoolCard({ school }) {
-  const schoolColors = getSchoolColors(school.school)
-
-  // Use secondary color for light primaries
-  const accentColor = isLightColor(schoolColors.primary) ? schoolColors.secondary : schoolColors.primary
-  const tintColor = isLightColor(schoolColors.primary) ? schoolColors.secondary : schoolColors.primary
-
-  const athleticsUrl = getAthleticsUrl(school.school)
-
-  return (
-    <div
-      className="border border-card-border rounded-lg p-4 border-l-0"
-      style={{
-        borderLeft: `3px solid ${accentColor}`,
-        background: `linear-gradient(135deg, ${tintColor}10 0%, ${tintColor}05 50%, transparent 100%), #111827`
-      }}
-    >
-      <div className="flex items-center gap-3 mb-3">
-        <SchoolBadge schoolName={school.school} size="md" />
-        <div className="flex items-start justify-between flex-1">
-          <h3 className="font-medium text-white">{school.school}</h3>
-          <span className={`px-2 py-1 rounded text-xs font-bold text-white ${getDivisionColor(school.school)}`}>
-            D1
-          </span>
-        </div>
-      </div>
-
-      <p className="text-gray-400 text-sm mb-4">Division I · NCAA</p>
-
-      <a
-        href={athleticsUrl}
-        target="_blank"
-        rel="noopener noreferrer"
-        className="block w-full bg-club-primary hover:bg-club-primary-dark text-white text-sm py-2 px-3 rounded font-bold text-center"
-      >
-        SCHOOL ATHLETICS →
-      </a>
-    </div>
-  )
-}
 
 export default function RecruitingEvents() {
-  const { user } = useAuth()
-
-  // State
+  const { user, profile } = useAuth()
+  const userId = user?.id
+  const [curated, setCurated] = useState([])
+  const [scheduled, setScheduled] = useState([])
   const [loading, setLoading] = useState(true)
-  const [pipelineSchools, setPipelineSchools] = useState([])
-  const [scheduledCamps, setScheduledCamps] = useState([])
-  const [showAddModal, setShowAddModal] = useState(false)
-  const [editingCamp, setEditingCamp] = useState(null)
-  const [currentMonth, setCurrentMonth] = useState(new Date())
-  const [showPastCamps, setShowPastCamps] = useState(false)
+  const [busyId, setBusyId] = useState(null)
+  const [toast, setToast] = useState('')
 
-  // Form state
-  const [formData, setFormData] = useState({
-    camp_date: '',
-    school_name: '',
-    cost: '',
-    registration_url: '',
-    notes: ''
-  })
-
-  // Load data
-  useEffect(() => {
-    if (user?.id) {
-      loadData()
-    }
-  }, [user?.id])
-
-  const loadData = async () => {
-    try {
-      const [pipelineRes, campsRes] = await Promise.all([
-        // Get pipeline schools
-        supabase
-          .from('pipelines')
-          .select('school, stage')
-          .eq('athlete_id', user.id)
-          .not('stage', 'is', null),
-
-        // Get scheduled camps
-        supabase
-          .from('scheduled_camps')
-          .select('*')
-          .eq('athlete_id', user.id)
-          .order('camp_date')
-      ])
-
-      setPipelineSchools(pipelineRes.data || [])
-      setScheduledCamps(campsRes.data || [])
-    } catch (error) {
-      console.error('Error loading data:', error)
-    } finally {
-      setLoading(false)
-    }
-  }
-
-  const openAddModal = (prefilledDate = '') => {
-    setFormData({
-      camp_date: prefilledDate,
-      school_name: '',
-      cost: '',
-      registration_url: '',
-      notes: ''
-    })
-    setEditingCamp(null)
-    setShowAddModal(true)
-  }
-
-  const openEditModal = (camp) => {
-    setFormData({
-      camp_date: camp.camp_date,
-      school_name: camp.school_name,
-      cost: camp.cost || '',
-      registration_url: camp.registration_url || '',
-      notes: camp.notes || ''
-    })
-    setEditingCamp(camp)
-    setShowAddModal(true)
-  }
-
-  const saveCamp = async () => {
-    if (!formData.camp_date || !formData.school_name) return
-
-    try {
-      const campData = {
-        athlete_id: user.id,
-        camp_date: formData.camp_date,
-        school_name: formData.school_name,
-        cost: formData.cost ? parseInt(formData.cost) : null,
-        registration_url: formData.registration_url || null,
-        notes: formData.notes || null
-      }
-
-      if (editingCamp) {
-        // Update existing camp
-        const { error } = await supabase
-          .from('scheduled_camps')
-          .update(campData)
-          .eq('id', editingCamp.id)
-
-        if (error) throw error
-      } else {
-        // Create new camp
-        const { error } = await supabase
-          .from('scheduled_camps')
-          .insert([campData])
-
-        if (error) throw error
-
-        // Log activity for new camps
-        await logActivity(user.id, 'camp_scheduled', {
-          school_name: formData.school_name,
-          camp_date: formData.camp_date
-        })
-      }
-
-      setShowAddModal(false)
-      loadData()
-    } catch (error) {
-      console.error('Error saving camp:', error)
-    }
-  }
-
-  const deleteCamp = async (campId) => {
-    if (!confirm('Delete this camp?')) return
-
-    try {
-      const { error } = await supabase
+  const loadData = useCallback(async () => {
+    if (!userId) return
+    setLoading(true)
+    const [curatedRes, schedRes] = await Promise.all([
+      supabase
+        .from('id_camps')
+        .select('*')
+        .order('featured', { ascending: false })
+        .order('start_date'),
+      supabase
         .from('scheduled_camps')
-        .delete()
-        .eq('id', campId)
+        .select('*')
+        .eq('athlete_id', userId)
+        .order('camp_date'),
+    ])
+    setCurated(curatedRes.data || [])
+    setScheduled(schedRes.data || [])
+    setLoading(false)
+  }, [userId])
 
+  useEffect(() => {
+    // Sync-with-external-state: load curated + scheduled ID camps from Supabase.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    if (userId) loadData()
+  }, [userId, loadData])
+
+  // Track which curated camps the athlete already has on their schedule
+  // (by id_camp_id back-reference). Used to flip the "Add" button to
+  // "On your schedule" so the user can't double-register.
+  const scheduledCampIds = useMemo(
+    () => new Set(scheduled.map((s) => s.id_camp_id).filter(Boolean)),
+    [scheduled]
+  )
+
+  const handleRegister = async (camp) => {
+    setBusyId(camp.id)
+    try {
+      const { error } = await supabase.from('scheduled_camps').insert({
+        athlete_id: user.id,
+        id_camp_id: camp.id,
+        school_name: camp.school_name,
+        camp_date: camp.start_date,
+        cost: camp.cost,
+        registration_url: camp.registration_url,
+        notes: camp.name,
+      })
       if (error) throw error
-
-      loadData()
-    } catch (error) {
-      console.error('Error deleting camp:', error)
+      await loadData()
+      setToast(`Added "${camp.name}" to your schedule.`)
+      setTimeout(() => setToast(''), 3000)
+    } catch (err) {
+      console.error('register camp error:', err)
+      setToast(err.message || 'Could not add to schedule.')
+      setTimeout(() => setToast(''), 3500)
+    } finally {
+      setBusyId(null)
     }
   }
 
-  // Calendar helpers
-  const getCalendarDays = () => {
-    const year = currentMonth.getFullYear()
-    const month = currentMonth.getMonth()
-
-    const firstDay = new Date(year, month, 1)
-    const lastDay = new Date(year, month + 1, 0)
-    const startDate = new Date(firstDay)
-    startDate.setDate(startDate.getDate() - firstDay.getDay())
-
-    const days = []
-    for (let i = 0; i < 42; i++) { // 6 weeks
-      const date = new Date(startDate)
-      date.setDate(startDate.getDate() + i)
-      days.push(date)
+  const handleRemove = async (sched) => {
+    if (!confirm(`Remove "${sched.notes || sched.school_name}" from your schedule?`)) return
+    const { error } = await supabase
+      .from('scheduled_camps')
+      .delete()
+      .eq('id', sched.id)
+    if (error) {
+      setToast(error.message)
+      setTimeout(() => setToast(''), 3000)
+      return
     }
-    return days
+    await loadData()
+    setToast('Removed.')
+    setTimeout(() => setToast(''), 2000)
   }
 
-  const getCampsForDate = (date) => {
-    const dateStr = date.toISOString().split('T')[0]
-    return scheduledCamps.filter(camp => camp.camp_date === dateStr)
-  }
-
-  const isToday = (date) => {
-    const today = new Date()
-    return date.toDateString() === today.toDateString()
-  }
-
-  const isCurrentMonth = (date) => {
-    return date.getMonth() === currentMonth.getMonth()
-  }
-
-  const isPastDate = (date) => {
-    const today = new Date()
-    today.setHours(0, 0, 0, 0)
-    return date < today
-  }
-
-  const formatDate = (dateStr) => {
-    return new Date(dateStr).toLocaleDateString('en-US', {
-      month: 'short',
-      day: 'numeric'
-    })
-  }
-
-  const upcomingCamps = scheduledCamps.filter(camp =>
-    new Date(camp.camp_date) >= new Date()
-  )
-  const pastCamps = scheduledCamps.filter(camp =>
-    new Date(camp.camp_date) < new Date()
-  )
-
-  if (loading) {
-    return (
-      <AthleteLayout>
-        <div className="p-4 md:p-8">
-          <div className="text-white">Loading ID camps...</div>
-        </div>
-      </AthleteLayout>
-    )
-  }
+  const today = new Date().toISOString().slice(0, 10)
 
   return (
     <AthleteLayout>
-      <div className="max-w-7xl mx-auto p-4 md:p-8">
-        {/* Page Header */}
-        <div className="mb-8">
-          <h1 className="display-font text-3xl text-white mb-2">ID CAMPS</h1>
-          <p className="text-gray-400">Track camps for your target schools</p>
+      <div className="px-4 md:px-8 py-6 max-w-5xl mx-auto">
+        {/* Editorial header */}
+        <div className="flex items-center gap-3 mb-2">
+          <div className="h-px w-8" style={{ background: 'var(--crimson)' }} />
+          <span
+            className="text-[10px] uppercase tracking-[0.22em] font-bold"
+            style={{ color: 'var(--crimson)' }}
+          >
+            Director-curated
+          </span>
         </div>
+        <h1 className="display-font text-4xl text-white">ID Camps</h1>
+        <p className="text-text-secondary text-sm mt-1 mb-6">
+          Camps {profile?.organization?.name || 'your club'} recommends.
+          Add to your schedule to track, then register on the school's site.
+        </p>
 
-        {/* Pipeline Schools Section */}
-        <div className="mb-12">
-          <div className="mb-6">
-            <h2 className="display-font text-xl text-white mb-2">MY PIPELINE SCHOOLS</h2>
-            <p className="text-gray-400">View athletics info for the schools you're tracking. Look for 'Camps' in each school's navigation.</p>
-          </div>
-
-          {pipelineSchools.length > 0 ? (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-              {pipelineSchools.map((school, index) => (
-                <PipelineSchoolCard key={index} school={school} />
-              ))}
-            </div>
-          ) : (
-            <div className="bg-navy-800 border border-gray-600 rounded-lg p-6 text-center">
-              <p className="text-gray-400 mb-3">Add schools to your pipeline first</p>
-              <a
-                href="/coach-finder"
-                className="text-club-primary hover:text-club-primary font-medium"
-              >
-                Find Schools →
-              </a>
-            </div>
-          )}
-        </div>
-
-        {/* Camp Calendar Section */}
-        <div className="mb-8">
-          <div className="flex items-center justify-between mb-6">
-            <div>
-              <h2 className="display-font text-xl text-white mb-2">MY CAMP CALENDAR</h2>
-              <p className="text-gray-400">Track ID camps you're planning, registered for, or attended</p>
-            </div>
-            <button
-              onClick={() => openAddModal()}
-              className="bg-club-primary hover:bg-club-primary-dark text-white px-4 py-2 rounded font-bold flex items-center gap-2"
-            >
-              <Plus className="w-4 h-4" />
-              ADD CAMP
-            </button>
-          </div>
-
-          {/* Calendar Header */}
-          <div className="bg-navy-800 border border-navy-700 rounded-lg">
-            <div className="flex items-center justify-between p-4 border-b border-navy-700">
-              <button
-                onClick={() => setCurrentMonth(new Date(currentMonth.getFullYear(), currentMonth.getMonth() - 1))}
-                className="p-2 hover:bg-navy-700 rounded"
-              >
-                <ChevronLeft className="w-5 h-5 text-gray-400" />
-              </button>
-
-              <h3 className="text-lg font-medium text-white">
-                {currentMonth.toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}
-              </h3>
-
-              <button
-                onClick={() => setCurrentMonth(new Date(currentMonth.getFullYear(), currentMonth.getMonth() + 1))}
-                className="p-2 hover:bg-navy-700 rounded"
-              >
-                <ChevronRight className="w-5 h-5 text-gray-400" />
-              </button>
-            </div>
-
-            {/* Calendar Grid */}
-            <div className="p-4">
-              {/* Day headers */}
-              <div className="grid grid-cols-7 gap-1 mb-2">
-                {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(day => (
-                  <div key={day} className="p-2 text-center text-xs font-medium text-gray-400">
-                    {day}
-                  </div>
-                ))}
-              </div>
-
-              {/* Calendar days */}
-              <div className="grid grid-cols-7 gap-1">
-                {getCalendarDays().map((date, index) => {
-                  const camps = getCampsForDate(date)
-                  const isPast = isPastDate(date)
-
-                  return (
-                    <button
-                      key={index}
-                      onClick={() => openAddModal(date.toISOString().split('T')[0])}
-                      className={`
-                        min-h-[60px] p-1 text-left border rounded transition-colors
-                        ${isCurrentMonth(date) ? 'border-navy-600' : 'border-navy-700 opacity-40'}
-                        ${isToday(date) ? 'border-club-primary' : ''}
-                        hover:bg-navy-700
-                      `}
-                    >
-                      <div className={`text-xs mb-1 ${isPast ? 'text-gray-500' : 'text-gray-300'}`}>
-                        {date.getDate()}
+        {/* My schedule (only if there's something on it) */}
+        {scheduled.length > 0 && (
+          <div className="mb-7">
+            <h2 className="display-font text-sm tracking-[0.06em] text-white uppercase mb-3">
+              Your schedule
+            </h2>
+            <div className="space-y-2">
+              {scheduled.map((s) => {
+                const past = s.camp_date && s.camp_date <= today
+                return (
+                  <div key={s.id} className="design-card p-4">
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2 mb-1">
+                          {past ? (
+                            <span className="chip chip-green inline-flex items-center gap-1">
+                              <Check size={11} /> Attended
+                            </span>
+                          ) : (
+                            <span className="chip chip-amber">Registered</span>
+                          )}
+                        </div>
+                        <h3 className="text-white font-semibold text-[14px] leading-tight">
+                          {s.notes || s.school_name}
+                        </h3>
+                        <div className="text-[12px] text-text-secondary mt-1 flex items-center gap-2 flex-wrap">
+                          <span className="inline-flex items-center gap-1">
+                            <Calendar size={12} />
+                            {format(parseISO(s.camp_date), 'MMM d, yyyy')}
+                          </span>
+                          {s.cost != null && (
+                            <span className="inline-flex items-center gap-1">
+                              <DollarSign size={12} />
+                              {s.cost}
+                            </span>
+                          )}
+                          {s.registration_url && (
+                            <a
+                              href={s.registration_url}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="inline-flex items-center gap-1 text-red-400 hover:text-red-300"
+                            >
+                              <ExternalLink size={12} /> Register on school site
+                            </a>
+                          )}
+                        </div>
                       </div>
-                      <div className="space-y-1">
-                        {camps.map(camp => (
-                          <button
-                            key={camp.id}
-                            onClick={(e) => {
-                              e.stopPropagation()
-                              openEditModal(camp)
-                            }}
-                            className={`block w-full text-left px-1 py-0.5 rounded text-xs font-medium truncate ${
-                              isPast ? 'bg-gray-700 text-gray-400' : 'bg-club-secondary text-black'
-                            }`}
-                          >
-                            {camp.school_name.length > 12 ? camp.school_name.substring(0, 12) + '...' : camp.school_name}
-                          </button>
-                        ))}
-                      </div>
-                    </button>
-                  )
-                })}
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Upcoming Camps List */}
-        <div className="mb-8">
-          <h3 className="display-font text-lg text-white mb-4">UPCOMING CAMPS</h3>
-          {upcomingCamps.length > 0 ? (
-            <div className="bg-navy-800 border border-navy-700 rounded-lg">
-              {upcomingCamps.map((camp, index) => (
-                <div key={camp.id} className={`p-4 flex items-center justify-between ${index > 0 ? 'border-t border-navy-700' : ''}`}>
-                  <div className="flex-1">
-                    <div className="flex items-center gap-4">
-                      <span className="text-white font-medium">{formatDate(camp.camp_date)}</span>
-                      <span className="text-white">{camp.school_name}</span>
-                      {camp.cost && <span className="text-gray-400">${camp.cost}</span>}
-                    </div>
-                    {camp.notes && (
-                      <p className="text-sm text-gray-400 mt-1">{camp.notes}</p>
-                    )}
-                  </div>
-                  <div className="flex items-center gap-2">
-                    {camp.registration_url && (
-                      <a
-                        href={camp.registration_url}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-sm text-club-primary hover:text-club-primary flex items-center gap-1"
+                      <button
+                        onClick={() => handleRemove(s)}
+                        className="tap-target text-text-tertiary hover:text-red-500"
+                        aria-label="Remove from schedule"
                       >
-                        Register → <ExternalLink className="w-3 h-3" />
-                      </a>
-                    )}
-                    <button
-                      onClick={() => openEditModal(camp)}
-                      className="p-2 text-gray-400 hover:text-white"
-                    >
-                      <Edit className="w-4 h-4" />
-                    </button>
-                    <button
-                      onClick={() => deleteCamp(camp.id)}
-                      className="p-2 text-gray-400 hover:text-red-400"
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </button>
-                  </div>
-                </div>
-              ))}
-            </div>
-          ) : (
-            <p className="text-gray-400">No upcoming camps scheduled</p>
-          )}
-        </div>
-
-        {/* Past Camps Section */}
-        {pastCamps.length > 0 && (
-          <div>
-            <button
-              onClick={() => setShowPastCamps(!showPastCamps)}
-              className="display-font text-lg text-white mb-4 hover:text-gray-300"
-            >
-              PAST CAMPS ({pastCamps.length}) {showPastCamps ? '▼' : '▶'}
-            </button>
-
-            {showPastCamps && (
-              <div className="bg-navy-800 border border-navy-700 rounded-lg opacity-75">
-                {pastCamps.map((camp, index) => (
-                  <div key={camp.id} className={`p-4 flex items-center justify-between ${index > 0 ? 'border-t border-navy-700' : ''}`}>
-                    <div className="flex-1">
-                      <div className="flex items-center gap-4">
-                        <span className="text-gray-400 font-medium">{formatDate(camp.camp_date)}</span>
-                        <span className="text-gray-300">{camp.school_name}</span>
-                        {camp.cost && <span className="text-gray-500">${camp.cost}</span>}
-                      </div>
-                      {camp.notes && (
-                        <p className="text-sm text-gray-500 mt-1">{camp.notes}</p>
-                      )}
+                        <Trash2 size={14} />
+                      </button>
                     </div>
-                    <button
-                      onClick={() => deleteCamp(camp.id)}
-                      className="p-2 text-gray-500 hover:text-red-400"
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </button>
                   </div>
-                ))}
-              </div>
-            )}
+                )
+              })}
+            </div>
           </div>
         )}
 
-        {/* Add/Edit Camp Modal */}
-        {showAddModal && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70">
-            <div className="bg-navy-900 border border-gray-700 rounded-2xl max-w-md w-full p-6">
-              <div className="flex items-start justify-between mb-6">
-                <h3 className="text-xl font-bold text-white">
-                  {editingCamp ? 'Edit Camp' : 'Add Camp'}
-                </h3>
-                <button
-                  onClick={() => setShowAddModal(false)}
-                  className="w-8 h-8 rounded-full bg-navy-800 hover:bg-navy-700 flex items-center justify-center"
+        {/* Curated picks */}
+        <h2 className="display-font text-sm tracking-[0.06em] text-white uppercase mb-3">
+          Director's picks
+        </h2>
+
+        {loading ? (
+          <div className="design-card p-8 text-center text-text-secondary">Loading camps…</div>
+        ) : curated.length === 0 ? (
+          <div className="design-card p-10 text-center">
+            <Calendar className="mx-auto mb-3 text-text-tertiary" size={28} />
+            <p className="text-text-secondary text-sm">
+              No camps yet. Your director will add curated picks here.
+            </p>
+          </div>
+        ) : (
+          <div className="space-y-3">
+            {curated.map((c) => {
+              const onSchedule = scheduledCampIds.has(c.id)
+              return (
+                <div
+                  key={c.id}
+                  className="design-card p-5"
+                  style={c.featured ? { borderColor: 'rgba(200,16,46,0.45)' } : undefined}
                 >
-                  <X className="w-4 h-4 text-gray-400"/>
-                </button>
-              </div>
-
-              <form className="space-y-4" onSubmit={(e) => { e.preventDefault(); saveCamp(); }}>
-                <div>
-                  <label className="block text-sm font-medium text-gray-400 mb-2">Date *</label>
-                  <input
-                    type="date"
-                    value={formData.camp_date}
-                    onChange={(e) => setFormData({...formData, camp_date: e.target.value})}
-                    className="w-full bg-navy-800 border border-gray-600 rounded-lg px-3 py-2 text-white focus:outline-none focus:border-club-primary"
-                    required
-                  />
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2 mb-1 flex-wrap">
+                        {c.featured && (
+                          <span className="chip chip-crimson inline-flex items-center gap-1">
+                            <Star size={11} /> Featured
+                          </span>
+                        )}
+                        <span className="text-[10px] uppercase tracking-widest text-text-tertiary font-bold">
+                          {c.school_name}
+                        </span>
+                      </div>
+                      <h3 className="display-font text-lg text-white leading-tight">{c.name}</h3>
+                      <div className="flex flex-wrap items-center gap-3 mt-2 text-[12px] text-text-secondary">
+                        <span className="inline-flex items-center gap-1">
+                          <Calendar size={12} />
+                          {format(parseISO(c.start_date), 'MMM d, yyyy')}
+                          {c.end_date && ` – ${format(parseISO(c.end_date), 'MMM d')}`}
+                        </span>
+                        {c.location && (
+                          <span className="inline-flex items-center gap-1">
+                            <MapPin size={12} />
+                            {c.location}
+                          </span>
+                        )}
+                        {c.cost != null && (
+                          <span className="inline-flex items-center gap-1">
+                            <DollarSign size={12} />
+                            {c.cost}
+                          </span>
+                        )}
+                      </div>
+                      {c.description && (
+                        <p className="text-[13px] text-text-secondary mt-3 leading-relaxed">
+                          {c.description}
+                        </p>
+                      )}
+                    </div>
+                    <div className="flex flex-col gap-2 flex-shrink-0">
+                      {onSchedule ? (
+                        <span className="chip chip-green inline-flex items-center gap-1">
+                          <Check size={11} /> On schedule
+                        </span>
+                      ) : (
+                        <button
+                          onClick={() => handleRegister(c)}
+                          disabled={busyId === c.id}
+                          className="eastside-btn inline-flex items-center gap-1 disabled:opacity-50"
+                          style={{ padding: '7px 12px', fontSize: '12px' }}
+                        >
+                          <Plus size={12} />
+                          {busyId === c.id ? 'Adding…' : 'Add'}
+                        </button>
+                      )}
+                      {c.registration_url && (
+                        <a
+                          href={c.registration_url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-[11px] text-red-400 hover:text-red-300 inline-flex items-center gap-1 justify-center"
+                        >
+                          <ExternalLink size={11} /> Register
+                        </a>
+                      )}
+                    </div>
+                  </div>
                 </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-400 mb-2">School Name *</label>
-                  <input
-                    type="text"
-                    value={formData.school_name}
-                    onChange={(e) => setFormData({...formData, school_name: e.target.value})}
-                    className="w-full bg-navy-800 border border-gray-600 rounded-lg px-3 py-2 text-white focus:outline-none focus:border-club-primary"
-                    list="pipeline-schools"
-                    required
-                  />
-                  <datalist id="pipeline-schools">
-                    {pipelineSchools.map(school => (
-                      <option key={school.school} value={school.school} />
-                    ))}
-                  </datalist>
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-400 mb-2">Cost ($)</label>
-                  <input
-                    type="number"
-                    value={formData.cost}
-                    onChange={(e) => setFormData({...formData, cost: e.target.value})}
-                    className="w-full bg-navy-800 border border-gray-600 rounded-lg px-3 py-2 text-white focus:outline-none focus:border-club-primary"
-                    min="0"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-400 mb-2">Registration URL</label>
-                  <input
-                    type="url"
-                    value={formData.registration_url}
-                    onChange={(e) => setFormData({...formData, registration_url: e.target.value})}
-                    className="w-full bg-navy-800 border border-gray-600 rounded-lg px-3 py-2 text-white focus:outline-none focus:border-club-primary"
-                    placeholder="https://..."
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-400 mb-2">Notes</label>
-                  <textarea
-                    value={formData.notes}
-                    onChange={(e) => setFormData({...formData, notes: e.target.value})}
-                    className="w-full bg-navy-800 border border-gray-600 rounded-lg px-3 py-2 text-white focus:outline-none focus:border-club-primary resize-none"
-                    rows={3}
-                    maxLength={200}
-                  />
-                  <div className="text-xs text-gray-500 mt-1">{formData.notes.length}/200</div>
-                </div>
-
-                <div className="flex gap-3 pt-4">
-                  <button
-                    type="submit"
-                    className="flex-1 bg-club-primary hover:bg-club-primary-dark text-white py-2 px-4 rounded font-bold"
-                  >
-                    {editingCamp ? 'UPDATE' : 'SAVE'}
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setShowAddModal(false)}
-                    className="flex-1 border border-gray-600 hover:border-gray-500 text-white py-2 px-4 rounded font-bold"
-                  >
-                    CANCEL
-                  </button>
-                </div>
-              </form>
-            </div>
+              )
+            })}
           </div>
         )}
       </div>
+
+      {toast && (
+        <div className="fixed bottom-24 left-1/2 -translate-x-1/2 z-50 design-card px-4 py-3 text-sm text-white shadow-2xl animate-slide-up-soft">
+          {toast}
+        </div>
+      )}
     </AthleteLayout>
   )
 }

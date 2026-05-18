@@ -188,30 +188,41 @@ export const calculateQuizBasedFitScore = (school, quiz, profile) => {
   return Math.min(score, 100)
 }
 
-// Main fit score calculation function
+// Main fit score calculation function.
+//
+// Used to be: returned `null` whenever profile.athlete didn't exist. That
+// silently broke the School Fit Quiz for every athlete who hadn't completed
+// their onboarding — they'd answer all 11 questions and see no results.
+//
+// New behavior: if the quiz is completed we run the full quiz-based 100-pt
+// algorithm regardless of whether the athlete row exists (calculateQuizBased
+// already defaults state to 'WA' and tolerates missing GPA). If only the
+// profile is partial, we still produce a basic score (capped at 70 to flag
+// partial data) instead of refusing to compute anything.
 export const calculateFitScore = (school, quizResponses, profile) => {
-  if (!profile?.athlete) {
-    return null // No profile data
-  }
-
-  // If quiz is completed, use the comprehensive 100-point algorithm
+  // If quiz is completed, use the comprehensive 100-point algorithm.
+  // This works without an athlete row because the quiz answers carry the
+  // user's actual preferences — the athlete table only contributes their
+  // state for region scoring, which defaults to 'WA' if missing.
   if (quizResponses?.completed_at) {
     return calculateQuizBasedFitScore(school, quizResponses, profile)
   }
 
-  // Fall back to basic scoring, capped at 70 to show it's partial data
+  // No quiz yet — fall back to basic scoring using whatever profile
+  // signal we have. Capped at 70 to indicate partial data.
   let score = 0
 
   // Class year match (20 pts) - always give full points for now
   score += 20
 
-  // Academic fit (25 pts)
-  if (school.academic_rank && profile.athlete.gpa) {
-    if (profile.athlete.gpa >= 3.7 && school.academic_rank <= 50) {
+  // Academic fit (25 pts) — uses GPA if available, otherwise a neutral default
+  const gpa = profile?.athlete?.gpa
+  if (school.academic_rank && gpa) {
+    if (gpa >= 3.7 && school.academic_rank <= 50) {
       score += 25 // High GPA matches top 50 schools
-    } else if (profile.athlete.gpa >= 3.3 && school.academic_rank <= 100) {
+    } else if (gpa >= 3.3 && school.academic_rank <= 100) {
       score += 20 // Good GPA matches top 100
-    } else if (profile.athlete.gpa >= 3.0) {
+    } else if (gpa >= 3.0) {
       score += 15 // Decent GPA
     } else {
       score += 10
@@ -220,8 +231,8 @@ export const calculateFitScore = (school, quizResponses, profile) => {
     score += 20 // Default when data missing
   }
 
-  // Region preference (25 pts)
-  const userState = profile.athlete?.state || 'WA' // Default to WA for PNW athletes
+  // Region preference (25 pts) — defaults to WA for new signups in PNW
+  const userState = profile?.athlete?.state || 'WA'
   const userRegion = getUserRegion(userState)
   if (userRegion === school.region) {
     score += 25 // Perfect region match

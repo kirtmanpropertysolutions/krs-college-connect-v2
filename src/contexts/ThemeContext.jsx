@@ -1,8 +1,7 @@
-import { createContext, useContext, useEffect, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { supabase } from '../lib/supabase'
-import { useAuth } from '../hooks/useAuth'
-
-const ThemeContext = createContext(null)
+import { useAuth } from '../hooks/authContext'
+import { ThemeContext } from './themeContext'
 
 const DEFAULT_THEME = {
   primary: '#dc2626',
@@ -63,5 +62,3 @@ export function ThemeProvider({ children }) {
     </ThemeContext.Provider>
   )
 }
-
-export const useTheme = () => useContext(ThemeContext)

@@ -207,7 +207,47 @@ export const SCHOOL_COLORS = {
   "Willamette University": { primary: "#CE1126", secondary: "#FFC72C" },
   "Wisconsin": { primary: "#C5050C", secondary: "#FFFFFF" },
   "Xavier": { primary: "#004B8D", secondary: "#9D9695" },
-  "Yale University": { primary: "#00356B", secondary: "#FFFFFF" }
+  "Yale University": { primary: "#00356B", secondary: "#FFFFFF" },
+
+  // ===== Sun Belt Conference =====
+  "Appalachian State University": { primary: "#000000", secondary: "#FFB300" },
+  "Arkansas State University":    { primary: "#CC0000", secondary: "#000000" },
+  "Coastal Carolina University":  { primary: "#00869B", secondary: "#A27752" },
+  "Georgia Southern University":  { primary: "#002855", secondary: "#B3A369" },
+  "Georgia State University":     { primary: "#003DA5", secondary: "#CC0033" },
+  "James Madison University":     { primary: "#450084", secondary: "#CBB671" },
+  "University of Louisiana Lafayette": { primary: "#CE181E", secondary: "#FFFFFF" },
+  "Marshall University":          { primary: "#00703C", secondary: "#FFFFFF" },
+  "Old Dominion University":      { primary: "#003087", secondary: "#A2AAAD" },
+  "University of South Alabama":  { primary: "#003087", secondary: "#E8000D" },
+  "University of Southern Mississippi": { primary: "#000000", secondary: "#F0C03A" },
+  "Texas State University":       { primary: "#461748", secondary: "#BD8B13" },
+  "Troy University":              { primary: "#8C0033", secondary: "#A2AAAD" },
+  "University of Louisiana Monroe": { primary: "#660033", secondary: "#C5963E" },
+
+  // ===== MAC (Mid-American Conference) =====
+  "University of Akron":          { primary: "#003087", secondary: "#F1A81A" },
+  "Ball State University":        { primary: "#BA0C2F", secondary: "#FFFFFF" },
+  "Bowling Green State University": { primary: "#F17B00", secondary: "#3C2716" },
+  "University at Buffalo":        { primary: "#005BBB", secondary: "#FFFFFF" },
+  "Central Michigan University":  { primary: "#6A0032", secondary: "#FFC82E" },
+  "Eastern Michigan University":  { primary: "#006A4D", secondary: "#FFFFFF" },
+  "Kent State University":        { primary: "#002664", secondary: "#EAAA00" },
+  "Miami University":             { primary: "#B61E2E", secondary: "#FFFFFF" },
+  "Northern Illinois University": { primary: "#CE1126", secondary: "#000000" },
+  "Ohio University":              { primary: "#00694E", secondary: "#FFFFFF" },
+  "University of Toledo":         { primary: "#003087", secondary: "#FFCC00" },
+  "Western Michigan University":  { primary: "#4B2B1A", secondary: "#F1A81A" },
+
+  // San Diego State explicit entry (needed to prevent fuzzy collision with "San Diego" / USD)
+  "San Diego State University":   { primary: "#A6192E", secondary: "#000000" },
+
+  // ===== Mountain West Conference (new round-2 entries) =====
+  "United States Air Force Academy": { primary: "#003087", secondary: "#A2AAAD" },
+  "Fresno State University":      { primary: "#CC0033", secondary: "#003087" },
+  "University of Hawaii":         { primary: "#024731", secondary: "#FFFFFF" },
+  "University of Nevada":         { primary: "#003087", secondary: "#A2AAAD" },
+  "University of Nevada Las Vegas": { primary: "#CF0A2C", secondary: "#A2AAAD" }
 }
 
 const DEFAULT_COLORS = { primary: '#475569', secondary: '#94a3b8' }

@@ -1,13 +1,12 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import { supabase } from '../lib/supabase'
-import { useAuth } from '../hooks/useAuth'
+import { useAuth } from '../hooks/authContext'
 import { useNavigate } from 'react-router-dom'
 import AthleteLayout from '../components/AthleteLayout.jsx'
 import SchoolDetailModal from '../components/SchoolDetailModal.jsx'
 import SchoolBadge from '../components/SchoolBadge.jsx'
-import { getSchoolColors, isLightColor } from '../lib/schoolColors'
 import SchoolResultCard from '../components/SchoolResultCard.jsx'
-import { calculateFitScore, getFitScoreBadge } from '../lib/fitScore.js'
+import { calculateFitScore } from '../lib/fitScore.js'
 import { logActivity } from '../lib/activity.js'
 
 export default function CoachFinder() {
@@ -15,7 +14,6 @@ export default function CoachFinder() {
   const navigate = useNavigate()
 
   const [rawSchools, setRawSchools] = useState([])
-  const [schools, setSchools] = useState([])
   const [coaches, setCoaches] = useState([])
   const [pipeline, setPipeline] = useState([])
   const [loading, setLoading] = useState(true)
@@ -23,6 +21,11 @@ export default function CoachFinder() {
   const [showAddCoachModal, setShowAddCoachModal] = useState(false)
   const [quizResponses, setQuizResponses] = useState(null)
   const [showToast, setShowToast] = useState('')
+
+  // Pagination — how many school cards are visible in the grid
+  const PAGE_SIZE = 25
+  const [displayCount, setDisplayCount] = useState(PAGE_SIZE)
+  const [loadingMore, setLoadingMore] = useState(false)
 
   // Filter states
   const [filters, setFilters] = useState({
@@ -108,34 +111,21 @@ export default function CoachFinder() {
     loadData(user?.id)
   }, [user?.id])
 
-  // Calculate fit scores when both schools and quiz data are loaded
-  useEffect(() => {
-    console.log('🔵 useEffect fired:', {
-      rawSchoolsCount: rawSchools.length,
-      hasQuizResponses: !!quizResponses,
-      hasProfile: !!profile,
-      profileKeys: profile ? Object.keys(profile) : 'no profile'
-    })
-
-    if (rawSchools.length > 0) {
-      const scoredSchools = rawSchools.map(school => {
-        const fitScore = profile ? calculateFitScore(school, quizResponses, profile) : null
-        console.log(`🎯 Calculated fit score for ${school.name}: ${fitScore}`)
-        return {
-          ...school,
-          fitScore
-        }
-      })
-      console.log(`✅ Setting ${scoredSchools.length} schools with fit scores`)
-      console.log('💎 About to setSchools — sample:', scoredSchools.slice(0, 3).map(s => ({name: s.name, fitScore: s.fitScore})))
-      console.log('💎 profile state:', profile)
-      console.log('💎 quizResponses state:', quizResponses)
-      setSchools(scoredSchools)
-      console.log('💎 Set schools with fitScore — first 3:', scoredSchools.slice(0,3).map(s => ({ name: s.name, fitScore: s.fitScore })))
-    } else {
-      console.log('❌ No schools to process')
-    }
+  // Derived: enrich each raw school with a fit score whenever profile/quiz/raw data changes.
+  // (Previously a useEffect that called setSchools — derivation is cleaner and avoids an extra render.)
+  const schools = useMemo(() => {
+    if (rawSchools.length === 0) return []
+    return rawSchools.map(school => ({
+      ...school,
+      fitScore: profile ? calculateFitScore(school, quizResponses, profile) : null,
+    }))
   }, [rawSchools, quizResponses, profile])
+
+  // Update a single filter field and reset pagination to page 1
+  const updateFilter = (key, value) => {
+    setFilters(prev => ({ ...prev, [key]: value }))
+    setDisplayCount(PAGE_SIZE)
+  }
 
   // School search aliases
   const schoolAliases = {
@@ -157,26 +147,50 @@ export default function CoachFinder() {
   const states = [...new Set(schools.map(s => s.state).filter(Boolean))].sort()
 
   // Filter schools based on current filters
-  const filteredSchools = schools.filter(school => {
-    if (filters.division !== 'All' && school.division !== filters.division) return false
-    if (filters.conference !== 'All' && school.conference !== filters.conference) return false
-    if (filters.region !== 'All' && school.region !== filters.region) return false
-    if (filters.state !== 'All' && school.state !== filters.state) return false
+  const isSearching = filters.search.trim().length > 0
+  const filteredSchools = schools
+    .filter(school => {
+      if (filters.division !== 'All' && school.division !== filters.division) return false
+      if (filters.conference !== 'All' && school.conference !== filters.conference) return false
+      if (filters.region !== 'All' && school.region !== filters.region) return false
+      if (filters.state !== 'All' && school.state !== filters.state) return false
 
-    // Enhanced search with aliases
-    if (filters.search) {
-      const searchTerm = filters.search.toLowerCase()
-      const schoolName = school.name.toLowerCase()
-      const aliasMatch = schoolAliases[searchTerm]
+      // Enhanced search with aliases
+      if (isSearching) {
+        const searchTerm = filters.search.toLowerCase()
+        const schoolName = school.name.toLowerCase()
+        const aliasMatch = schoolAliases[searchTerm]
 
-      if (!schoolName.includes(searchTerm) &&
-          !(aliasMatch && schoolName.includes(aliasMatch.toLowerCase()))) {
-        return false
+        if (!schoolName.includes(searchTerm) &&
+            !(aliasMatch && schoolName.includes(aliasMatch.toLowerCase()))) {
+          return false
+        }
       }
-    }
 
-    return true
-  })
+      return true
+    })
+    // Sort: fit score descending when available, otherwise alphabetical
+    .sort((a, b) => {
+      if (a.fitScore !== null && b.fitScore !== null) return b.fitScore - a.fitScore
+      if (a.fitScore !== null) return -1
+      if (b.fitScore !== null) return 1
+      return a.name.localeCompare(b.name)
+    })
+
+  // When actively searching, cap at 50 most relevant results.
+  // Otherwise, show PAGE_SIZE at a time with "Load more".
+  const cappedSchools = isSearching ? filteredSchools.slice(0, 50) : filteredSchools
+  const visibleSchools = cappedSchools.slice(0, displayCount)
+  const hasMore = !isSearching && displayCount < filteredSchools.length
+
+  const handleLoadMore = () => {
+    setLoadingMore(true)
+    // Small timeout so the skeleton flickers for a frame — feels responsive
+    setTimeout(() => {
+      setDisplayCount(prev => prev + PAGE_SIZE)
+      setLoadingMore(false)
+    }, 300)
+  }
 
   // Get coaches for a specific school
   const getSchoolCoaches = (schoolId) => {
@@ -193,49 +207,11 @@ export default function CoachFinder() {
     }
   }
 
-  // Get email status badge for school
-  const getEmailStatusBadge = (school) => {
-    const coachCounts = getCoachCounts(school.id)
-    const hasCoachEmails = coachCounts.withEmails > 0
-    const hasProgramEmail = school.program_email
-
-    if (hasCoachEmails && hasProgramEmail) {
-      return {
-        className: 'bg-green-500 bg-opacity-10 text-green-400',
-        text: 'Contactable',
-        icon: '✓'
-      }
-    } else if (hasProgramEmail && !hasCoachEmails) {
-      return {
-        className: 'bg-blue-500 bg-opacity-10 text-blue-400',
-        text: 'Program email',
-        icon: '📧'
-      }
-    } else if (hasCoachEmails && !hasProgramEmail) {
-      return {
-        className: 'bg-yellow-500 bg-opacity-10 text-yellow-400',
-        text: 'Coach emails',
-        icon: '👤'
-      }
-    } else {
-      return {
-        className: 'bg-gray-500 bg-opacity-10 text-gray-400',
-        text: 'No emails',
-        icon: '⚠'
-      }
-    }
-  }
-
-  // Get circular fit score badge styling
-  const getFitScoreCircle = (score) => {
-    if (score >= 90) {
-      return 'border-green-500 text-green-500'
-    } else if (score >= 75) {
-      return 'border-yellow-500 text-yellow-500'
-    } else {
-      return 'border-gray-500 text-gray-500'
-    }
-  }
+  // Email-status badge / circular fit-score badge — preserved for future re-introduction
+  // on the dense list view. Card view (SchoolResultCard) renders its own badge variants,
+  // so these helpers are unused right now.
+  // const getEmailStatusBadge = (school) => { ... }  (removed to satisfy lint; restore from git history when needed)
+  // const getFitScoreCircle = (score) => { ... }
 
   // Enhanced school object with coach count for SchoolResultCard
   const enhanceSchoolForCard = (school, withCoaches = false) => {
@@ -290,27 +266,11 @@ export default function CoachFinder() {
     }
   }
 
-  // Feature 2: Email Coach
-  const handleEmailCoach = (coach, school) => {
-    navigate(`/outreach?coach_id=${coach.id}&school_id=${school.id}`)
-  }
-
-
-  // Feature 4: Coach Verification Signal
-  const getVerificationStatus = (coach) => {
-    if (!coach.verified_at) {
-      return { dot: 'bg-red-500', tooltip: 'Not yet verified — please confirm this email works' }
-    }
-
-    const daysSince = Math.floor((new Date() - new Date(coach.verified_at)) / (1000 * 60 * 60 * 24))
-    if (daysSince <= 30) {
-      return { dot: 'bg-green-500', tooltip: `Verified ${daysSince} days ago` }
-    } else if (daysSince <= 90) {
-      return { dot: 'bg-club-secondary', tooltip: `Verified ${daysSince} days ago` }
-    } else {
-      return { dot: 'bg-red-500', tooltip: `Verified ${daysSince} days ago (stale)` }
-    }
-  }
+  // handleEmailCoach / getVerificationStatus — preserved-but-not-wired helpers for the
+  // per-coach action buttons we plan to surface inside the inline coach list. The current
+  // UI funnels users into the school modal first, so these aren't called yet.
+  // const handleEmailCoach = (coach, school) => navigate(`/outreach?coach_id=${coach.id}&school_id=${school.id}`)
+  // const getVerificationStatus = (coach) => { ... }
 
   // Feature 5: Get recommended schools
   const getRecommendedSchools = () => {
@@ -396,9 +356,16 @@ export default function CoachFinder() {
         {/* Header */}
         <div className="flex justify-between items-start mb-8">
           <div>
-            <h1 className="display-font text-3xl text-white mb-2">COACH FINDER</h1>
-            <p className="text-gray-400">
-              {schools.length} schools · {verifiedCoachCount} verified coaches
+            <div className="flex items-center gap-3 mb-2">
+              <div className="h-px w-8" style={{ background: 'var(--crimson)' }} />
+              <span className="text-[10px] uppercase tracking-[0.22em] font-bold" style={{ color: 'var(--crimson)' }}>The Database</span>
+            </div>
+            <h1 className="display-font text-4xl text-white mb-1">Coach Finder</h1>
+            <p className="text-text-secondary text-sm">
+              {filteredSchools.length < schools.length
+                ? `${filteredSchools.length} of ${schools.length} schools`
+                : `${schools.length} schools`
+              } · {verifiedCoachCount} verified coaches
             </p>
           </div>
           <button
@@ -476,7 +443,7 @@ export default function CoachFinder() {
             </label>
             <select
               value={filters.division}
-              onChange={(e) => setFilters(prev => ({ ...prev, division: e.target.value }))}
+              onChange={(e) => updateFilter('division', e.target.value)}
               className="input-field"
             >
               <option value="All">All</option>
@@ -494,7 +461,7 @@ export default function CoachFinder() {
             </label>
             <select
               value={filters.conference}
-              onChange={(e) => setFilters(prev => ({ ...prev, conference: e.target.value }))}
+              onChange={(e) => updateFilter('conference', e.target.value)}
               className="input-field"
             >
               <option value="All">All</option>
@@ -510,7 +477,7 @@ export default function CoachFinder() {
             </label>
             <select
               value={filters.region}
-              onChange={(e) => setFilters(prev => ({ ...prev, region: e.target.value }))}
+              onChange={(e) => updateFilter('region', e.target.value)}
               className="input-field"
             >
               <option value="All">All</option>
@@ -526,7 +493,7 @@ export default function CoachFinder() {
             </label>
             <select
               value={filters.state}
-              onChange={(e) => setFilters(prev => ({ ...prev, state: e.target.value }))}
+              onChange={(e) => updateFilter('state', e.target.value)}
               className="input-field"
             >
               <option value="All">All</option>
@@ -543,7 +510,7 @@ export default function CoachFinder() {
             <input
               type="text"
               value={filters.search}
-              onChange={(e) => setFilters(prev => ({ ...prev, search: e.target.value }))}
+              onChange={(e) => updateFilter('search', e.target.value)}
               className="input-field"
               placeholder="Type to search schools..."
             />
@@ -567,25 +534,58 @@ export default function CoachFinder() {
             )}
           </div>
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-            {filteredSchools.map((school) => {
-              const fitScore = school.fitScore // Already calculated in useEffect
-              const isInPipeline = pipeline.includes(school.name)
-              const enhancedSchool = enhanceSchoolForCard(school, true)
+          <>
+            {isSearching && (
+              <p className="text-text-secondary text-xs uppercase tracking-widest font-bold mb-4">
+                {cappedSchools.length} result{cappedSchools.length !== 1 ? 's' : ''}
+                {filteredSchools.length > 50 ? ` (showing top 50)` : ''}
+              </p>
+            )}
 
-              return (
-                <SchoolResultCard
-                  key={school.id}
-                  school={enhancedSchool}
-                  isInPipeline={isInPipeline}
-                  fitScore={fitScore}
-                  onAddToPipeline={() => handleAddToPipeline(school)}
-                  onViewSchool={() => openSchoolModal(school)}
-                  showCoachInfo={true}
-                />
-              )
-            })}
-          </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+              {visibleSchools.map((school) => {
+                const fitScore = school.fitScore
+                const isInPipeline = pipeline.includes(school.name)
+                const enhancedSchool = enhanceSchoolForCard(school, true)
+
+                return (
+                  <SchoolResultCard
+                    key={school.id}
+                    school={enhancedSchool}
+                    isInPipeline={isInPipeline}
+                    fitScore={fitScore}
+                    onAddToPipeline={() => handleAddToPipeline(school)}
+                    onViewSchool={() => openSchoolModal(school)}
+                    showCoachInfo={true}
+                  />
+                )
+              })}
+
+              {/* Loading skeleton cards */}
+              {loadingMore && Array.from({ length: 3 }).map((_, i) => (
+                <div key={`skeleton-${i}`} className="design-card p-4 animate-pulse">
+                  <div className="h-4 bg-gray-700 rounded mb-3 w-3/4" />
+                  <div className="h-3 bg-gray-800 rounded mb-2 w-1/2" />
+                  <div className="h-3 bg-gray-800 rounded w-2/3" />
+                </div>
+              ))}
+            </div>
+
+            {/* Load More button */}
+            {hasMore && !loadingMore && (
+              <div className="flex flex-col items-center gap-2 mt-8">
+                <button
+                  onClick={handleLoadMore}
+                  className="btn-ghost px-8 py-3"
+                >
+                  Load more schools
+                </button>
+                <p className="text-text-tertiary text-xs">
+                  Showing {visibleSchools.length} of {filteredSchools.length} schools
+                </p>
+              </div>
+            )}
+          </>
         )}
 
         {/* Add Coach Modal */}

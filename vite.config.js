@@ -13,6 +13,53 @@ export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd(), '')
 
   return {
+    build: {
+      // Modern target — every browser supporting React 19 supports es2020.
+      // Smaller, faster output than the default (which still emits some
+      // legacy-friendly polyfill scaffolding).
+      target: 'es2020',
+      sourcemap: false,
+      // Split a few heavy third-party libraries out of the entry chunk so
+      // the initial JS download is smaller AND the vendor code can be
+      // cached independently of our app code across deploys. We only
+      // split things that:
+      //   - are ≥ ~50 KB on their own
+      //   - get loaded on the first dashboard view (so they can't be
+      //     deferred via React.lazy)
+      //   - rarely change (so a vendor-chunk cache hit is likely after
+      //     an app-code deploy)
+      // Don't over-split — every extra chunk is another HTTP request on
+      // first load.
+      rollupOptions: {
+        output: {
+          manualChunks(id) {
+            if (!id.includes('node_modules')) return undefined
+            // Supabase JS client (gotrue + postgrest + realtime + storage)
+            if (id.includes('@supabase/')) return 'vendor-supabase'
+            // React + ReactDOM + React Router — the framework itself
+            if (
+              id.includes('/react/') ||
+              id.includes('/react-dom/') ||
+              id.includes('/react-router/') ||
+              id.includes('/react-router-dom/') ||
+              id.includes('/scheduler/')
+            ) {
+              return 'vendor-react'
+            }
+            // @dnd-kit — only loaded by the MySchools kanban; treated as a
+            // shared vendor chunk because @dnd-kit/core also imports
+            // sortable + utilities so they should land together.
+            // Intentionally do NOT manualChunk @dnd-kit — it's only used by
+            // the MySchools kanban which is lazy-loaded. Forcing it into a
+            // shared vendor chunk would add it to <link rel=modulepreload>
+            // on every page. Letting Rollup default-bundle it into the
+            // MySchools chunk means it only ships when an athlete opens
+            // the pipeline page.
+            return undefined
+          },
+        },
+      },
+    },
     plugins: [
       react(),
       {

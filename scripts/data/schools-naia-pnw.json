@@ -1,0 +1,32 @@
+[
+  { "name": "Bushnell University", "short_name": "Bushnell", "division": "NAIA", "conference": "Cascade Collegiate Conference", "state": "OR", "region": "Pacific Northwest" },
+  { "name": "College of Idaho", "short_name": "College of Idaho", "division": "NAIA", "conference": "Cascade Collegiate Conference", "state": "ID", "region": "Pacific Northwest" },
+  { "name": "Corban University", "short_name": "Corban", "division": "NAIA", "conference": "Cascade Collegiate Conference", "state": "OR", "region": "Pacific Northwest" },
+  { "name": "Eastern Oregon University", "short_name": "Eastern Oregon", "division": "NAIA", "conference": "Cascade Collegiate Conference", "state": "OR", "region": "Pacific Northwest" },
+  { "name": "Multnomah University", "short_name": "Multnomah", "division": "NAIA", "conference": "Cascade Collegiate Conference", "state": "OR", "region": "Pacific Northwest" },
+  { "name": "Northwest University", "short_name": "Northwest U", "division": "NAIA", "conference": "Cascade Collegiate Conference", "state": "WA", "region": "Pacific Northwest" },
+  { "name": "Oregon Tech", "short_name": "Oregon Tech", "division": "NAIA", "conference": "Cascade Collegiate Conference", "state": "OR", "region": "Pacific Northwest" },
+  { "name": "Southern Oregon University", "short_name": "Southern Oregon", "division": "NAIA", "conference": "Cascade Collegiate Conference", "state": "OR", "region": "Pacific Northwest" },
+  { "name": "Walla Walla University", "short_name": "Walla Walla", "division": "NAIA", "conference": "Cascade Collegiate Conference", "state": "WA", "region": "Pacific Northwest" },
+  { "name": "Warner Pacific University", "short_name": "Warner Pacific", "division": "NAIA", "conference": "Cascade Collegiate Conference", "state": "OR", "region": "Pacific Northwest" },
+
+  { "name": "Carroll College", "short_name": "Carroll", "division": "NAIA", "conference": "Frontier Conference", "state": "MT", "region": "Pacific Northwest" },
+  { "name": "Lewis-Clark State College", "short_name": "Lewis-Clark State", "division": "NAIA", "conference": "Frontier Conference", "state": "ID", "region": "Pacific Northwest" },
+  { "name": "Montana Tech", "short_name": "Montana Tech", "division": "NAIA", "conference": "Frontier Conference", "state": "MT", "region": "Pacific Northwest" },
+  { "name": "University of Providence", "short_name": "Providence (MT)", "division": "NAIA", "conference": "Frontier Conference", "state": "MT", "region": "Pacific Northwest" },
+  { "name": "Rocky Mountain College", "short_name": "Rocky Mountain", "division": "NAIA", "conference": "Frontier Conference", "state": "MT", "region": "Pacific Northwest" },
+  { "name": "University of Montana Western", "short_name": "Montana Western", "division": "NAIA", "conference": "Frontier Conference", "state": "MT", "region": "Pacific Northwest" },
+
+  { "name": "Antelope Valley College", "short_name": "Antelope Valley", "division": "NAIA", "conference": "California Pacific", "state": "CA", "region": "California" },
+  { "name": "La Sierra University", "short_name": "La Sierra", "division": "NAIA", "conference": "California Pacific", "state": "CA", "region": "California" },
+  { "name": "Pacific Union College", "short_name": "Pacific Union", "division": "NAIA", "conference": "California Pacific", "state": "CA", "region": "California" },
+  { "name": "Soka University of America", "short_name": "Soka", "division": "NAIA", "conference": "California Pacific", "state": "CA", "region": "California" },
+  { "name": "William Jessup University", "short_name": "William Jessup", "division": "NAIA", "conference": "California Pacific", "state": "CA", "region": "California" },
+
+  { "name": "Arizona Christian University", "short_name": "Arizona Christian", "division": "NAIA", "conference": "Golden State Athletic Conference", "state": "AZ", "region": "Southwest" },
+  { "name": "Hope International University", "short_name": "Hope International", "division": "NAIA", "conference": "Golden State Athletic Conference", "state": "CA", "region": "California" },
+  { "name": "The Master's University", "short_name": "The Master's", "division": "NAIA", "conference": "Golden State Athletic Conference", "state": "CA", "region": "California" },
+  { "name": "San Diego Christian College", "short_name": "San Diego Christian", "division": "NAIA", "conference": "Golden State Athletic Conference", "state": "CA", "region": "California" },
+  { "name": "Vanguard University", "short_name": "Vanguard", "division": "NAIA", "conference": "Golden State Athletic Conference", "state": "CA", "region": "California" },
+  { "name": "Westmont College", "short_name": "Westmont", "division": "NAIA", "conference": "Golden State Athletic Conference", "state": "CA", "region": "California" }
+]

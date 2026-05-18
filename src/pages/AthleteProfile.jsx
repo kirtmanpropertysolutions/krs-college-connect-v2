@@ -1,6 +1,7 @@
-import { useState, useEffect } from 'react'
-import { useAuth } from '../hooks/useAuth'
+import { useState, useEffect, useRef } from 'react'
+import { useAuth } from '../hooks/authContext'
 import { supabase } from '../lib/supabase'
+import { stripExifAndResize } from '../lib/imageUtils.js'
 import AthleteLayout from '../components/AthleteLayout.jsx'
 
 export default function AthleteProfile() {
@@ -9,6 +10,13 @@ export default function AthleteProfile() {
   const [athlete, setAthlete] = useState(null)
   const [loading, setLoading] = useState(true)
   const [saveStatus, setSaveStatus] = useState({})
+  // Photo upload state — hidden file input + uploading flag + last error
+  const photoInputRef = useRef(null)
+  const [photoUploading, setPhotoUploading] = useState(false)
+  const [photoError, setPhotoError] = useState('')
+
+  // Share-my-profile toast state (used by the Copy/Email row)
+  const [shareToast, setShareToast] = useState('')
 
   // Load profile and athlete data
   useEffect(() => {
@@ -72,6 +80,79 @@ export default function AthleteProfile() {
     ]
     const filledFields = fields.filter(field => field != null && field !== '').length
     return Math.round((filledFields / fields.length) * 100)
+  }
+
+  /**
+   * Upload a profile photo to Supabase Storage.
+   *
+   * Flow:
+   *   1. User picks a file → onChange fires this handler
+   *   2. Client-side validation (size + mime — the bucket also enforces)
+   *   3. Upload to `athlete-photos/{user_id}/{timestamp}.{ext}` using
+   *      `upsert: true` so re-uploading replaces the existing file
+   *   4. Get the public URL (bucket is public-read, no signed-URL flow)
+   *   5. Persist the URL on `athletes.profile_photo_url`
+   *   6. Update local state so the new image renders immediately
+   *
+   * RLS on storage.objects only allows writes to `{user_id}/...` paths,
+   * so a malicious client can't upload over another athlete's photo.
+   */
+  const handlePhotoUpload = async (e) => {
+    setPhotoError('')
+    const file = e.target.files?.[0]
+    if (!file || !user?.id) return
+
+    // Client-side validation — friendlier error than waiting for the bucket
+    if (!['image/jpeg', 'image/png', 'image/webp'].includes(file.type)) {
+      setPhotoError('Use JPG, PNG, or WebP.')
+      return
+    }
+    if (file.size > 5 * 1024 * 1024) {
+      setPhotoError('Max file size is 5 MB.')
+      return
+    }
+
+    setPhotoUploading(true)
+    try {
+      // Strip EXIF + resize BEFORE upload. This removes GPS coordinates,
+      // device model, and timestamp metadata that phone cameras embed
+      // in every photo (a privacy concern — those coords often point at
+      // the athlete's home or training facility). Also resizes huge
+      // 12 MP camera output down to a sane 1200px max dimension so we
+      // don't burn storage and bandwidth on details no display will use.
+      const processed = await stripExifAndResize(file)
+
+      // Mime might change if we re-encoded JPEG→JPEG, but the helper
+      // preserves PNG transparency when the input was PNG. Pull from the
+      // processed blob directly so the upload contentType matches.
+      const ext = processed.type === 'image/png' ? 'png' : 'jpg'
+      // Date.now() runs inside an async upload event-handler (not render) —
+      // we need a fresh timestamp per upload so the storage path is unique.
+      // eslint-disable-next-line react-hooks/purity
+      const path = `${user.id}/${Date.now()}.${ext}`
+
+      const { error: uploadErr } = await supabase.storage
+        .from('athlete-photos')
+        .upload(path, processed, { upsert: true, contentType: processed.type })
+      if (uploadErr) throw uploadErr
+
+      const { data: publicData } = supabase.storage
+        .from('athlete-photos')
+        .getPublicUrl(path)
+      const publicUrl = publicData?.publicUrl
+      if (!publicUrl) throw new Error('Could not get public URL')
+
+      // Persist on the athlete row so the recruiting card + public
+      // profile page pick it up automatically.
+      await saveField('athletes', 'profile_photo_url', publicUrl)
+    } catch (err) {
+      console.error('Photo upload failed:', err)
+      setPhotoError(err.message || 'Upload failed — try again.')
+    } finally {
+      setPhotoUploading(false)
+      // Reset the input so picking the same file again still fires onChange
+      if (photoInputRef.current) photoInputRef.current.value = ''
+    }
   }
 
   // Save field to appropriate table
@@ -328,19 +409,42 @@ export default function AthleteProfile() {
                 )}
               </div>
 
+              {/* Height in inches — kids in the US think in inches/feet,
+                  not cm. We still persist `height_cm` in the database
+                  (keeps the recruiting card + public profile + any
+                  legacy consumers working), but the input + display
+                  are inches and we convert on save/load. */}
               <div>
                 <label className="block text-gray-400 text-sm uppercase tracking-wider mb-2">
-                  Height (cm)
+                  Height (inches)
                 </label>
                 <input
                   type="number"
-                  value={athlete?.height_cm || ''}
-                  onChange={(e) => setAthlete(prev => ({ ...prev, height_cm: parseInt(e.target.value) || null }))}
-                  onBlur={(e) => handleAthleteSave('height_cm', parseInt(e.target.value) || null)}
+                  value={
+                    athlete?.height_cm
+                      ? Math.round(athlete.height_cm / 2.54)
+                      : ''
+                  }
+                  onChange={(e) => {
+                    const inches = parseInt(e.target.value)
+                    setAthlete((prev) => ({
+                      ...prev,
+                      height_cm: Number.isFinite(inches)
+                        ? Math.round(inches * 2.54)
+                        : null,
+                    }))
+                  }}
+                  onBlur={(e) => {
+                    const inches = parseInt(e.target.value)
+                    handleAthleteSave(
+                      'height_cm',
+                      Number.isFinite(inches) ? Math.round(inches * 2.54) : null
+                    )
+                  }}
                   className="input-field"
-                  placeholder="175"
-                  min="120"
-                  max="220"
+                  placeholder={`68  (e.g. 5'8" = 68")`}
+                  min="48"
+                  max="84"
                 />
                 {saveStatus.height_cm && (
                   <span className={`text-xs ${saveStatus.height_cm === 'saved' ? 'text-green-500' : 'text-red-500'}`}>
@@ -884,25 +988,150 @@ export default function AthleteProfile() {
             </div>
           </div>
 
-          {/* Profile Photo Card */}
+          {/* Profile Photo Card — real upload wired to Supabase Storage
+              bucket "athlete-photos". The current photo shows above
+              the chooser. Re-uploading replaces the existing image
+              (handlePhotoUpload uses a unique timestamped path + upsert
+              so the CDN never serves a stale version). */}
           <div className="card">
             <h3 className="display-font text-white text-xl mb-6">PROFILE PHOTO</h3>
-            <div className="border-2 border-dashed border-gray-600 rounded-lg p-8 text-center">
-              <div className="w-16 h-16 bg-gray-700 rounded-full mx-auto mb-4 flex items-center justify-center">
-                📷
-              </div>
-              <p className="text-gray-400 mb-4">Upload a professional headshot photo</p>
-              <button
-                className="btn-secondary"
-                disabled
-                title="Photo upload requires backend implementation"
-              >
-                Choose File
-              </button>
-              <p className="text-gray-500 text-sm mt-2">
-                JPG or PNG, max 5MB
+            <div className="border-2 border-dashed border-gray-600 rounded-lg p-6 text-center">
+              {athlete?.profile_photo_url ? (
+                <img
+                  src={athlete.profile_photo_url}
+                  alt="Your profile photo"
+                  className="w-28 h-28 rounded-full mx-auto mb-4 object-cover border-2 border-red-700/40"
+                />
+              ) : (
+                <div className="w-20 h-20 bg-gray-700 rounded-full mx-auto mb-4 flex items-center justify-center text-2xl">
+                  📷
+                </div>
+              )}
+              <p className="text-gray-400 mb-4 text-sm">
+                {athlete?.profile_photo_url
+                  ? 'Tap to change your headshot.'
+                  : 'Upload a professional headshot — coaches see this on your public profile.'}
               </p>
+              <input
+                ref={photoInputRef}
+                type="file"
+                accept="image/jpeg,image/png,image/webp"
+                onChange={handlePhotoUpload}
+                className="hidden"
+                aria-label="Upload profile photo"
+              />
+              <button
+                type="button"
+                onClick={() => photoInputRef.current?.click()}
+                disabled={photoUploading}
+                className="btn-secondary disabled:opacity-50"
+              >
+                {photoUploading
+                  ? 'Uploading…'
+                  : athlete?.profile_photo_url
+                  ? 'Change photo'
+                  : 'Choose file'}
+              </button>
+              <p className="text-gray-500 text-xs mt-3">
+                JPG, PNG, or WebP · Max 5 MB
+              </p>
+              {photoError && (
+                <p className="text-red-400 text-xs mt-2">{photoError}</p>
+              )}
+              {saveStatus.profile_photo_url === 'saved' && (
+                <p className="text-green-500 text-xs mt-2">Photo saved ✓</p>
+              )}
             </div>
+          </div>
+
+          {/* Share-my-profile + Download PDF card. The public profile
+              URL (/p/{user_id}) is the link athletes paste into coach
+              emails. This is also the answer to Chanyn's "how do I see
+              the public profile" question. Copy → clipboard, Email →
+              Gmail compose pre-filled, PDF → client-side render of
+              the athlete profile for email attachments. */}
+          <div className="card">
+            <h3 className="display-font text-white text-xl mb-4">SHARE YOUR PROFILE</h3>
+            <p className="text-gray-400 text-sm mb-5 leading-relaxed">
+              This is the public link coaches see. Paste it into outreach
+              emails or share with anyone — no sign-in needed to view.
+            </p>
+
+            <div className="bg-navy-950 border border-gray-700 rounded-lg px-3 py-2 mb-3 flex items-center gap-2">
+              <code className="flex-1 text-xs text-gray-300 truncate">
+                {typeof window !== 'undefined'
+                  ? `${window.location.origin}/p/${user?.id || ''}`
+                  : ''}
+              </code>
+            </div>
+
+            <div className="flex flex-wrap gap-2">
+              <button
+                onClick={async () => {
+                  const url = `${window.location.origin}/p/${user?.id}`
+                  try {
+                    await navigator.clipboard.writeText(url)
+                    setShareToast('Link copied ✓')
+                  } catch {
+                    setShareToast('Copy failed — long-press to copy manually.')
+                  }
+                  setTimeout(() => setShareToast(''), 2500)
+                }}
+                className="btn-secondary"
+              >
+                Copy link
+              </button>
+              <a
+                href={`/p/${user?.id || ''}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="btn-secondary"
+              >
+                Preview
+              </a>
+              <button
+                onClick={() => {
+                  // Gmail compose pre-filled with the public profile link.
+                  // Same mobile/desktop trick we use in Outreach — direct
+                  // location.href on mobile, popup on desktop.
+                  const url = `${window.location.origin}/p/${user?.id}`
+                  const name = profile?.full_name || 'an athlete'
+                  const subject = `${name} — recruiting profile`
+                  const body = `Hi Coach,\n\nI'd like to introduce you to ${name}. You can see my recruiting profile, highlights, and contact info here:\n\n${url}\n\nThanks for your time.\n\n— ${name}`
+                  const isMobile = window.matchMedia?.('(max-width: 768px)').matches
+                  const gmailUrl =
+                    'https://mail.google.com/mail/?view=cm&tf=cm&to=' +
+                    '&su=' + encodeURIComponent(subject) +
+                    '&body=' + encodeURIComponent(body)
+                  if (isMobile) {
+                    window.location.href = gmailUrl
+                  } else {
+                    window.open(gmailUrl, '_blank')
+                  }
+                }}
+                className="btn-secondary"
+              >
+                Email it
+              </button>
+            </div>
+            {shareToast && (
+              <p className="text-green-400 text-xs mt-3">{shareToast}</p>
+            )}
+          </div>
+
+          {/* Big crimson "Go to Dashboard" CTA at the bottom — answers
+              the question new athletes have after completing onboarding:
+              "ok, now what?". Crucial for the first-time experience. */}
+          <div className="mt-6">
+            <button
+              onClick={() => (window.location.href = '/')}
+              className="eastside-btn w-full flex items-center justify-center gap-2 py-4"
+            >
+              Go to your dashboard →
+            </button>
+            <p className="text-text-tertiary text-xs text-center mt-3">
+              Your active quests and recommended schools are waiting there.
+            </p>
           </div>
         </div>
       </div>

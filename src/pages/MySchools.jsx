@@ -1,9 +1,9 @@
-import { useState, useEffect } from 'react'
-import { useAuth } from '../hooks/useAuth'
+import { useState, useEffect, useCallback } from 'react'
+import { useAuth } from '../hooks/authContext'
 import { useNavigate } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
 import { DndContext, DragOverlay, useSensor, useSensors, PointerSensor, pointerWithin, useDroppable } from '@dnd-kit/core'
-import { SortableContext, arrayMove, useSortable, verticalListSortingStrategy } from '@dnd-kit/sortable'
+import { SortableContext, useSortable, verticalListSortingStrategy } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
 import { MoreVertical } from 'lucide-react'
 import AthleteLayout from '../components/AthleteLayout.jsx'
@@ -245,6 +245,174 @@ function Column({ stage, schools, onEmailCoach, onViewSchool, onRemove, onChange
   )
 }
 
+// Mobile-only card for a single school inside an expanded stage section.
+// Hoisted to module scope (was inside MySchools) so React doesn't reset its
+// state on every parent render. Closed-over setters are passed as props.
+function MobileSchoolCard({ school, setShowStageModal, setSelectedSchool }) {
+  const schoolName = school.schools?.name || school.school
+  const schoolColors = getSchoolColors(schoolName)
+  const accentColor = isLightColor(schoolColors.primary) ? schoolColors.secondary : schoolColors.primary
+  const tintColor = isLightColor(schoolColors.primary) ? schoolColors.secondary : schoolColors.primary
+  const fitScore = school.quiz_responses ? calculateFitScore(school, school.quiz_responses, school.profile) : null
+  const fitBadge = fitScore ? getFitScoreBadge(fitScore, true) : null
+
+  const getLastContact = () => {
+    if (school.last_outreach_date) {
+      const daysSince = Math.floor((new Date() - new Date(school.last_outreach_date)) / (1000 * 60 * 60 * 24))
+      return daysSince === 0 ? 'Today' : `${daysSince}d ago`
+    }
+    return 'Never contacted'
+  }
+
+  return (
+    <div
+      style={{
+        borderLeft: `3px solid ${accentColor}`,
+        background: `linear-gradient(135deg, ${tintColor}10 0%, ${tintColor}05 50%, transparent 100%), #111827`
+      }}
+      className="rounded-lg p-4 mb-3 border border-card-border border-l-0 relative"
+    >
+      {fitScore && (
+        <span className={`absolute top-3 right-3 px-2 py-1 rounded text-xs font-bold ${fitBadge.className} z-10`}>
+          {fitScore}
+        </span>
+      )}
+
+      <div className="flex items-center gap-3 mb-3 pr-12">
+        <SchoolBadge schoolName={schoolName} size="md" />
+        <div className="flex-1">
+          <h3 className="text-white font-medium text-sm truncate">
+            {schoolName}
+          </h3>
+          <div className="flex items-center gap-2 mt-1">
+            {school.schools?.division && (
+              <span className="px-2 py-1 rounded text-xs font-medium text-white bg-text-muted">
+                {school.schools.division}
+              </span>
+            )}
+            {school.schools?.conference && (
+              <span className="text-xs text-text-tertiary">
+                {school.schools.conference}
+              </span>
+            )}
+          </div>
+        </div>
+      </div>
+
+      <p className="text-text-tertiary text-xs mb-3">
+        Last contact: {getLastContact()}
+      </p>
+
+      <div className="flex gap-2">
+        <button
+          onClick={() => setShowStageModal(school)}
+          className="flex-1 bg-eastside-crimson text-white px-3 py-2 rounded text-xs font-medium"
+        >
+          Change Stage
+        </button>
+        <button
+          onClick={() => setSelectedSchool(school)}
+          className="flex-1 bg-navy-700 text-white px-3 py-2 rounded text-xs font-medium border border-gray-600"
+        >
+          View Details
+        </button>
+      </div>
+    </div>
+  )
+}
+
+// Stage-by-stage accordion shown on mobile in place of the kanban board.
+// Hoisted alongside MobileSchoolCard for the same lifecycle reason.
+function MobileStageView({ groupedSchools, expandedSections, toggleSection, setShowStageModal, setSelectedSchool }) {
+  return (
+    <div className="space-y-4">
+      {STAGES.map(stage => {
+        const stageSchools = groupedSchools[stage.id] || []
+        const isExpanded = expandedSections[stage.id]
+
+        return (
+          <div key={stage.id} className="design-card overflow-hidden">
+            <button
+              onClick={() => toggleSection(stage.id)}
+              className="w-full p-4 flex items-center justify-between text-left"
+            >
+              <div className="flex items-center gap-3">
+                <h2 className="text-white text-sm font-medium">{stage.name}</h2>
+                <span className={`${stage.color} ${stage.textColor} text-xs px-2 py-1 rounded-full font-medium`}>
+                  {stageSchools.length}
+                </span>
+              </div>
+              <div className={`transform transition-transform ${isExpanded ? 'rotate-180' : ''}`}>
+                <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                </svg>
+              </div>
+            </button>
+
+            {isExpanded && (
+              <div className="px-4 pb-4">
+                {stageSchools.length > 0 ? (
+                  stageSchools.map(school => (
+                    <MobileSchoolCard
+                      key={school.id}
+                      school={school}
+                      setShowStageModal={setShowStageModal}
+                      setSelectedSchool={setSelectedSchool}
+                    />
+                  ))
+                ) : (
+                  <div className="border-2 border-dashed border-gray-600 rounded-lg p-6 text-center">
+                    <p className="text-text-tertiary text-sm">No schools in {stage.name.toLowerCase()}</p>
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+        )
+      })}
+    </div>
+  )
+}
+
+// Bottom-sheet modal used by mobile to move a school between stages.
+// Hoisted to module scope; STAGES is already module-scoped above.
+function StageModal({ school, onClose, onChangeStage }) {
+  if (!school) return null
+
+  return (
+    <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-end">
+      <div className="bg-navy-900 w-full rounded-t-xl p-6 animate-slide-up">
+        <div className="flex items-center justify-between mb-4">
+          <h3 className="text-white font-medium">Move {school.schools?.name || school.school}</h3>
+          <button onClick={onClose} className="text-gray-400 text-xl">×</button>
+        </div>
+
+        <div className="space-y-2">
+          {STAGES.filter(stage => stage.id !== school.stage).map(stage => (
+            <button
+              key={stage.id}
+              onClick={() => {
+                onChangeStage(school, stage.id)
+                onClose()
+              }}
+              className="w-full text-left p-3 rounded bg-navy-800 text-white hover:bg-navy-700 transition-colors"
+            >
+              Move to {stage.name}
+            </button>
+          ))}
+        </div>
+
+        <button
+          onClick={onClose}
+          className="w-full mt-4 p-3 bg-gray-600 text-white rounded"
+        >
+          Cancel
+        </button>
+      </div>
+    </div>
+  )
+}
+
 export default function MySchools() {
   const { user, profile } = useAuth()
   const navigate = useNavigate()
@@ -263,19 +431,7 @@ export default function MySchools() {
     })
   )
 
-  useEffect(() => {
-    if (user?.id) {
-      loadPipeline(user.id)
-    }
-  }, [user?.id])
-
-  useEffect(() => {
-    const handler = () => setIsMobile(window.innerWidth < 768)
-    window.addEventListener('resize', handler)
-    return () => window.removeEventListener('resize', handler)
-  }, [])
-
-  const loadPipeline = async (userId) => {
+  const loadPipeline = useCallback(async (userId) => {
     if (!userId) return
 
     try {
@@ -287,23 +443,31 @@ export default function MySchools() {
 
       if (error) throw error
 
-      // Step 2: Lookup school details for each pipeline entry
-      const pipelinesWithSchools = []
-      for (const pipeline of data || []) {
-        const { data: schoolData } = await supabase
+      // Step 2: Lookup school details for ALL pipeline entries in one
+      // round-trip. The previous implementation issued one .single()
+      // query per pipeline row — for an athlete with 20 schools in the
+      // pipeline that's 20 sequential network calls before the page
+      // could render. The .in() batched query returns the same data
+      // in one trip; we hydrate via a Map lookup by school name.
+      let pipelinesWithSchools = []
+      const rows = data || []
+      if (rows.length > 0) {
+        const schoolNames = rows.map((p) => p.school)
+        const { data: schoolsData } = await supabase
           .from('schools')
           .select('*')
-          .eq('name', pipeline.school)
-          .single()
+          .in('name', schoolNames)
 
-        const merged = {
-          ...(schoolData || {}),         // school fields at top level
-          ...pipeline,                  // pipeline fields override (id, stage, etc.)
-          name: schoolData?.name || pipeline.school,  // fallback to text name
-          schools: schoolData || { name: pipeline.school }   // also keep nested for components that expect it
-        }
-
-        pipelinesWithSchools.push(merged)
+        const byName = new Map((schoolsData || []).map((s) => [s.name, s]))
+        pipelinesWithSchools = rows.map((pipeline) => {
+          const schoolData = byName.get(pipeline.school) || null
+          return {
+            ...(schoolData || {}),         // school fields at top level
+            ...pipeline,                  // pipeline fields override (id, stage, etc.)
+            name: schoolData?.name || pipeline.school,  // fallback to text name
+            schools: schoolData || { name: pipeline.school }   // also keep nested for components that expect it
+          }
+        })
       }
 
       setSchools(pipelinesWithSchools)
@@ -312,10 +476,24 @@ export default function MySchools() {
     } finally {
       setLoading(false)
     }
-  }
+  }, [])
+
+  useEffect(() => {
+    if (user?.id) {
+      // Sync-with-external-state: load pipeline rows for the signed-in athlete.
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      loadPipeline(user.id)
+    }
+  }, [user?.id, loadPipeline])
+
+  useEffect(() => {
+    const handler = () => setIsMobile(window.innerWidth < 768)
+    window.addEventListener('resize', handler)
+    return () => window.removeEventListener('resize', handler)
+  }, [])
 
   const handleDragStart = (event) => {
-    console.log('🟡 Drag started:', event.active.id)
+    if (import.meta.env.DEV) console.log('🟡 Drag started:', event.active.id)
     setActiveId(event.active.id)
   }
 
@@ -397,7 +575,7 @@ export default function MySchools() {
 
   const handleChangeStage = async (school, newStage) => {
     const stageName = STAGES.find(s => s.id === newStage)?.name || newStage
-    console.log('🔄 Changing stage:', school.schools?.name, 'to', stageName)
+    if (import.meta.env.DEV) console.log('🔄 Changing stage:', school.schools?.name, 'to', stageName)
 
     try {
       // Update database
@@ -426,7 +604,7 @@ export default function MySchools() {
         to_stage: newStage
       })
 
-      console.log('✅ Stage changed successfully')
+      if (import.meta.env.DEV) console.log('✅ Stage changed successfully')
     } catch (error) {
       console.error('❌ Error changing stage:', error)
     }
@@ -444,167 +622,6 @@ export default function MySchools() {
     }))
   }
 
-  // Mobile Components
-  const MobileSchoolCard = ({ school, onChangeStage }) => {
-    const schoolName = school.schools?.name || school.school
-    const schoolColors = getSchoolColors(schoolName)
-    const accentColor = isLightColor(schoolColors.primary) ? schoolColors.secondary : schoolColors.primary
-    const tintColor = isLightColor(schoolColors.primary) ? schoolColors.secondary : schoolColors.primary
-    const fitScore = school.quiz_responses ? calculateFitScore(school, school.quiz_responses, school.profile) : null
-    const fitBadge = fitScore ? getFitScoreBadge(fitScore, true) : null
-
-    const getLastContact = () => {
-      if (school.last_outreach_date) {
-        const daysSince = Math.floor((new Date() - new Date(school.last_outreach_date)) / (1000 * 60 * 60 * 24))
-        return daysSince === 0 ? 'Today' : `${daysSince}d ago`
-      }
-      return 'Never contacted'
-    }
-
-    return (
-      <div
-        style={{
-          borderLeft: `3px solid ${accentColor}`,
-          background: `linear-gradient(135deg, ${tintColor}10 0%, ${tintColor}05 50%, transparent 100%), #111827`
-        }}
-        className="rounded-lg p-4 mb-3 border border-card-border border-l-0 relative"
-      >
-        {fitScore && (
-          <span className={`absolute top-3 right-3 px-2 py-1 rounded text-xs font-bold ${fitBadge.className} z-10`}>
-            {fitScore}
-          </span>
-        )}
-
-        <div className="flex items-center gap-3 mb-3 pr-12">
-          <SchoolBadge schoolName={schoolName} size="md" />
-          <div className="flex-1">
-            <h3 className="text-white font-medium text-sm truncate">
-              {schoolName}
-            </h3>
-            <div className="flex items-center gap-2 mt-1">
-              {school.schools?.division && (
-                <span className="px-2 py-1 rounded text-xs font-medium text-white bg-text-muted">
-                  {school.schools.division}
-                </span>
-              )}
-              {school.schools?.conference && (
-                <span className="text-xs text-text-tertiary">
-                  {school.schools.conference}
-                </span>
-              )}
-            </div>
-          </div>
-        </div>
-
-        <p className="text-text-tertiary text-xs mb-3">
-          Last contact: {getLastContact()}
-        </p>
-
-        <div className="flex gap-2">
-          <button
-            onClick={() => setShowStageModal(school)}
-            className="flex-1 bg-eastside-crimson text-white px-3 py-2 rounded text-xs font-medium"
-          >
-            Change Stage
-          </button>
-          <button
-            onClick={() => setSelectedSchool(school)}
-            className="flex-1 bg-navy-700 text-white px-3 py-2 rounded text-xs font-medium border border-gray-600"
-          >
-            View Details
-          </button>
-        </div>
-      </div>
-    )
-  }
-
-  const MobileStageView = () => {
-    return (
-      <div className="space-y-4">
-        {STAGES.map(stage => {
-          const stageSchools = groupedSchools[stage.id] || []
-          const isExpanded = expandedSections[stage.id]
-
-          return (
-            <div key={stage.id} className="design-card overflow-hidden">
-              <button
-                onClick={() => toggleSection(stage.id)}
-                className="w-full p-4 flex items-center justify-between text-left"
-              >
-                <div className="flex items-center gap-3">
-                  <h2 className="text-white text-sm font-medium">{stage.name}</h2>
-                  <span className={`${stage.color} ${stage.textColor} text-xs px-2 py-1 rounded-full font-medium`}>
-                    {stageSchools.length}
-                  </span>
-                </div>
-                <div className={`transform transition-transform ${isExpanded ? 'rotate-180' : ''}`}>
-                  <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                  </svg>
-                </div>
-              </button>
-
-              {isExpanded && (
-                <div className="px-4 pb-4">
-                  {stageSchools.length > 0 ? (
-                    stageSchools.map(school => (
-                      <MobileSchoolCard
-                        key={school.id}
-                        school={school}
-                        onChangeStage={(school) => setShowStageModal(school)}
-                      />
-                    ))
-                  ) : (
-                    <div className="border-2 border-dashed border-gray-600 rounded-lg p-6 text-center">
-                      <p className="text-text-tertiary text-sm">No schools in {stage.name.toLowerCase()}</p>
-                    </div>
-                  )}
-                </div>
-              )}
-            </div>
-          )
-        })}
-      </div>
-    )
-  }
-
-  const StageModal = ({ school, onClose, onChangeStage }) => {
-    if (!school) return null
-
-    return (
-      <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-end">
-        <div className="bg-navy-900 w-full rounded-t-xl p-6 animate-slide-up">
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="text-white font-medium">Move {school.schools?.name || school.school}</h3>
-            <button onClick={onClose} className="text-gray-400 text-xl">×</button>
-          </div>
-
-          <div className="space-y-2">
-            {STAGES.filter(stage => stage.id !== school.stage).map(stage => (
-              <button
-                key={stage.id}
-                onClick={() => {
-                  onChangeStage(school, stage.id)
-                  onClose()
-                }}
-                className="w-full text-left p-3 rounded bg-navy-800 text-white hover:bg-navy-700 transition-colors"
-              >
-                Move to {stage.name}
-              </button>
-            ))}
-          </div>
-
-          <button
-            onClick={onClose}
-            className="w-full mt-4 p-3 bg-gray-600 text-white rounded"
-          >
-            Cancel
-          </button>
-        </div>
-      </div>
-    )
-  }
-
   if (loading) {
     return (
       <AthleteLayout>
@@ -618,9 +635,13 @@ export default function MySchools() {
   return (
     <AthleteLayout>
       <div className="max-w-full overflow-x-hidden px-4 md:px-8 py-8">
-        <div style={{ marginBottom: '24px' }}>
-          <h1 style={{ color: 'white', fontSize: '22px', fontWeight: 500, letterSpacing: '-0.01em', margin: 0 }}>MY SCHOOLS</h1>
-          <p style={{ color: '#94a3b8', fontSize: '13px', margin: '4px 0 0 0' }}>Track every school in your recruiting pipeline</p>
+        <div style={{ marginBottom: '28px' }}>
+          <div className="flex items-center gap-3 mb-2">
+            <div className="h-px w-8" style={{ background: 'var(--crimson)' }} />
+            <span className="text-[10px] uppercase tracking-[0.22em] font-bold" style={{ color: 'var(--crimson)' }}>Recruiting Pipeline</span>
+          </div>
+          <h1 className="display-font text-white" style={{ fontSize: '36px', margin: 0 }}>My Schools</h1>
+          <p className="text-text-secondary text-sm mt-1">Track every school in your recruiting pipeline</p>
         </div>
 
         {schools.length === 0 && (
@@ -636,7 +657,13 @@ export default function MySchools() {
         )}
 
 {isMobile ? (
-          <MobileStageView />
+          <MobileStageView
+            groupedSchools={groupedSchools}
+            expandedSections={expandedSections}
+            toggleSection={toggleSection}
+            setShowStageModal={setShowStageModal}
+            setSelectedSchool={setSelectedSchool}
+          />
         ) : (
           <DndContext
             sensors={sensors}

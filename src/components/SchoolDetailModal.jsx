@@ -1,8 +1,8 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Loader2, Check, AlertCircle } from 'lucide-react'
 import { supabase } from '../lib/supabase'
-import { useAuth } from '../hooks/useAuth'
+import { useAuth } from '../hooks/authContext'
 import { getFitScoreBadge } from '../lib/fitScore'
 import { logActivity } from '../lib/activity.js'
 import CoachPopover from './CoachPopover.jsx'
@@ -11,7 +11,6 @@ export default function SchoolDetailModal({
   school,
   isOpen,
   onClose,
-  athleteProfile,
   onAddToPipeline,
   onRemoveFromPipeline,
   isInPipeline,
@@ -19,26 +18,87 @@ export default function SchoolDetailModal({
 }) {
   const navigate = useNavigate()
   const { user } = useAuth()
+  const userId = user?.id
+  const schoolRowId = school?.id
+  const schoolRowName = school?.name
+
+  // ── ID normalization ────────────────────────────────────────────────
+  // Callers pass `school` in two different shapes:
+  //   • CoachFinder / Dashboard hand us a plain schools row, where
+  //     `school.id` IS the schools.id we want.
+  //   • MySchools / pipeline rows are merged like {...schoolData,
+  //     ...pipeline} — the spread order means `pipeline.id` (a
+  //     pipelines row id) clobbers schoolData.id. We have to dig the
+  //     real school id out of the nested `school.schools.id` instead.
+  //
+  // Without this normalization, the "Email Program" button passes a
+  // pipeline row id as ?school_id=, Outreach can't find a schools row
+  // with that id, and the recipient field never fills.
+  const realSchoolId = school?.schools?.id || school?.id
+  const realProgramEmail =
+    school?.schools?.program_email ?? school?.program_email ?? null
 
   const [activeTab, setActiveTab] = useState('COACHES')
   const [notes, setNotes] = useState('')
   const [saveStatus, setSaveStatus] = useState('') // '', 'saving', 'saved', 'error'
   const [expandedPlaceholders, setExpandedPlaceholders] = useState(false)
-  const [showAddCoachModal, setShowAddCoachModal] = useState(false)
+  // Only the setter is wired today — the modal itself isn't mounted here yet;
+  // the button just flags interest for the parent flow. Keeps the future-modal
+  // hook in place without surfacing an unused state value.
+  const [, setShowAddCoachModal] = useState(false)
   const [showRemoveDropdown, setShowRemoveDropdown] = useState(false)
   const [saveTimeout, setSaveTimeout] = useState(null)
   const [activeCoachPopover, setActiveCoachPopover] = useState(null)
+  // Coaches we look up ourselves when the parent doesn't pre-load them.
+  // CoachFinder always passes `school.coaches`, but Dashboard / MySchools
+  // / SchoolFitQuiz open this modal with a bare school object and we
+  // were showing "no coaches" even when the school had verified coaches
+  // in the database. This fixes that without making every caller do the
+  // join itself.
+  const [loadedCoaches, setLoadedCoaches] = useState(null)
 
-  // Load notes when modal opens
+  // Auto-load coaches when the parent didn't include them. We only hit
+  // the database when school.coaches is missing/empty, so CoachFinder
+  // (which pre-joins) takes the fast path with zero extra queries.
+  //
+  // CRUCIAL: clear `loadedCoaches` IMMEDIATELY when `school?.id` changes.
+  // The modal stays mounted across school selections on MySchools and
+  // the dashboard, so without this reset the user sees the previous
+  // school's coaches for a beat before the new query lands — visible
+  // as a "wrong coaches" bug on mobile where loading is slower.
   useEffect(() => {
-    if (isOpen && school && user) {
-      loadNotes()
-      updateLastActivity()
+    if (!isOpen || !realSchoolId) return
+    if (Array.isArray(school.coaches) && school.coaches.length > 0) {
+      // Sync-with-external-state: the parent already preloaded the join.
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setLoadedCoaches(school.coaches)
+      return
     }
-  }, [isOpen, school?.id, user?.id])
 
-  const updateLastActivity = async () => {
-    if (!isInPipeline || !user?.id || !school?.name) return
+    // Wipe stale data the instant the school changes
+    setLoadedCoaches(null)
+
+    let cancelled = false
+    ;(async () => {
+      const { data, error } = await supabase
+        .from('coaches')
+        .select('id, name, title, email, school_id')
+        .eq('school_id', realSchoolId)
+      if (cancelled) return
+      if (error) {
+        console.error('SchoolDetailModal: failed to load coaches', error)
+        setLoadedCoaches([])
+        return
+      }
+      setLoadedCoaches(data || [])
+    })()
+    return () => {
+      cancelled = true
+    }
+  }, [isOpen, realSchoolId, school?.coaches])
+
+  const updateLastActivity = useCallback(async () => {
+    if (!isInPipeline || !userId || !schoolRowName) return
 
     try {
       await supabase
@@ -46,12 +106,12 @@ export default function SchoolDetailModal({
         .update({
           last_activity_at: new Date().toISOString()
         })
-        .eq('athlete_id', user.id)
-        .eq('school', school.name)
+        .eq('athlete_id', userId)
+        .eq('school', schoolRowName)
     } catch (error) {
       console.error('Error updating last activity:', error)
     }
-  }
+  }, [isInPipeline, userId, schoolRowName])
 
   // ESC key handler
   useEffect(() => {
@@ -74,26 +134,37 @@ export default function SchoolDetailModal({
     }
   }, [isOpen, onClose])
 
-  const loadNotes = async () => {
+  const loadNotes = useCallback(async () => {
+    if (!userId || !schoolRowId) return
     try {
       const { data } = await supabase
         .from('school_notes')
         .select('notes')
-        .eq('user_id', user.id)
-        .eq('school_id', school.id)
+        .eq('user_id', userId)
+        .eq('school_id', schoolRowId)
         .single()
 
       setNotes(data?.notes || '')
-    } catch (error) {
+    } catch {
       // Notes don't exist yet, that's fine
       setNotes('')
     }
-  }
+  }, [userId, schoolRowId])
+
+  // Load notes when modal opens
+  useEffect(() => {
+    if (isOpen && school && user) {
+      // Sync-with-external-state: pull saved notes + bump last-activity timestamp.
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      loadNotes()
+      updateLastActivity()
+    }
+  }, [isOpen, school, user, loadNotes, updateLastActivity])
 
   const saveNotes = async () => {
     if (!user || !school) return
 
-    console.log('🔄 Setting saveStatus to saving')
+    if (import.meta.env.DEV) console.log('🔄 Setting saveStatus to saving')
     setSaveStatus('saving')
     try {
       await supabase
@@ -107,14 +178,14 @@ export default function SchoolDetailModal({
           onConflict: 'user_id,school_id'
         })
 
-      console.log('✅ Setting saveStatus to saved')
+      if (import.meta.env.DEV) console.log('✅ Setting saveStatus to saved')
       setSaveStatus('saved')
 
       // Log activity
       await logActivity(user.id, 'note_saved', { school_name: school?.name })
 
       setTimeout(() => {
-        console.log('⏰ Clearing saveStatus')
+        if (import.meta.env.DEV) console.log('⏰ Clearing saveStatus')
         setSaveStatus('')
       }, 2000)
     } catch (error) {
@@ -170,12 +241,21 @@ export default function SchoolDetailModal({
     navigate(url)
   }
 
-  const handleEmailCoach = (coach) => {
-    navigateToOutreach(coach, school)
-  }
+  // Preserved for the per-coach "Email" button on coach rows. The current
+  // modal layout funnels users through handleEmailProgram instead, so this
+  // helper isn't wired up — keeping the navigateToOutreach call shape here
+  // so the row-level CTA can be reintroduced without re-deriving the URL.
+  // const handleEmailCoach = (coach) => navigateToOutreach(coach, school)
 
   const handleEmailProgram = () => {
-    navigate(`/outreach?school_id=${school.id}&program_email=${encodeURIComponent(school.program_email)}`)
+    // Use the normalized real school id (pipeline.id would be wrong here)
+    if (!realSchoolId || !realProgramEmail) {
+      navigate('/outreach')
+      return
+    }
+    navigate(
+      `/outreach?school_id=${realSchoolId}&program_email=${encodeURIComponent(realProgramEmail)}`
+    )
   }
 
   const copyToClipboard = async (text) => {
@@ -188,8 +268,12 @@ export default function SchoolDetailModal({
 
   if (!isOpen || !school) return null
 
-  // Get coaches
-  const allCoaches = school.coaches || []
+  // Get coaches — prefer what the parent passed, fall back to what we
+  // loaded ourselves on open, then to empty array.
+  const allCoaches =
+    (Array.isArray(school.coaches) && school.coaches.length > 0
+      ? school.coaches
+      : loadedCoaches) || []
   const realCoaches = allCoaches.filter(c =>
     !c.name.includes('Needs Verification') &&
     !c.name.includes('Support Staff') &&
@@ -232,21 +316,29 @@ export default function SchoolDetailModal({
       style={{ backgroundColor: 'rgba(0, 0, 0, 0.7)' }}
       onClick={onClose}
     >
+      {/* Mobile: fills the screen, scrolls top to bottom, respects iPhone
+          notch via safe-area-inset-top. Desktop: centered card with a
+          max height, content inside scrolls. */}
       <div
-        className="fixed inset-0 md:inset-auto md:max-w-[900px] md:max-h-[85vh] md:rounded-xl md:m-auto bg-navy-900 shadow-2xl border border-gray-600 w-full overflow-hidden animate-fadeIn"
+        className="fixed inset-0 md:inset-auto md:max-w-[900px] md:max-h-[85vh] md:rounded-xl md:m-auto bg-navy-900 shadow-2xl border border-gray-600 w-full overflow-y-auto animate-fadeIn"
+        style={{ paddingTop: 'env(safe-area-inset-top, 0px)' }}
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header with gradient */}
         <div
-          className="sticky top-0 bg-navy-900 z-10 relative p-6 text-white"
+          className="sticky z-10 relative px-5 py-5 md:p-6 text-white"
           style={{
-            background: `linear-gradient(135deg, ${school.primary_color}26 0%, #0F1E36 100%)`
+            top: 'env(safe-area-inset-top, 0px)',
+            background: `linear-gradient(135deg, ${school.primary_color}26 0%, #0F1E36 100%)`,
           }}
         >
-          {/* Close button */}
+          {/* Close button — pushed below the notch on iPhone via the
+              container's safe-area padding. Sized as a real tap target. */}
           <button
             onClick={onClose}
-            className="absolute top-4 right-4 h-12 w-12 md:h-10 md:w-10 flex items-center justify-center rounded-full bg-black bg-opacity-30 hover:bg-opacity-50 text-white"
+            className="absolute h-11 w-11 md:h-10 md:w-10 flex items-center justify-center rounded-full bg-black bg-opacity-40 hover:bg-opacity-60 text-white text-xl leading-none"
+            style={{ top: '12px', right: '12px' }}
+            aria-label="Close"
           >
             ×
           </button>
@@ -260,9 +352,12 @@ export default function SchoolDetailModal({
             </div>
           )}
 
-          {/* School info */}
-          <div className="pr-20">
-            <h1 className="display-font text-3xl font-bold mb-2">{school.name}</h1>
+          {/* School info — extra right padding so the title doesn't
+              crash into the close button on narrow phones. */}
+          <div className="pr-14 md:pr-20">
+            <h1 className="display-font text-2xl md:text-3xl font-bold mb-2 leading-tight">
+              {school.name}
+            </h1>
 
             <div className="flex items-center gap-3 mb-4">
               {school.division && (
@@ -320,23 +415,27 @@ export default function SchoolDetailModal({
           </div>
         </div>
 
-        {/* Body */}
-        <div className="flex flex-col md:flex-row h-96 overflow-hidden">
-          {/* Left sidebar - 30% */}
-          <div className="w-full md:w-[30%] bg-navy-800 p-6 border-b md:border-b-0 md:border-r border-gray-600 overflow-y-auto">
+        {/* Body — on mobile, content scrolls naturally with the outer
+            container (no nested scroll, no forced 384px ceiling that
+            was clipping everything). On desktop the body becomes a
+            two-column layout with the sidebar fixed at 30% and the
+            main area scrolling independently. */}
+        <div className="flex flex-col md:flex-row md:h-[640px] md:max-h-[calc(85vh-160px)] md:overflow-hidden">
+          {/* Left sidebar — 30% on desktop, full width stacked on mobile */}
+          <div className="w-full md:w-[30%] bg-navy-800 px-5 py-5 md:p-6 border-b md:border-b-0 md:border-r border-gray-600 md:overflow-y-auto">
             <div className="space-y-6">
               {/* Program Email */}
               <div>
                 <h3 className="text-white font-bold mb-2 text-sm uppercase tracking-wider">Program Email</h3>
-                {school.program_email ? (
+                {realProgramEmail ? (
                   <div className="bg-green-900 bg-opacity-20 border border-green-600 border-opacity-30 rounded-lg p-3">
                     <div className="flex items-center gap-2 mb-2">
                       <span className="bg-green-600 text-white text-xs px-2 py-1 rounded font-bold">✓ VERIFIED</span>
                     </div>
                     <div className="flex items-center gap-2 mb-2">
-                      <span className="text-gray-300 text-sm">{school.program_email}</span>
+                      <span className="text-gray-300 text-sm">{realProgramEmail}</span>
                       <button
-                        onClick={() => copyToClipboard(school.program_email)}
+                        onClick={() => copyToClipboard(realProgramEmail)}
                         className="text-gray-400 hover:text-white text-xs"
                         title="Copy email"
                       >
@@ -418,8 +517,10 @@ export default function SchoolDetailModal({
               ))}
             </div>
 
-            {/* Tab content */}
-            <div className="flex-1 p-6 overflow-y-auto">
+            {/* Tab content — tighter padding on mobile so coach cards
+                aren't crammed against the edges. Desktop keeps the
+                generous p-6 since there's more room to breathe. */}
+            <div className="flex-1 px-5 py-5 md:p-6 md:overflow-y-auto">
               {activeTab === 'COACHES' && (
                 <div className="space-y-4">
                   {/* Real coaches */}

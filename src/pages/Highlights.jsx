@@ -1,5 +1,5 @@
-import { useState, useEffect } from 'react'
-import { useAuth } from '../hooks/useAuth'
+import { useState, useEffect, useCallback } from 'react'
+import { useAuth } from '../hooks/authContext'
 import { supabase } from '../lib/supabase'
 import { parseHighlightUrl, getSourceLabel, getSourceColor } from '../lib/highlightUrl'
 import { logActivity } from '../lib/activity'
@@ -11,6 +11,7 @@ const PREDEFINED_TAGS = ['GAME', 'TRAINING', 'TOURNAMENT', 'SHOWCASE', 'GOALS', 
 
 export default function Highlights() {
   const { user } = useAuth()
+  const userId = user?.id
   const [highlights, setHighlights] = useState([])
   const [loading, setLoading] = useState(true)
   const [showAddModal, setShowAddModal] = useState(false)
@@ -28,20 +29,14 @@ export default function Highlights() {
   const [urlInfo, setUrlInfo] = useState({ source: null, thumbnail_url: null })
   const [customTag, setCustomTag] = useState('')
 
-  useEffect(() => {
-    if (user?.id) {
-      loadHighlights()
-    }
-  }, [user?.id])
-
-  const loadHighlights = async () => {
-    if (!user?.id) return
+  const loadHighlights = useCallback(async () => {
+    if (!userId) return
 
     try {
       const { data, error } = await supabase
         .from('highlights')
         .select('*')
-        .eq('athlete_id', user.id)
+        .eq('athlete_id', userId)
         .order('is_primary', { ascending: false })
         .order('created_at', { ascending: false })
 
@@ -52,7 +47,13 @@ export default function Highlights() {
     } finally {
       setLoading(false)
     }
-  }
+  }, [userId])
+
+  useEffect(() => {
+    // Sync-with-external-state: load the athlete's highlights from Supabase.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    if (userId) loadHighlights()
+  }, [userId, loadHighlights])
 
   const handleUrlChange = (url) => {
     setFormData(prev => ({ ...prev, url }))
@@ -247,9 +248,13 @@ export default function Highlights() {
         {/* Header */}
         <div className="flex items-center justify-between mb-8">
           <div>
-            <h1 className="display-font text-3xl text-white mb-2">HIGHLIGHTS</h1>
-            <p className="text-gray-400">
-              Your video library — coaches see your primary reel first
+            <div className="flex items-center gap-3 mb-2">
+              <div className="h-px w-8" style={{ background: 'var(--crimson)' }} />
+              <span className="text-[10px] uppercase tracking-[0.22em] font-bold" style={{ color: 'var(--crimson)' }}>Your Reel</span>
+            </div>
+            <h1 className="display-font text-4xl text-white mb-1">Highlights</h1>
+            <p className="text-text-secondary text-sm">
+              Coaches see your primary reel first.
             </p>
           </div>
           <button
@@ -281,7 +286,7 @@ export default function Highlights() {
         ) : (
           /* Highlights grid */
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-            {highlights.map((highlight, index) => (
+            {highlights.map((highlight) => (
               <div
                 key={highlight.id}
                 className={`bg-navy-900 rounded-xl overflow-hidden border transition-colors group cursor-pointer ${

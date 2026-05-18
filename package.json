@@ -4,17 +4,26 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
+    "presecure": "grep -rn 'sb_secret_\\|sb_publishable_\\|eyJhbGc' --include='*.js' --include='*.mjs' --include='*.jsx' --include='*.ts' --include='*.tsx' --include='*.sh' --exclude-dir=node_modules --exclude-dir=.git --exclude-dir=dist . && exit 1 || exit 0",
+    "predev": "npm run presecure",
+    "prebuild": "npm run presecure",
     "dev": "vite",
     "build": "vite build",
     "lint": "eslint .",
     "preview": "vite preview"
   },
   "dependencies": {
+    "@dnd-kit/core": "^6.3.1",
+    "@dnd-kit/sortable": "^10.0.0",
+    "@dnd-kit/utilities": "^3.2.2",
     "@supabase/supabase-js": "^2.104.1",
     "cheerio": "^1.2.0",
+    "date-fns": "^4.1.0",
     "dotenv": "^17.4.2",
+    "lucide-react": "^1.9.0",
     "node-fetch": "^3.3.2",
     "p-limit": "^7.3.0",
+    "postgres": "^3.4.9",
     "react": "^19.2.5",
     "react-dom": "^19.2.5",
     "react-router-dom": "^7.14.1"

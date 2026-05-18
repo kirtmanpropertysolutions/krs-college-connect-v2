@@ -1,7 +1,5 @@
 import { getSchoolColors, isLightColor } from '../lib/schoolColors'
 
-export { getSchoolColors, isLightColor }
-
 function getMonogram(name) {
   if (!name) return '?'
   const tokens = name.replace(/University|College|of|the/gi, '').trim().split(/\s+/).filter(Boolean)

@@ -1,6 +1,6 @@
 import { useState } from 'react'
-import { useAuth } from '../hooks/useAuth'
-import { useTheme } from '../contexts/ThemeContext'
+import { useAuth } from '../hooks/authContext'
+import { useTheme } from '../contexts/themeContext'
 import { supabase } from '../lib/supabase'
 import { Sun, Moon, Monitor } from 'lucide-react'
 
