@@ -49,3 +49,8 @@ krs-college-connect-source.zip
 .env.vercel*
 .staging-creds.env
 .prod-creds.env
+supabase/.temp/
+krs-diagnostic-export.zip
+src/test-temp/
+.claude/settings.json
+.claude/settings.local.json
