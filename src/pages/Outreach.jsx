@@ -582,13 +582,57 @@ export default function Outreach() {
 
     const emailText = `Subject: ${subject}\n\n${body}`
 
-    // clipboard.writeText returns a Promise but we don't block on it —
-    // the call ITSELF happens synchronously inside the click handler,
-    // which is what iOS Safari requires for permission. The .then/catch
-    // just toasts the outcome.
-    const writeResult = navigator.clipboard?.writeText
-      ? navigator.clipboard.writeText(emailText)
-      : Promise.reject(new Error('clipboard API unavailable'))
+    // Write BOTH text/plain AND text/html to the clipboard.
+    //
+    // Why both: iOS Gmail's mobile compose has a known quirk where
+    // pasting from a plain-text-only clipboard can URL-encode the
+    // content (`%20` for spaces, `%E2%80%94` for em-dashes, `%0A`
+    // for newlines) instead of pasting the raw text. When the
+    // clipboard ALSO has a text/html representation, Gmail picks
+    // that one and renders it correctly. The HTML version is just
+    // the plain text wrapped in <pre> with HTML entities escaped so
+    // it survives as a faithful copy in any rich-text destination.
+    //
+    // Apple Mail, Outlook, Notes, iMessage etc. all also accept
+    // text/html, so this works everywhere — and falls back to the
+    // text/plain version on the few clients that don't.
+    //
+    // ClipboardItem is the only way to write multiple MIME types in
+    // a single call. Older Safari (< 13.1) doesn't have it; we fall
+    // through to writeText in that case.
+    const escapeHtml = (s) =>
+      s
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;')
+    const emailHtml = `<pre style="font-family:inherit;white-space:pre-wrap;margin:0">${escapeHtml(emailText)}</pre>`
+
+    let writeResult
+    if (
+      navigator.clipboard?.write &&
+      typeof window !== 'undefined' &&
+      typeof window.ClipboardItem !== 'undefined'
+    ) {
+      try {
+        const item = new window.ClipboardItem({
+          'text/plain': new Blob([emailText], { type: 'text/plain' }),
+          'text/html': new Blob([emailHtml], { type: 'text/html' }),
+        })
+        writeResult = navigator.clipboard.write([item])
+      } catch {
+        // Some browsers throw on ClipboardItem construction even
+        // when the API is present — fall back to plain writeText.
+        writeResult = navigator.clipboard?.writeText
+          ? navigator.clipboard.writeText(emailText)
+          : Promise.reject(new Error('clipboard API unavailable'))
+      }
+    } else if (navigator.clipboard?.writeText) {
+      writeResult = navigator.clipboard.writeText(emailText)
+    } else {
+      writeResult = Promise.reject(new Error('clipboard API unavailable'))
+    }
 
     writeResult
       .then(() => {
