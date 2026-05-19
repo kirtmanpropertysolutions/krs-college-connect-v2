@@ -326,6 +326,30 @@ export default function AthleteProfile() {
                 )}
               </div>
 
+              {/* Phone — used in the outreach email signature so coaches can
+                  text recruits (the standard recruiting flow). Optional;
+                  empty values are dropped silently from the signature. */}
+              <div>
+                <label className="block text-text-tertiary text-sm uppercase tracking-wider mb-2">
+                  Phone
+                </label>
+                <input
+                  type="tel"
+                  inputMode="tel"
+                  autoComplete="tel"
+                  value={athlete?.phone || ''}
+                  onChange={(e) => setAthlete(prev => ({ ...prev, phone: e.target.value }))}
+                  onBlur={(e) => handleAthleteSave('phone', e.target.value)}
+                  className="input-field"
+                  placeholder="(555) 555-1234"
+                />
+                {saveStatus.phone && (
+                  <span className={`text-xs ${saveStatus.phone === 'saved' ? 'text-green-500' : 'text-red-500'}`}>
+                    {saveStatus.phone === 'saved' ? 'Saved' : 'Error'}
+                  </span>
+                )}
+              </div>
+
               <div>
                 <label className="block text-text-tertiary text-sm uppercase tracking-wider mb-2">
                   City

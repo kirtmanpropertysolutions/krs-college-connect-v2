@@ -40,7 +40,13 @@ export async function getPipelineWithStats(athleteId) {
     const [schoolsRes, schoolDetailsForCoaches, outreachRes] = await Promise.all([
       supabase
         .from('schools')
-        .select('id, name, division, primary_color, conference, state')
+        // program_email is REQUIRED here. Without it, clicking
+        // "Write to Coach" on a pipeline card hands a school object
+        // to Outreach.jsx that's missing program_email — and the
+        // recipient resolver then sees `{ email: null }` and blocks
+        // the send even when the school does have a verified program
+        // inbox. Bug surface for the May 2026 pipeline-send regression.
+        .select('id, name, division, primary_color, conference, state, program_email')
         .in('name', schoolNames),
       // We need school IDs first to query coaches, but we can issue this
       // in parallel against the same data using a sub-query is awkward
@@ -103,6 +109,9 @@ export async function getPipelineWithStats(athleteId) {
         primary_color: school?.primary_color || '#dc2626',
         conference: school?.conference || 'Unknown',
         state: school?.state || 'Unknown',
+        // Surfaced for the outreach recipient resolver — null is fine
+        // (resolver falls through to the "No verified email" state).
+        program_email: school?.program_email || null,
         coach_count: coachCountByName.get(pipeline.school) || 0,
         last_email: lastEmailByName.get(pipeline.school) || null,
       }

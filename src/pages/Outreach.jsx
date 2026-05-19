@@ -9,6 +9,7 @@ import { Users, Mail, Copy, ExternalLink, CheckCircle2, AlertCircle, Clock, Trop
 import AthleteLayout from '../components/AthleteLayout.jsx'
 import SchoolBadge from '../components/SchoolBadge.jsx'
 import { getSchoolColors, isLightColor } from '../lib/schoolColors'
+import { resolveRecipient } from '../lib/outreachRecipient'
 
 export default function Outreach() {
   const { user, profile } = useAuth()
@@ -254,7 +255,13 @@ export default function Outreach() {
     handleUrlParams()
   }, [loadData, handleUrlParams])
 
-  // Handle selecting a school from pipeline
+  // Handle selecting a school from the My Pipeline tab.
+  //
+  // The pipeline row from getPipelineWithStats now carries program_email
+  // (added with the May 2026 regression fix — without it, the recipient
+  // resolver couldn't see the school's program inbox and blocked the
+  // send). We forward it explicitly here so selectedSchool has the same
+  // shape regardless of which entry point set it.
   const handleSelectSchool = (school) => {
     setActiveTab('compose')
     setSelectedSchool({
@@ -263,12 +270,13 @@ export default function Outreach() {
       division: school.division,
       conference: school.conference,
       state: school.state,
-      primary_color: school.primary_color
+      primary_color: school.primary_color,
+      program_email: school.program_email || null,
     })
 
-    // If school has only 1 coach, auto-select it
+    // If school has only 1 coach, auto-select it. (Resolver will still
+    // pick that coach over the program email — see resolveRecipient.)
     if (school.coach_count === 1) {
-      // Find the coach for this school
       const schoolCoach = coaches.find(c => c.schools?.name === school.school)
       if (schoolCoach) {
         setSelectedCoach(schoolCoach)
@@ -279,7 +287,8 @@ export default function Outreach() {
     window.scrollTo({ top: 0, behavior: 'smooth' })
   }
 
-  // Handle selecting a school from pipeline quick cards in compose
+  // Handle selecting a school from the in-compose pipeline quick-card row.
+  // Same program_email forwarding as handleSelectSchool above.
   const handleSelectPipelineQuick = (school) => {
     setSelectedSchool({
       id: school.school_id,
@@ -287,7 +296,8 @@ export default function Outreach() {
       division: school.division,
       conference: school.conference,
       state: school.state,
-      primary_color: school.primary_color
+      primary_color: school.primary_color,
+      program_email: school.program_email || null,
     })
 
     if (school.coach_count === 1) {
@@ -351,35 +361,89 @@ export default function Outreach() {
     return [...pipelineCoaches, ...otherCoaches].slice(0, 10)
   }
 
-  // Template substitution function
+  // Template substitution function.
+  //
+  // Three substitution outcomes per {{token}}:
+  //   - val === null         → drop silently (used for optional fields like
+  //                            `phone` and `coach_name` where we don't want
+  //                            "[phone]" visible to the coach)
+  //   - val === '' / undef   → render `[token]` placeholder (used for
+  //                            required-but-blank profile fields, surfaces
+  //                            in the "Missing: …" warning bar)
+  //   - val is a string      → substitute the value
+  //
+  // The regex captures optional surrounding newlines so when a "drop
+  // silently" token sits on its own line in the signature (the common
+  // case for `{{phone}}` between position and film URL), we collapse the
+  // `\n{{phone}}\n` to `\n` instead of leaving a blank line behind.
+  // Without this, an athlete with no phone gets:
+  //
+  //     2027 · Eastside FC Washington · CM
+  //     <— blank line —>
+  //     https://hudl.com/v/riley
+  //
+  // With it, the signature stays tight:
+  //
+  //     2027 · Eastside FC Washington · CM
+  //     https://hudl.com/v/riley
+  //
+  // For visible-placeholder values (`''`/undef), the surrounding newlines
+  // are preserved so the missing-field warning UI can detect the bracket
+  // and the layout doesn't shift.
   const substituteTemplate = (text, vars) => {
     if (!text) return ''
 
-    // First pass: substitute variables
-    const substituted = text.replace(/\{\{(\w+)\}\}/g, (match, key) => {
-      const val = vars[key]
-      if (val === null) return ''  // explicit null means "drop silently"
-      if (val === undefined || val === '') return `[${key}]`  // missing = visible placeholder
-      return val
-    })
+    // First pass: substitute variables with newline-aware handling.
+    const substituted = text.replace(
+      /(\n?)\{\{(\w+)\}\}(\n?)/g,
+      (match, before, key, after) => {
+        const val = vars[key]
+        if (val === null) {
+          // Drop silently. If the token was on its own line (newline on
+          // both sides), collapse to a single newline so the signature
+          // stack doesn't get a blank gap.
+          if (before === '\n' && after === '\n') return '\n'
+          return ''
+        }
+        if (val === undefined || val === '') {
+          // Visible placeholder — preserve surrounding whitespace.
+          return `${before}[${key}]${after}`
+        }
+        return `${before}${val}${after}`
+      }
+    )
 
-    // Second pass: clean up formatting
+    // Second pass: belt-and-suspenders cleanup.
+    //   - "Hi Coach ," / "Coach ," from a null coach_name
+    //   - stray space before punctuation from any token dropping
+    //   - 3+ consecutive newlines collapsed to 2 (handles the edge case
+    //     where two adjacent tokens both drop silently — shouldn't
+    //     happen with the current templates, but cheap insurance)
     return substituted
       .replace(/Hi Coach\s+,/g, 'Hi Coach,')
       .replace(/Coach\s+,/g, 'Coach,')
-      .replace(/\s+([,.])/g, '$1')  // collapse space before punctuation
+      .replace(/[ \t]+([,.])/g, '$1')  // collapse space before punctuation
+      .replace(/\n{3,}/g, '\n\n')      // collapse runaway blank lines
   }
 
   // Build variables object for template substitution
   const getTemplateVariables = useCallback(async (coach, school) => {
-    // Format social handles as required by templates
+    // Format social handles as required by org-custom templates that
+    // still reference {{social_handles}}. The default seeded templates
+    // dropped this token in migration 052, but org admins may still
+    // have customized templates using it.
+    //
+    // Note: the original code joined with `'\\n'` — that's a literal
+    // backslash-n string, not a newline. Same typo class as the copy
+    // handler bug. Fixed here so multi-platform social blocks actually
+    // render with paragraph breaks instead of "Instagram: …\nX: …".
     const formatSocialHandles = () => {
       const handles = []
       if (athlete?.instagram_url) handles.push(`Instagram: ${athlete.instagram_url}`)
       if (athlete?.twitter_url) handles.push(`X: ${athlete.twitter_url}`)
       if (athlete?.tiktok_url) handles.push(`TikTok: ${athlete.tiktok_url}`)
       if (athlete?.youtube_url) handles.push(`YouTube: ${athlete.youtube_url}`)
-      return handles.join('\\n')
+      return handles.join('\n')
     }
 
     // Get primary highlight from highlights table
@@ -415,6 +479,14 @@ export default function Outreach() {
       highlight_url: primaryHighlightUrl || athlete?.highlight_reel_url || athlete?.trace_url || athlete?.hudl_url || athlete?.youtube_highlights_url || '',
       trace_url: athlete?.trace_url || '',
       hudl_url: athlete?.hudl_url || '',
+
+      // Contact — used in the signature block. Phone is optional (we
+      // don't want to nag athletes who'd rather not share theirs), so
+      // we return `null` when blank. substituteTemplate() treats null
+      // as "drop silently" and `''` / undefined as "render [phone] as
+      // a visible placeholder" — null is what we want here so the
+      // signature line just disappears.
+      phone: athlete?.phone || null,
 
       // Physical attributes
       height: athlete?.height_cm ? `${Math.floor(athlete.height_cm/2.54/12)}'${Math.round(athlete.height_cm/2.54%12)}"` : '',
@@ -468,52 +540,159 @@ export default function Outreach() {
     updatePreview()
   }, [selectedTemplate, athlete, getPreview])
 
-  // Get plain text preview
-  const getPlainTextPreview = async () => {
-    const previewData = await getPreview()
+  // getPlainTextPreview() was removed in the May 2026 send-flow fix.
+  // It was async (awaited getPreview() which re-substituted the template
+  // and re-fetched primary highlight from the DB), and that await chain
+  // killed the iOS Safari user-gesture token across the click handler
+  // — silently breaking clipboard writes AND mailto: navigation. All
+  // send/copy paths now read directly from the `preview` state (kept
+  // fresh by the useEffect at line ~535), strip <…> tags inline, and
+  // never block the click handler on a DB roundtrip.
+
+  // Copy subject + body to the clipboard so the athlete can paste into
+  // any email client.
+  //
+  // Two bugs were fixed here in this pass:
+  //
+  //   1. The original `'\\n\\n'` was a literal backslash-n-backslash-n
+  //      string (4 chars), not a paragraph break. Pasted text showed
+  //      "Subject: …\n\n…" with visible escape sequences instead of
+  //      the formatted email. Now uses real `\n\n` (template literal
+  //      with actual newlines).
+  //
+  //   2. Awaiting `getPlainTextPreview()` before the clipboard write
+  //      blew up the iOS Safari user-gesture token the same way it
+  //      blew up the mailto: nav — so on mobile, the clipboard write
+  //      silently failed (browser threw NotAllowedError). Now we pull
+  //      from the cached `preview` state (kept fresh by the useEffect
+  //      that watches template/coach/school changes) so the write
+  //      happens synchronously inside the click handler.
+  const handleCopyEmail = () => {
+    const subject = (preview?.subject || '').replace(/<[^>]*>/g, '').trim()
+    const body = (preview?.body || '').replace(/<[^>]*>/g, '').trim()
+    if (!subject || !body) {
+      setShowToast(
+        !selectedTemplate
+          ? 'Pick a template first.'
+          : 'Preview still loading — try again in a second.'
+      )
+      setTimeout(() => setShowToast(''), 2500)
+      return
+    }
+
+    const emailText = `Subject: ${subject}\n\n${body}`
+
+    // clipboard.writeText returns a Promise but we don't block on it —
+    // the call ITSELF happens synchronously inside the click handler,
+    // which is what iOS Safari requires for permission. The .then/catch
+    // just toasts the outcome.
+    const writeResult = navigator.clipboard?.writeText
+      ? navigator.clipboard.writeText(emailText)
+      : Promise.reject(new Error('clipboard API unavailable'))
+
+    writeResult
+      .then(() => {
+        logOutreach('copied_to_clipboard', subject, body).catch((e) =>
+          console.warn('outreach log (non-blocking) failed:', e?.message)
+        )
+        setShowToast('Copied to clipboard ✓')
+        setTimeout(() => setShowToast(''), 3000)
+      })
+      .catch((error) => {
+        // navigator.clipboard requires HTTPS + user gesture; some
+        // mobile browsers also block it inside iframes / PWAs.
+        console.error('Error copying to clipboard:', error)
+        setShowToast("Couldn't copy — try Open Email App instead.")
+        setTimeout(() => setShowToast(''), 4000)
+      })
+  }
+
+  // Build a mailto: URL from the cached preview (no async work, so the
+  // user-gesture context survives across the click → navigation hop on
+  // iOS Safari / Android Chrome). Returns null if anything's missing
+  // (caller is responsible for the toast in that case).
+  //
+  // Recipient resolution goes through resolveRecipient() so there's a
+  // single source of truth: coach.email > school.program_email > none.
+  const buildMailto = () => {
+    const r = resolveRecipient(selectedCoach, selectedSchool)
+    if (!r.canSend) return null
+    const subject = (preview?.subject || '').replace(/<[^>]*>/g, '').trim()
+    const body = (preview?.body || '').replace(/<[^>]*>/g, '').trim()
+    if (!subject || !body) return null
     return {
-      subject: previewData.subject.replace(/<[^>]*>/g, ''),
-      body: previewData.body.replace(/<[^>]*>/g, '')
+      email: r.email,
+      subject,
+      body,
+      url:
+        `mailto:${r.email}?subject=${encodeURIComponent(subject)}` +
+        `&body=${encodeURIComponent(body)}`,
     }
   }
 
-  // Copy to clipboard
-  const handleCopyEmail = async () => {
-    const preview = await getPlainTextPreview()
-    if (!preview.subject || !preview.body) return
-
-    const emailText = `Subject: ${preview.subject}\\n\\n${preview.body}`
-
-    try {
-      await navigator.clipboard.writeText(emailText)
-      await logOutreach('copied_to_clipboard', preview.subject, preview.body)
-      setShowToast('Copied to clipboard ✓')
+  // PRIMARY MOBILE SEND.
+  //
+  // The whole point of this button is to hand a plain `mailto:` to the
+  // OS so the user's default mail composer opens — iOS Mail, Gmail app,
+  // Outlook, Spark, Proton, whatever. iOS and Android both route
+  // `mailto:` through the default-mail-app picker, so we get native
+  // app launch on every modern device WITHOUT user-agent sniffing or
+  // brittle vendor deep-links (googlegmail://, ms-outlook://).
+  //
+  // Why this is its own handler instead of reusing handleOpenMail:
+  //   - It runs SYNC. No awaits between the click and the navigation,
+  //     so iOS Safari keeps the user-gesture token and the OS prompt
+  //     actually appears. (handleOpenMail used to await getPlainTextPreview
+  //     and logOutreach first; the gesture would expire and Safari
+  //     silently dropped the mailto.)
+  //   - It uses window.location.href, NOT window.open(..., '_blank').
+  //     The `_blank` target spawns a popup that iOS swallows for
+  //     mailto: schemes.
+  //   - Logging is fire-and-forget AFTER navigation kicks off — losing
+  //     the activity log on a network blip is preferable to losing the
+  //     user's send.
+  const handleSendEmailMobile = () => {
+    const mt = buildMailto()
+    if (!mt) {
+      setShowToast(
+        !selectedTemplate
+          ? 'Pick a template first.'
+          : !preview?.subject
+          ? 'Preview still loading — try again in a second.'
+          : "No coach email on file — use Copy instead."
+      )
       setTimeout(() => setShowToast(''), 3000)
-    } catch (error) {
-      // navigator.clipboard requires HTTPS + user gesture; some
-      // mobile browsers also block it inside iframes. Surface the
-      // failure so the user can fall back to "Open in mail app".
-      console.error('Error copying to clipboard:', error)
-      setShowToast("Couldn't copy — try Open in mail app instead.")
-      setTimeout(() => setShowToast(''), 4000)
+      return
     }
+    logOutreach('opened_mail_app', mt.subject, mt.body).catch((e) =>
+      console.warn('outreach log (non-blocking) failed:', e?.message)
+    )
+    // Synchronous nav — preserves user gesture across iOS Safari + PWA.
+    // (Click handler, not render — lint false positive.)
+    // eslint-disable-next-line react-hooks/immutability
+    window.location.href = mt.url
   }
 
-  // Open in mail app (uses default mailto: handler — Mail.app, Outlook, etc.)
-  const handleOpenMail = async () => {
-    const preview = await getPlainTextPreview()
-    if (!preview.subject || !preview.body) return
-
-    const email = selectedCoach?.email || selectedSchool?.program_email
-    if (!email) return
-
-    const mailtoUrl = `mailto:${email}?subject=${encodeURIComponent(preview.subject)}&body=${encodeURIComponent(preview.body)}`
-
-    await logOutreach('opened_mail_app', preview.subject, preview.body)
-    window.open(mailtoUrl, '_blank')
-
+  // DESKTOP secondary — same mailto:, but on desktop we don't have to
+  // worry about iOS Safari's user-gesture rules, so we use the cached
+  // preview path and let the OS handle the protocol launch. Identical
+  // logic to handleSendEmailMobile under the hood; kept as a separate
+  // export so the two button labels can diverge later (e.g. "Open in
+  // Outlook" if we ever sniff client).
+  const handleOpenMail = () => {
+    const mt = buildMailto()
+    if (!mt) {
+      setShowToast("No coach email on file — use Copy instead.")
+      setTimeout(() => setShowToast(''), 3000)
+      return
+    }
+    logOutreach('opened_mail_app', mt.subject, mt.body).catch((e) =>
+      console.warn('outreach log (non-blocking) failed:', e?.message)
+    )
+    // eslint-disable-next-line react-hooks/immutability
+    window.location.href = mt.url
     setShowToast('Opened in mail app ✓')
-    setTimeout(() => setShowToast(''), 3000)
+    setTimeout(() => setShowToast(''), 2500)
   }
 
   // Send via Gmail web compose — pre-fills To / Subject / Body and opens Gmail
@@ -743,8 +922,13 @@ export default function Outreach() {
   }
 
   const filteredCoaches = getFilteredCoaches()
+  // Single source of truth for "where does this email go?" — resolver
+  // returns { email, sourceType, label, displayName, canSend } and we
+  // use that everywhere (button disabled state, Step-1 chip, copy/send
+  // paths). See src/lib/outreachRecipient.js.
+  const recipient = resolveRecipient(selectedCoach, selectedSchool)
   const canSend = selectedTemplate && (selectedCoach || selectedSchool)
-  const hasEmail = selectedCoach?.email || selectedSchool?.program_email
+  const hasEmail = recipient.canSend
 
   return (
     <AthleteLayout>
@@ -819,14 +1003,35 @@ export default function Outreach() {
               </div>
 
               {selectedCoach || selectedSchool ? (
-                <div className="bg-navy-800 rounded-lg p-4 border border-green-600">
-                  <div className="flex justify-between items-center">
-                    <div>
-                      <p className="text-fg-primary font-medium">
-                        {selectedCoach ? selectedCoach.name : 'Program Email'}
-                      </p>
-                      <p className="text-text-tertiary text-sm">
-                        {selectedSchool?.name} • {selectedCoach?.email || selectedSchool?.program_email || 'No email on file'}
+                // Selected-recipient card. The colored chip on the right
+                // shows the resolver's verdict so the athlete knows at a
+                // glance whether this is a real coach email, the program
+                // inbox, or nothing usable. Border color follows the
+                // verdict — green for sendable, amber for nothing yet.
+                <div className={`bg-navy-800 rounded-lg p-4 border ${recipient.canSend ? 'border-green-600' : 'border-amber-600'}`}>
+                  <div className="flex justify-between items-start gap-3">
+                    <div className="min-w-0 flex-1">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <p className="text-fg-primary font-medium truncate">
+                          {recipient.displayName || (selectedCoach?.name || 'Program Email')}
+                        </p>
+                        <span
+                          className={`text-[10px] uppercase tracking-wider font-bold px-2 py-0.5 rounded ${
+                            recipient.sourceType === 'coach'
+                              ? 'bg-green-600/20 text-green-400'
+                              : recipient.sourceType === 'program'
+                              ? 'bg-blue-600/20 text-blue-400'
+                              : 'bg-amber-600/20 text-amber-400'
+                          }`}
+                        >
+                          {recipient.label}
+                        </span>
+                      </div>
+                      <p className="text-text-tertiary text-sm truncate">
+                        {selectedSchool?.name}
+                        {recipient.email
+                          ? ` • ${recipient.email}`
+                          : ' • Nothing to send to yet — use Copy + paste manually.'}
                       </p>
                     </div>
                     <button
@@ -835,7 +1040,7 @@ export default function Outreach() {
                         setSelectedSchool(null)
                         setSearchQuery('')
                       }}
-                      className="text-text-tertiary hover:text-fg-primary"
+                      className="text-text-tertiary hover:text-fg-primary flex-shrink-0"
                     >
                       ✕
                     </button>
@@ -1026,11 +1231,52 @@ export default function Outreach() {
               </div>
             )}
 
-            {/* Action Buttons */}
+            {/* Action Buttons.
+                Mobile and desktop see different layouts because the right
+                "send" affordance is platform-dependent:
+                  • Mobile → one big mailto: button. iOS / Android route
+                    mailto: to the user's default mail app (Apple Mail,
+                    Gmail app, Outlook, Spark, …) without any sniffing,
+                    so we don't need separate "Send via Gmail" /
+                    "Open in Mail App" buttons that just confuse athletes.
+                  • Desktop → the three-button set still makes sense:
+                    Gmail web for athletes who live in a browser tab,
+                    mailto: for desktop mail clients, copy as fallback.
+                Tailwind's `md:` prefix kicks in at ≥ 768px — same
+                breakpoint we use everywhere else in the app for the
+                mobile ↔ desktop split. */}
             {canSend && (
               <div>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mb-3">
-                  {/* Primary — Send via Gmail (most athletes use Gmail) */}
+                {/* MOBILE LAYOUT — one primary action, one fallback.
+                    Renders only below md (Tailwind 768px breakpoint).
+                    The primary fires a plain mailto: which iOS / Android
+                    route to whatever the user set as their default mail
+                    app (Apple Mail, Gmail app, Outlook, Spark, …).
+                    Copy is the fallback for cases where the user has no
+                    mail-app default configured or the mailto: handler
+                    bounces them somewhere they don't want. */}
+                <div className="grid grid-cols-1 gap-3 mb-3 md:hidden">
+                  <button
+                    onClick={handleSendEmailMobile}
+                    className={`eastside-btn flex items-center justify-center gap-2 ${hasEmail ? '' : 'opacity-50 cursor-not-allowed'}`}
+                    disabled={!hasEmail}
+                    title={!hasEmail ? 'No verified email on file — use Copy + paste manually' : 'Opens your phone\'s default mail app'}
+                    style={{ padding: '14px 18px', fontSize: '15px' }}
+                  >
+                    <Mail size={18} /> OPEN EMAIL APP
+                  </button>
+                  <button
+                    onClick={handleCopyEmail}
+                    className="secondary-btn flex items-center justify-center gap-2"
+                    style={{ padding: '12px 18px', fontSize: '13px' }}
+                  >
+                    <Copy size={16} /> COPY EMAIL + MESSAGE
+                  </button>
+                </div>
+
+                {/* DESKTOP LAYOUT — three-button set. Renders at ≥ md. */}
+                <div className="hidden md:grid md:grid-cols-3 gap-3 mb-3">
+                  {/* Primary — Send via Gmail (browser-first workflow) */}
                   <button
                     onClick={handleSendViaGmail}
                     className={`eastside-btn flex items-center justify-center gap-2 ${hasEmail ? '' : 'opacity-50 cursor-not-allowed'}`}
@@ -1041,7 +1287,7 @@ export default function Outreach() {
                     <Mail size={16} /> SEND VIA GMAIL
                   </button>
 
-                  {/* Open in OS default mail app (Outlook / Mail.app / Yahoo / etc.) */}
+                  {/* Open in OS default mail app (Outlook / Mail.app / etc.) */}
                   <button
                     onClick={handleOpenMail}
                     className={`secondary-btn flex items-center justify-center gap-2 ${hasEmail ? '' : 'opacity-50 cursor-not-allowed'}`}
@@ -1057,11 +1303,12 @@ export default function Outreach() {
                     onClick={handleCopyEmail}
                     className="secondary-btn flex items-center justify-center gap-2"
                     style={{ padding: '12px 18px', fontSize: '13px' }}
-                    title="Copy the email to your clipboard — paste into any email tool"
+                    title="Copy subject + body to your clipboard — paste into any email tool"
                   >
-                    <Copy size={16} /> COPY EMAIL
+                    <Copy size={16} /> COPY EMAIL + MESSAGE
                   </button>
                 </div>
+
                 <p className="text-[11px] text-text-tertiary text-center leading-relaxed">
                   Emails are sent from <span className="text-fg-primary">your own email address</span>, not from KRS.
                   Replies land in your inbox — log them back here so your pipeline stays up to date.
