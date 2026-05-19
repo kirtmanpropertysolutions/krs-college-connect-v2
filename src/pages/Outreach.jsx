@@ -1114,20 +1114,10 @@ export default function Outreach() {
                           ? ` • ${recipient.email}`
                           : ' • Nothing to send to yet — use Copy + paste manually.'}
                       </p>
-                      {/* Inline "copy just the address" — handy when the
-                          athlete wants to paste the email into a contacts
-                          app, a Notes file, or the To: field of a different
-                          mail account than the OS's default. Stays hidden
-                          when there's no email to copy. */}
-                      {recipient.email && (
-                        <button
-                          onClick={handleCopyAddress}
-                          className="mt-2 inline-flex items-center gap-1.5 text-[11px] uppercase tracking-wider font-bold text-club-primary hover:text-fg-primary"
-                          title={`Copy ${recipient.email}`}
-                        >
-                          <Copy size={12} /> COPY ADDRESS
-                        </button>
-                      )}
+                      {/* Inline COPY ADDRESS removed — it's now a
+                          first-class secondary button in the send-action
+                          row below, so duplicating it inside the recipient
+                          card just clutters the layout. */}
                     </div>
                     <button
                       onClick={() => {
@@ -1342,23 +1332,43 @@ export default function Outreach() {
                 mobile ↔ desktop split. */}
             {canSend && (
               <div>
-                {/* MOBILE LAYOUT — one primary action, one fallback.
-                    Renders only below md (Tailwind 768px breakpoint).
-                    The primary fires a plain mailto: which iOS / Android
-                    route to whatever the user set as their default mail
-                    app (Apple Mail, Gmail app, Outlook, Spark, …).
-                    Copy is the fallback for cases where the user has no
-                    mail-app default configured or the mailto: handler
-                    bounces them somewhere they don't want. */}
+                {/* MOBILE LAYOUT — 3 stacked actions in clear priority:
+                    1. OPEN EMAIL APP (primary)  — one-tap mailto: handoff
+                                                    to the phone's default
+                                                    mail app. Works on every
+                                                    iOS / Android setup.
+                    2. COPY ADDRESS    (secondary)— just the recipient
+                                                    address; useful when
+                                                    the athlete wants to
+                                                    paste it into a different
+                                                    account or contacts app.
+                    3. COPY EMAIL + MESSAGE (fallback) — subject + body to
+                                                    the clipboard for the
+                                                    cases the other two
+                                                    don't cover.
+                    Renders only below md (Tailwind 768px breakpoint). */}
                 <div className="grid grid-cols-1 gap-3 mb-3 md:hidden">
+                  <div>
+                    <button
+                      onClick={handleSendEmailMobile}
+                      className={`eastside-btn flex items-center justify-center gap-2 w-full ${hasEmail ? '' : 'opacity-50 cursor-not-allowed'}`}
+                      disabled={!hasEmail}
+                      title={!hasEmail ? 'No verified email on file — use Copy + paste manually' : 'Opens your phone\'s default mail app'}
+                      style={{ padding: '14px 18px', fontSize: '15px' }}
+                    >
+                      <Mail size={18} /> OPEN EMAIL APP
+                    </button>
+                    <p className="text-[11px] text-text-tertiary mt-1.5 text-center">
+                      Opens your phone's default email app.
+                    </p>
+                  </div>
                   <button
-                    onClick={handleSendEmailMobile}
-                    className={`eastside-btn flex items-center justify-center gap-2 ${hasEmail ? '' : 'opacity-50 cursor-not-allowed'}`}
+                    onClick={handleCopyAddress}
+                    className={`secondary-btn flex items-center justify-center gap-2 ${hasEmail ? '' : 'opacity-50 cursor-not-allowed'}`}
                     disabled={!hasEmail}
-                    title={!hasEmail ? 'No verified email on file — use Copy + paste manually' : 'Opens your phone\'s default mail app'}
-                    style={{ padding: '14px 18px', fontSize: '15px' }}
+                    style={{ padding: '12px 18px', fontSize: '13px' }}
                   >
-                    <Mail size={18} /> OPEN EMAIL APP
+                    <Copy size={16} /> COPY ADDRESS
                   </button>
                   <button
                     onClick={handleCopyEmail}
