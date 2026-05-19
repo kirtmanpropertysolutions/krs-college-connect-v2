@@ -69,8 +69,13 @@ export default class ErrorBoundary extends Component {
             >
               Reload app
             </button>
+            {/* Support contact = product owner during pilot. Was previously
+                a placeholder `support@eastsidefc.com` that didn't route
+                anywhere — when athletes hit an unhandled error and tapped
+                this they got a bounce. Pointed at the real inbox until we
+                set up a proper support@ alias. */}
             <a
-              href="mailto:support@eastsidefc.com"
+              href="mailto:kirtmanpropertysolutions@gmail.com?subject=KRS%20College%20Connect%20support"
               className="secondary-btn inline-flex items-center gap-2"
               style={{ padding: '10px 18px', fontSize: '14px' }}
             >

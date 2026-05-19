@@ -103,15 +103,62 @@ export default function AdminDashboard() {
 
       // Load recent athlete activity — same role='athlete' filter as the
       // count above so this section matches the Total Athletes number.
-      const { data: athleteData } = await supabase
+      //
+      // The widget shows Name / Class+Position / Pipeline / Joined for
+      // each athlete. Class+Position lives on the `athletes` table (one
+      // row per user), and Pipeline is a count from the `pipelines`
+      // table. None of those came across in the original single-table
+      // profile query, which is why the dashboard rendered dashes for
+      // every athlete even when the data was there. Three parallel
+      // queries + a client-side merge gets us every column populated
+      // in one round-trip group instead of N+1 lookups.
+      const { data: athleteProfiles } = await supabase
         .from('profiles')
-        .select('full_name, created_at')
+        .select('id, full_name, created_at')
         .eq('org_id', orgId)
         .eq('role', 'athlete')
         .order('updated_at', { ascending: false })
         .limit(10)
 
-      setAthletes(athleteData || [])
+      const profileIds = (athleteProfiles || []).map((p) => p.id)
+
+      let athleteDetailsByUser = new Map()
+      let pipelineCountByUser = new Map()
+      if (profileIds.length > 0) {
+        const [aDetailsRes, pipelineRes] = await Promise.all([
+          supabase
+            .from('athletes')
+            .select('user_id, class_year, position')
+            .in('user_id', profileIds),
+          supabase
+            .from('pipelines')
+            .select('athlete_id')
+            .in('athlete_id', profileIds),
+        ])
+        for (const row of aDetailsRes.data || []) {
+          athleteDetailsByUser.set(row.user_id, row)
+        }
+        for (const row of pipelineRes.data || []) {
+          pipelineCountByUser.set(
+            row.athlete_id,
+            (pipelineCountByUser.get(row.athlete_id) || 0) + 1
+          )
+        }
+      }
+
+      const merged = (athleteProfiles || []).map((p) => {
+        const details = athleteDetailsByUser.get(p.id) || {}
+        return {
+          id: p.id,
+          full_name: p.full_name,
+          created_at: p.created_at,
+          class_year: details.class_year || null,
+          position: details.position || null,
+          pipeline_count: pipelineCountByUser.get(p.id) || 0,
+        }
+      })
+
+      setAthletes(merged)
 
       // Load recent announcements
       const { data: announcementData } = await supabase
@@ -261,8 +308,25 @@ export default function AdminDashboard() {
                         </span>
                         <span className="truncate">{athlete.full_name || 'Unnamed'}</span>
                       </span>
-                      <span className="text-text-tertiary">—</span>
-                      <span className="text-text-tertiary">—</span>
+                      {/* Class · Position. Renders only the parts present so
+                          a partial profile (e.g. grad year set but position
+                          blank) still shows what we have instead of an em-
+                          dash. Falls through to '—' only when neither field
+                          exists (athletes table row missing entirely). */}
+                      <span className="text-text-secondary">
+                        {athlete.class_year || athlete.position
+                          ? [athlete.class_year, athlete.position].filter(Boolean).join(' · ')
+                          : <span className="text-text-tertiary">—</span>}
+                      </span>
+                      {/* Pipeline count. Athletes with 0 schools in their
+                          pipeline read as "0 schools" rather than a dash —
+                          the recruiting head wants to spot the inactive
+                          athletes at a glance. */}
+                      <span className="text-text-secondary">
+                        {athlete.pipeline_count > 0
+                          ? `${athlete.pipeline_count} ${athlete.pipeline_count === 1 ? 'school' : 'schools'}`
+                          : <span className="text-text-tertiary">0 schools</span>}
+                      </span>
                       <span className="text-text-tertiary text-right">
                         {formatDate(athlete.created_at)}
                       </span>
