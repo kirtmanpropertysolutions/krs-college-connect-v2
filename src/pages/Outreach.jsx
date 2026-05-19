@@ -595,14 +595,51 @@ export default function Outreach() {
         logOutreach('copied_to_clipboard', subject, body).catch((e) =>
           console.warn('outreach log (non-blocking) failed:', e?.message)
         )
-        setShowToast('Copied to clipboard ✓')
-        setTimeout(() => setShowToast(''), 3000)
+        // Tell the athlete EXACTLY what's now in their clipboard so
+        // they can distinguish this from accidental URL copies that
+        // iOS / Outlook sometimes drop on the clipboard when handing
+        // off a mailto:. Showing the subject line is enough to
+        // confirm "yes, this is the email I meant to copy".
+        setShowToast(`Copied subject + body ✓  (“${subject.slice(0, 40)}${subject.length > 40 ? '…' : ''}”)`)
+        setTimeout(() => setShowToast(''), 3500)
       })
       .catch((error) => {
         // navigator.clipboard requires HTTPS + user gesture; some
         // mobile browsers also block it inside iframes / PWAs.
         console.error('Error copying to clipboard:', error)
         setShowToast("Couldn't copy — try Open Email App instead.")
+        setTimeout(() => setShowToast(''), 4000)
+      })
+  }
+
+  // Copy JUST the recipient email address (no subject, no body).
+  //
+  // Added in response to user feedback after the mobile-launch redesign:
+  // athletes wanted a one-tap way to grab the coach/program address by
+  // itself — e.g. to paste into a contacts app, a Notes file, or the
+  // To: field of a mail client where the mailto: handoff put them in a
+  // different account than they wanted to send from.
+  //
+  // Synchronous like handleCopyEmail. Uses the resolver so there's no
+  // separate fallback logic.
+  const handleCopyAddress = () => {
+    const r = resolveRecipient(selectedCoach, selectedSchool)
+    if (!r.canSend) {
+      setShowToast(r.label) // "No verified email"
+      setTimeout(() => setShowToast(''), 2500)
+      return
+    }
+    const writeResult = navigator.clipboard?.writeText
+      ? navigator.clipboard.writeText(r.email)
+      : Promise.reject(new Error('clipboard API unavailable'))
+    writeResult
+      .then(() => {
+        setShowToast(`Copied ${r.email} ✓`)
+        setTimeout(() => setShowToast(''), 3000)
+      })
+      .catch((error) => {
+        console.error('Error copying address:', error)
+        setShowToast("Couldn't copy — long-press the email above to select & copy.")
         setTimeout(() => setShowToast(''), 4000)
       })
   }
@@ -1033,6 +1070,20 @@ export default function Outreach() {
                           ? ` • ${recipient.email}`
                           : ' • Nothing to send to yet — use Copy + paste manually.'}
                       </p>
+                      {/* Inline "copy just the address" — handy when the
+                          athlete wants to paste the email into a contacts
+                          app, a Notes file, or the To: field of a different
+                          mail account than the OS's default. Stays hidden
+                          when there's no email to copy. */}
+                      {recipient.email && (
+                        <button
+                          onClick={handleCopyAddress}
+                          className="mt-2 inline-flex items-center gap-1.5 text-[11px] uppercase tracking-wider font-bold text-club-primary hover:text-fg-primary"
+                          title={`Copy ${recipient.email}`}
+                        >
+                          <Copy size={12} /> COPY ADDRESS
+                        </button>
+                      )}
                     </div>
                     <button
                       onClick={() => {
